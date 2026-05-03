@@ -1,4 +1,4 @@
-package com.aura.ui.theme
+package com.aura.commons.theme
 
 import androidx.compose.ui.graphics.Color
 
