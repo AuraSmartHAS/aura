@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# ElevenLabs Conversational AI SDK + LiveKit transport
+-keep class io.elevenlabs.** { *; }
+-keep class io.livekit.** { *; }
+-keepattributes *Annotation*
