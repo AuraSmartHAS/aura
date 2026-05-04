@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.aura.features.home.domain.ConversationMode
 import com.aura.features.home.domain.ConversationStatus
+import com.aura.features.home.domain.TranscriptMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -20,6 +21,7 @@ class ConversationRepository @Inject constructor(
     val status: StateFlow<ConversationStatus> = sessionDataSource.status
     val mode: StateFlow<ConversationMode> = sessionDataSource.mode
     val isMuted: StateFlow<Boolean> = sessionDataSource.isMuted
+    val transcript: StateFlow<List<TranscriptMessage>> = sessionDataSource.transcript
 
     suspend fun fetchToken(): String = tokenDataSource.fetchToken()
 

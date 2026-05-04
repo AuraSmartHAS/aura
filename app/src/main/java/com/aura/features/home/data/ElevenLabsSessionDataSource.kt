@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.aura.features.home.domain.ConversationMode
 import com.aura.features.home.domain.ConversationStatus
+import com.aura.features.home.domain.TranscriptMessage
 import io.elevenlabs.ConversationClient
 import io.elevenlabs.ConversationConfig
 import io.elevenlabs.ConversationSession
@@ -38,9 +39,14 @@ class ElevenLabsSessionDataSource @Inject constructor() {
     private val _isMuted = MutableStateFlow(false)
     val isMuted: StateFlow<Boolean> = _isMuted.asStateFlow()
 
+    private val _transcript = MutableStateFlow<List<TranscriptMessage>>(emptyList())
+    val transcript: StateFlow<List<TranscriptMessage>> = _transcript.asStateFlow()
+
     suspend fun start(token: String, context: Context) {
         // Ensure any previous session is fully ended before starting a new one
         stop()
+
+        _transcript.value = emptyList()
 
         val config = ConversationConfig(
             conversationToken = token,
@@ -51,6 +57,12 @@ class ElevenLabsSessionDataSource @Inject constructor() {
             onModeChange = { sdkMode ->
                 Log.d(TAG, "Mode changed: $sdkMode")
                 _mode.value = sdkMode.toDomain()
+            },
+            onUserTranscript = { text ->
+                _transcript.value = _transcript.value + TranscriptMessage(text, isUser = true)
+            },
+            onAgentResponse = { text ->
+                _transcript.value = _transcript.value + TranscriptMessage(text, isUser = false)
             },
             onDisconnect = { details ->
                 Log.d(TAG, "Disconnected: $details")

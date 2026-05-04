@@ -13,6 +13,7 @@ class ConversationInteractor @Inject constructor(
     val status: StateFlow<ConversationStatus> = repository.status
     val mode: StateFlow<ConversationMode> = repository.mode
     val isMuted: StateFlow<Boolean> = repository.isMuted
+    val transcript: StateFlow<List<TranscriptMessage>> = repository.transcript
 
     suspend fun fetchToken(): String = repository.fetchToken()
 

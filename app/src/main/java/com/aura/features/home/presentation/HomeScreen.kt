@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +56,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aura.R
+import com.aura.features.home.domain.TranscriptMessage
 
 private val HomePrimary = Color(0xFF2B6EA0)
 private val HomeAccent = Color(0xFFE53935)
@@ -135,6 +138,11 @@ private fun SuccessContent(
         if (granted) onMicTapped(context)
     }
 
+    val scrollState = rememberScrollState()
+    LaunchedEffect(state.transcript.size) {
+        scrollState.animateScrollTo(scrollState.maxValue)
+    }
+
     Scaffold(
         containerColor = Color.White,
         bottomBar = { HomeBottomBar(onSettingsClick = onNavigateToSettings) }
@@ -144,7 +152,7 @@ private fun SuccessContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .statusBarsPadding()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(32.dp))
@@ -191,6 +199,16 @@ private fun SuccessContent(
                     }
                 }
             )
+            if (state.transcript.isNotEmpty()) {
+                Spacer(Modifier.height(24.dp))
+                TranscriptSection(
+                    messages = state.transcript,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+            }
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
@@ -242,6 +260,43 @@ private fun VoiceUiState.statusLabel(): String = when (this) {
 private fun VoiceUiState.statusColor(): Color = when (this) {
     is VoiceUiState.Error -> HomeAccent
     else -> HomePrimary
+}
+
+@Composable
+private fun TranscriptSection(
+    messages: List<TranscriptMessage>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        messages.forEach { message ->
+            TranscriptBubble(message)
+        }
+    }
+}
+
+@Composable
+private fun TranscriptBubble(message: TranscriptMessage) {
+    val bubbleColor = if (message.isUser) HomePrimary else HomeSuggestionsBg
+    val textColor = if (message.isUser) Color.White else HomeNavyText
+    val shape = if (message.isUser) {
+        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 4.dp)
+    } else {
+        RoundedCornerShape(topStart = 4.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 280.dp)
+                .background(color = bubbleColor, shape = shape)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        ) {
+            Text(text = message.text, fontSize = 15.sp, color = textColor)
+        }
+    }
 }
 
 @Composable

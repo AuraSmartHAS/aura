@@ -36,6 +36,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadInitialData()
         observeVoiceState()
+        observeTranscript()
     }
 
     fun onMicTapped(context: Context) {
@@ -114,6 +115,17 @@ class HomeViewModel @Inject constructor(
                 val message = throwable.message ?: "Não foi possível iniciar a conversa"
                 _viewState.update { current ->
                     if (current is HomeScreenViewState.Success) current.copy(voice = VoiceUiState.Error(message))
+                    else current
+                }
+            }
+        }
+    }
+
+    private fun observeTranscript() {
+        viewModelScope.launch {
+            interactor.transcript.collect { messages ->
+                _viewState.update { current ->
+                    if (current is HomeScreenViewState.Success) current.copy(transcript = messages)
                     else current
                 }
             }
