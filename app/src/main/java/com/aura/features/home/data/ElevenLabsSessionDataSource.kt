@@ -25,7 +25,9 @@ import javax.inject.Singleton
 private const val TAG = "ElevenLabsDataSource"
 
 @Singleton
-class ElevenLabsSessionDataSource @Inject constructor() {
+class ElevenLabsSessionDataSource @Inject constructor(
+    private val cache: TranscriptCacheDataSource,
+) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var session: ConversationSession? = null
@@ -46,7 +48,7 @@ class ElevenLabsSessionDataSource @Inject constructor() {
         // Ensure any previous session is fully ended before starting a new one
         stop()
 
-        _transcript.value = emptyList()
+        _transcript.value = cache.loadMessages()
 
         val config = ConversationConfig(
             conversationToken = token,
@@ -59,10 +61,14 @@ class ElevenLabsSessionDataSource @Inject constructor() {
                 _mode.value = sdkMode.toDomain()
             },
             onUserTranscript = { text ->
-                _transcript.value = _transcript.value + TranscriptMessage(text, isUser = true)
+                val message = TranscriptMessage(text, isUser = true)
+                _transcript.value = _transcript.value + message
+                scope.launch { cache.add(message) }
             },
             onAgentResponse = { text ->
-                _transcript.value = _transcript.value + TranscriptMessage(text, isUser = false)
+                val message = TranscriptMessage(text, isUser = false)
+                _transcript.value = _transcript.value + message
+                scope.launch { cache.add(message) }
             },
             onDisconnect = { details ->
                 Log.d(TAG, "Disconnected: $details")
