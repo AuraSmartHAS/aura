@@ -13,7 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.aura.features.auth.presentation.LoginScreen
 import com.aura.features.auth.presentation.SignupScreen
-import com.aura.features.home.presentation.HomeScreen
+import com.aura.features.profile.presentation.CreditsScreen
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.status.SessionStatus
@@ -22,6 +22,7 @@ private object Routes {
     const val LOGIN = "login"
     const val SIGNUP = "signup"
     const val HOME = "home"
+    const val CREDITS = "credits"
 }
 
 @Composable
@@ -75,7 +76,18 @@ private fun AppNavHost(startDestination: String) {
             )
         }
         composable(Routes.HOME) {
-            HomeScreen()
+            MainScreen(
+                onNavigateToCredits = {
+                    navController.navigate(Routes.CREDITS)
+                }
+            )
+        }
+        composable(Routes.CREDITS) {
+            CreditsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

@@ -27,15 +27,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,13 +61,8 @@ private val HomeGreyText = Color(0xFF6B7785)
 private val HomeSuggestionsBg = Color(0xFFE8F4FD)
 private val HomeSuggestionsText = Color(0xFF1A4468)
 private val HomeDivider = Color(0xFFBFD4E8)
-private val HomeNavIcon = Color(0xFF475569)
-
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToSettings: () -> Unit = {}
-) {
+fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.viewState.collectAsStateWithLifecycle()
 
     when (val current = state) {
@@ -80,7 +71,6 @@ fun HomeScreen(
         is HomeScreenViewState.Success -> SuccessContent(
             state = current,
             onMicTapped = viewModel::onMicTapped,
-            onNavigateToSettings = onNavigateToSettings,
         )
     }
 }
@@ -128,7 +118,6 @@ private fun ErrorScreen(onRetry: () -> Unit) {
 private fun SuccessContent(
     state: HomeScreenViewState.Success,
     onMicTapped: (android.content.Context) -> Unit,
-    onNavigateToSettings: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -143,73 +132,68 @@ private fun SuccessContent(
         scrollState.animateScrollTo(scrollState.maxValue)
     }
 
-    Scaffold(
-        containerColor = Color.White,
-        bottomBar = { HomeBottomBar(onSettingsClick = onNavigateToSettings) }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding()
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Spacer(Modifier.height(32.dp))
+        Image(
+            painter = painterResource(R.drawable.ic_aura_logo),
+            contentDescription = null,
+            modifier = Modifier
+                .width(128.dp)
+                .height(128.dp),
+            contentScale = ContentScale.Fit
+        )
+        Spacer(Modifier.height(32.dp))
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .statusBarsPadding()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
         ) {
-            Spacer(Modifier.height(32.dp))
-            Image(
-                painter = painterResource(R.drawable.ic_aura_logo),
-                contentDescription = null,
-                modifier = Modifier
-                    .width(128.dp)
-                    .height(128.dp),
-                contentScale = ContentScale.Fit
+            Text(
+                text = "Olá, ${state.name}",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = HomeNavyText
             )
-            Spacer(Modifier.height(32.dp))
-            Column(
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Como posso te ajudar?",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Normal,
+                color = HomeGreyText
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        MicButton(
+            voice = state.voice,
+            onClick = {
+                val granted = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.RECORD_AUDIO,
+                ) == PackageManager.PERMISSION_GRANTED
+                if (granted) {
+                    onMicTapped(context)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+            }
+        )
+        if (state.transcript.isNotEmpty()) {
+            Spacer(Modifier.height(24.dp))
+            TranscriptSection(
+                messages = state.transcript,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp)
-            ) {
-                Text(
-                    text = "Olá, ${state.name}",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = HomeNavyText
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Como posso te ajudar?",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = HomeGreyText
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-            MicButton(
-                voice = state.voice,
-                onClick = {
-                    val granted = ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.RECORD_AUDIO,
-                    ) == PackageManager.PERMISSION_GRANTED
-                    if (granted) {
-                        onMicTapped(context)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    }
-                }
+                    .padding(horizontal = 16.dp)
             )
-            if (state.transcript.isNotEmpty()) {
-                Spacer(Modifier.height(24.dp))
-                TranscriptSection(
-                    messages = state.transcript,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-            }
-            Spacer(Modifier.height(16.dp))
         }
+        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -339,31 +323,3 @@ private fun SuggestionsCard(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun HomeBottomBar(onSettingsClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .background(Color.White),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = {}) {
-            Icon(
-                imageVector = Icons.Outlined.Home,
-                contentDescription = "Início",
-                tint = HomeNavIcon,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        IconButton(onClick = onSettingsClick) {
-            Icon(
-                imageVector = Icons.Outlined.Settings,
-                contentDescription = "Configurações",
-                tint = HomeNavIcon,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}

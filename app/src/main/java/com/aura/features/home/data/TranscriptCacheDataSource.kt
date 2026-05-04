@@ -16,7 +16,7 @@ private const val INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000L
 class TranscriptCacheDataSource @Inject constructor(
     private val dao: TranscriptMessageDao,
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var inactivityJob: Job? = null
 
     suspend fun loadMessages(): List<TranscriptMessage> {
