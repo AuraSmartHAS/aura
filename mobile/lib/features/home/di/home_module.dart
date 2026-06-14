@@ -1,5 +1,4 @@
 import 'package:aura/core/database/app_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/datasources/conversation_remote_datasource.dart';
@@ -54,7 +53,6 @@ void setupHomeModule(GetIt sl) {
       startConversationUseCase: sl<StartConversationUseCase>(),
       stopConversationUseCase: sl<StopConversationUseCase>(),
       conversationRepository: sl<ConversationRepository>(),
-      firebaseAuth: FirebaseAuth.instance,
     ),
   );
 }

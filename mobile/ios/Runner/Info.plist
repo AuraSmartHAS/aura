@@ -3,7 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app needs microphone access for voice conversations</string>
+	<string>O AURA usa o microfone para a conversa por voz com o assistente.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>O AURA usa sua localização para mostrar a rota e o ETA da entrega no mapa.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Com sua permissão, o AURA lê passos, frequência cardíaca e sono para acompanhar o bem-estar (não é diagnóstico).</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>O AURA não grava dados de saúde no seu dispositivo.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

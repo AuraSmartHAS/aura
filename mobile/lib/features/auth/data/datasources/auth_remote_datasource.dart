@@ -1,86 +1,33 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dio/dio.dart';
+
+import '../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> login(String email, String password);
-  Future<UserModel> signup(String email, String password);
-  Future<void> logout();
-  Future<UserModel?> getCurrentUser();
+  Future<AuthCredentialsModel> login(String email, String password);
+  Future<void> signup(String email, String password, String role);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final FirebaseAuth _firebaseAuth;
+  AuthRemoteDataSourceImpl(this._apiClient);
 
-  AuthRemoteDataSourceImpl(this._firebaseAuth);
+  final ApiClient _apiClient;
+  Dio get _dio => _apiClient.dio;
 
   @override
-  Future<UserModel> login(String email, String password) async {
-    try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = userCredential.user;
-      if (user == null) {
-        throw Exception('Login failed');
-      }
-
-      return UserModel(
-        id: user.uid,
-        email: user.email ?? '',
-        fullName: user.displayName,
-      );
-    } catch (e) {
-      throw Exception('Login failed: ${e.toString()}');
-    }
+  Future<AuthCredentialsModel> login(String email, String password) async {
+    final res = await _dio.post(
+      '/auth/login',
+      data: {'email': email, 'password': password},
+    );
+    return AuthCredentialsModel.fromJson(res.data as Map<String, dynamic>);
   }
 
   @override
-  Future<UserModel> signup(String email, String password) async {
-    try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      final user = userCredential.user;
-      if (user == null) {
-        throw Exception('Signup failed');
-      }
-
-      return UserModel(
-        id: user.uid,
-        email: user.email ?? '',
-        fullName: user.displayName,
-      );
-    } catch (e) {
-      throw Exception('Signup failed: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<void> logout() async {
-    try {
-      await _firebaseAuth.signOut();
-    } catch (e) {
-      throw Exception('Logout failed: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<UserModel?> getCurrentUser() async {
-    try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) return null;
-
-      return UserModel(
-        id: user.uid,
-        email: user.email ?? '',
-        fullName: user.displayName,
-      );
-    } catch (e) {
-      return null;
-    }
+  Future<void> signup(String email, String password, String role) async {
+    await _dio.post(
+      '/auth/signup',
+      data: {'email': email, 'password': password, 'role': role},
+    );
   }
 }

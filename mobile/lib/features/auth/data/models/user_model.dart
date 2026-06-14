@@ -1,33 +1,20 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../../auth/domain/entities/user_entity.dart';
+/// Parsed `/auth/login` (and `/auth/refresh`) response.
+class AuthCredentialsModel {
+  const AuthCredentialsModel({
+    required this.token,
+    required this.refreshToken,
+    required this.role,
+  });
 
-part 'user_model.freezed.dart';
-part 'user_model.g.dart';
+  final String token;
+  final String refreshToken;
+  final String role;
 
-@freezed
-class UserModel with _$UserModel {
-  const factory UserModel({
-    required String id,
-    required String email,
-    required String? fullName,
-  }) = _UserModel;
-
-  factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
-}
-
-extension UserModelX on UserModel {
-  UserEntity toEntity() => UserEntity(
-    id: id,
-    email: email,
-    fullName: fullName,
-  );
-}
-
-extension UserEntityX on UserEntity {
-  UserModel toModel() => UserModel(
-    id: id,
-    email: email,
-    fullName: fullName,
-  );
+  factory AuthCredentialsModel.fromJson(Map<String, dynamic> json) {
+    return AuthCredentialsModel(
+      token: json['token'] as String,
+      refreshToken: (json['refreshToken'] as String?) ?? '',
+      role: (json['role'] as String?) ?? 'cuidadora',
+    );
+  }
 }

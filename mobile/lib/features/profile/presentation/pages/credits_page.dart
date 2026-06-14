@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/app_routes.dart';
+import '../../../../core/di/service_locator.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
 class CreditsPage extends StatelessWidget {
@@ -9,9 +10,22 @@ class CreditsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<AuthBloc>(),
+      child: const _CreditsView(),
+    );
+  }
+}
+
+class _CreditsView extends StatelessWidget {
+  const _CreditsView();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Créditos'),
+        title: const Text('Sobre'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -20,41 +34,34 @@ class CreditsPage extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppDimensions.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text('AURA Care-Chain', style: text.headlineSmall),
+                const SizedBox(height: AppDimensions.md),
                 Text(
-                  'Sobre',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  'Adaptação Preditiva como Serviço: o AURA capta sinais de '
+                  'risco do idoso e aciona a cadeia de cuidado (recomendação → '
+                  'pedido → entrega → instalação) antes do acidente.',
+                  style: text.bodyMedium,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Aura é um aplicativo para corretores de imóveis autônomos que desejam automatizar suas conversas de vendas.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                const SizedBox(height: AppDimensions.xl),
+                Text('Tecnologias', style: text.headlineSmall),
+                const SizedBox(height: AppDimensions.md),
+                const _TechItem(
+                  title: 'Flutter',
+                  description: 'Desenvolvimento multiplataforma',
                 ),
-                const SizedBox(height: 32),
-                Text(
-                  'Tecnologias',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                const _TechItem(
+                  title: 'aura-server',
+                  description: 'API REST com escore explicável e cadeia logística',
                 ),
-                const SizedBox(height: 16),
-                _buildTechItem(
-                  context,
-                  'Flutter',
-                  'Framework para desenvolvimento multiplataforma',
+                const _TechItem(
+                  title: 'ElevenLabs',
+                  description: 'Agente de voz para a interface do paciente',
                 ),
-                _buildTechItem(
-                  context,
-                  'Supabase',
-                  'Backend como serviço para autenticação e dados',
-                ),
-                _buildTechItem(
-                  context,
-                  'ElevenLabs',
-                  'API de voz para conversas inteligentes',
-                ),
-                const SizedBox(height: 32),
+                const SizedBox(height: AppDimensions.xl),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
@@ -62,8 +69,9 @@ class CreditsPage extends StatelessWidget {
                       backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                     onPressed: () {
+                      // Logout clears the session; the router guard then
+                      // redirects to /login automatically.
                       context.read<AuthBloc>().add(const LogoutEvent());
-                      context.go(AppRoutes.login);
                     },
                     child: const Text('Sair'),
                   ),
@@ -75,26 +83,25 @@ class CreditsPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildTechItem(
-    BuildContext context,
-    String title,
-    String description,
-  ) {
+class _TechItem extends StatelessWidget {
+  const _TechItem({required this.title, required this.description});
+
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: AppDimensions.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(title, style: text.labelLarge),
+          const SizedBox(height: AppDimensions.xs),
+          Text(description, style: text.bodySmall),
         ],
       ),
     );

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/transcript_message_entity.dart';
@@ -19,7 +18,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final StartConversationUseCase _startConversationUseCase;
   final StopConversationUseCase _stopConversationUseCase;
   final ConversationRepository _conversationRepository;
-  final FirebaseAuth _firebaseAuth;
 
   late StreamSubscription<ConversationStatus> _statusSubscription;
   late StreamSubscription<ConversationMode> _modeSubscription;
@@ -34,12 +32,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required StartConversationUseCase startConversationUseCase,
     required StopConversationUseCase stopConversationUseCase,
     required ConversationRepository conversationRepository,
-    required FirebaseAuth firebaseAuth,
   })  : _fetchTokenUseCase = fetchTokenUseCase,
         _startConversationUseCase = startConversationUseCase,
         _stopConversationUseCase = stopConversationUseCase,
         _conversationRepository = conversationRepository,
-        _firebaseAuth = firebaseAuth,
         super(const HomeState()) {
     on<HomeInitEvent>(_onInit);
     on<HomeMicTappedEvent>(_onMicTapped);
@@ -59,8 +55,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _conversationToken = tokenResult.data;
     }
 
-    final userName = _firebaseAuth.currentUser?.displayName ?? 'Usuário';
-    emit(state.copyWith(isLoading: false, userName: userName));
+    emit(state.copyWith(isLoading: false, userName: 'Maria'));
   }
 
   void _setupStreamListeners() {

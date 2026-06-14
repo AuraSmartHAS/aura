@@ -1,5 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/session/auth_session.dart';
+import '../../../core/session/token_store.dart';
 import '../data/datasources/auth_remote_datasource.dart';
 import '../data/repositories/auth_repository_impl.dart';
 import '../domain/repositories/auth_repository.dart';
@@ -10,24 +12,20 @@ import '../presentation/bloc/auth_bloc.dart';
 
 void setupAuthModule(GetIt sl) {
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(FirebaseAuth.instance),
+    () => AuthRemoteDataSourceImpl(sl<ApiClient>()),
   );
 
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl<AuthRemoteDataSource>()),
+    () => AuthRepositoryImpl(
+      sl<AuthRemoteDataSource>(),
+      sl<TokenStore>(),
+      sl<AuthSession>(),
+    ),
   );
 
-  sl.registerFactory<LoginUseCase>(
-    () => LoginUseCase(sl<AuthRepository>()),
-  );
-
-  sl.registerFactory<SignupUseCase>(
-    () => SignupUseCase(sl<AuthRepository>()),
-  );
-
-  sl.registerFactory<LogoutUseCase>(
-    () => LogoutUseCase(sl<AuthRepository>()),
-  );
+  sl.registerFactory<LoginUseCase>(() => LoginUseCase(sl<AuthRepository>()));
+  sl.registerFactory<SignupUseCase>(() => SignupUseCase(sl<AuthRepository>()));
+  sl.registerFactory<LogoutUseCase>(() => LogoutUseCase(sl<AuthRepository>()));
 
   sl.registerFactory<AuthBloc>(
     () => AuthBloc(

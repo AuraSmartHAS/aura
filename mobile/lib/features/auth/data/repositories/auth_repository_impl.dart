@@ -1,60 +1,61 @@
-import 'package:aura/core/errors/app_failure.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:aura/core/errors/result.dart';
+import 'package:aura/core/network/error_mapper.dart';
+import 'package:aura/core/session/auth_session.dart';
+import 'package:aura/core/session/token_store.dart';
+import 'package:aura/core/session/user_role.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
-import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource _remoteDataSource;
+  AuthRepositoryImpl(this._remoteDataSource, this._tokenStore, this._session);
 
-  AuthRepositoryImpl(this._remoteDataSource);
+  final AuthRemoteDataSource _remoteDataSource;
+  final TokenStore _tokenStore;
+  final AuthSession _session;
 
   @override
   Future<Result<UserEntity>> login(String email, String password) async {
     try {
-      final userModel = await _remoteDataSource.login(email, password);
-      return Success(userModel.toEntity());
-    } catch (e) {
-      return Failure(
-        AppFailure.unexpected(message: e.toString()),
+      final creds = await _remoteDataSource.login(email, password);
+      final role = UserRole.fromString(creds.role);
+      debugPrint(
+        '[AURA-AUTH] login ok email=$email rawRole="${creds.role}" '
+        'parsedRole=$role isPatient=${role.isPatient}',
       );
+      await _tokenStore.saveSession(
+        accessToken: creds.token,
+        refreshToken: creds.refreshToken,
+        role: creds.role,
+      );
+      await _session.onLoggedIn(role);
+      return Success(UserEntity(role: role, email: email));
+    } catch (e) {
+      return Failure(mapDioError(e));
     }
   }
 
   @override
-  Future<Result<UserEntity>> signup(String email, String password) async {
+  Future<Result<UserEntity>> signup(
+    String email,
+    String password,
+    String role,
+  ) async {
     try {
-      final userModel = await _remoteDataSource.signup(email, password);
-      return Success(userModel.toEntity());
+      debugPrint('[AURA-AUTH] signup requested email=$email role="$role"');
+      await _remoteDataSource.signup(email, password, role);
+      // Login right after to obtain token + refreshToken + canonical role.
+      return login(email, password);
     } catch (e) {
-      return Failure(
-        AppFailure.unexpected(message: e.toString()),
-      );
+      return Failure(mapDioError(e));
     }
   }
 
   @override
   Future<Result<void>> logout() async {
-    try {
-      await _remoteDataSource.logout();
-      return const Success(null);
-    } catch (e) {
-      return Failure(
-        AppFailure.unexpected(message: e.toString()),
-      );
-    }
-  }
-
-  @override
-  Future<Result<UserEntity?>> getCurrentUser() async {
-    try {
-      final userModel = await _remoteDataSource.getCurrentUser();
-      return Success(userModel?.toEntity());
-    } catch (e) {
-      return Failure(
-        AppFailure.unexpected(message: e.toString()),
-      );
-    }
+    await _session.onLoggedOut();
+    return const Success(null);
   }
 }

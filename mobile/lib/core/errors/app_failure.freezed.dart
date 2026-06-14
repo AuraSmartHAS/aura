@@ -24,6 +24,11 @@ mixin _$AppFailure {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -33,6 +38,11 @@ mixin _$AppFailure {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -42,6 +52,11 @@ mixin _$AppFailure {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -52,6 +67,11 @@ mixin _$AppFailure {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -61,6 +81,11 @@ mixin _$AppFailure {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
@@ -70,6 +95,11 @@ mixin _$AppFailure {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -191,6 +221,11 @@ class _$UnexpectedImpl implements _Unexpected {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) {
     return unexpected(message);
   }
@@ -203,6 +238,11 @@ class _$UnexpectedImpl implements _Unexpected {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) {
     return unexpected?.call(message);
   }
@@ -215,6 +255,11 @@ class _$UnexpectedImpl implements _Unexpected {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (unexpected != null) {
@@ -231,6 +276,11 @@ class _$UnexpectedImpl implements _Unexpected {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) {
     return unexpected(this);
   }
@@ -243,6 +293,11 @@ class _$UnexpectedImpl implements _Unexpected {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) {
     return unexpected?.call(this);
   }
@@ -255,6 +310,11 @@ class _$UnexpectedImpl implements _Unexpected {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (unexpected != null) {
@@ -353,6 +413,11 @@ class _$NotFoundImpl implements _NotFound {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) {
     return notFound(message);
   }
@@ -365,6 +430,11 @@ class _$NotFoundImpl implements _NotFound {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) {
     return notFound?.call(message);
   }
@@ -377,6 +447,11 @@ class _$NotFoundImpl implements _NotFound {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (notFound != null) {
@@ -393,6 +468,11 @@ class _$NotFoundImpl implements _NotFound {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) {
     return notFound(this);
   }
@@ -405,6 +485,11 @@ class _$NotFoundImpl implements _NotFound {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) {
     return notFound?.call(this);
   }
@@ -417,6 +502,11 @@ class _$NotFoundImpl implements _NotFound {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (notFound != null) {
@@ -515,6 +605,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) {
     return unauthorized(message);
   }
@@ -527,6 +622,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) {
     return unauthorized?.call(message);
   }
@@ -539,6 +639,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (unauthorized != null) {
@@ -555,6 +660,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) {
     return unauthorized(this);
   }
@@ -567,6 +677,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) {
     return unauthorized?.call(this);
   }
@@ -579,6 +694,11 @@ class _$UnauthorizedImpl implements _Unauthorized {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (unauthorized != null) {
@@ -678,6 +798,11 @@ class _$ValidationImpl implements _Validation {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) {
     return validation(message);
   }
@@ -690,6 +815,11 @@ class _$ValidationImpl implements _Validation {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) {
     return validation?.call(message);
   }
@@ -702,6 +832,11 @@ class _$ValidationImpl implements _Validation {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (validation != null) {
@@ -718,6 +853,11 @@ class _$ValidationImpl implements _Validation {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) {
     return validation(this);
   }
@@ -730,6 +870,11 @@ class _$ValidationImpl implements _Validation {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) {
     return validation?.call(this);
   }
@@ -742,6 +887,11 @@ class _$ValidationImpl implements _Validation {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (validation != null) {
@@ -840,6 +990,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     required TResult Function(String message) unauthorized,
     required TResult Function(String message) validation,
     required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
   }) {
     return networkError(message);
   }
@@ -852,6 +1007,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     TResult? Function(String message)? unauthorized,
     TResult? Function(String message)? validation,
     TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
   }) {
     return networkError?.call(message);
   }
@@ -864,6 +1024,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     TResult Function(String message)? unauthorized,
     TResult Function(String message)? validation,
     TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (networkError != null) {
@@ -880,6 +1045,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     required TResult Function(_Unauthorized value) unauthorized,
     required TResult Function(_Validation value) validation,
     required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
   }) {
     return networkError(this);
   }
@@ -892,6 +1062,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     TResult? Function(_Unauthorized value)? unauthorized,
     TResult? Function(_Validation value)? validation,
     TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
   }) {
     return networkError?.call(this);
   }
@@ -904,6 +1079,11 @@ class _$NetworkErrorImpl implements _NetworkError {
     TResult Function(_Unauthorized value)? unauthorized,
     TResult Function(_Validation value)? validation,
     TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
     required TResult orElse(),
   }) {
     if (networkError != null) {
@@ -925,5 +1105,980 @@ abstract class _NetworkError implements AppFailure {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$NetworkErrorImplCopyWith<_$NetworkErrorImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ConsentRequiredImplCopyWith<$Res>
+    implements $AppFailureCopyWith<$Res> {
+  factory _$$ConsentRequiredImplCopyWith(_$ConsentRequiredImpl value,
+          $Res Function(_$ConsentRequiredImpl) then) =
+      __$$ConsentRequiredImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String message});
+}
+
+/// @nodoc
+class __$$ConsentRequiredImplCopyWithImpl<$Res>
+    extends _$AppFailureCopyWithImpl<$Res, _$ConsentRequiredImpl>
+    implements _$$ConsentRequiredImplCopyWith<$Res> {
+  __$$ConsentRequiredImplCopyWithImpl(
+      _$ConsentRequiredImpl _value, $Res Function(_$ConsentRequiredImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$ConsentRequiredImpl(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ConsentRequiredImpl implements _ConsentRequired {
+  const _$ConsentRequiredImpl({required this.message});
+
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'AppFailure.consentRequired(message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ConsentRequiredImpl &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ConsentRequiredImplCopyWith<_$ConsentRequiredImpl> get copyWith =>
+      __$$ConsentRequiredImplCopyWithImpl<_$ConsentRequiredImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String message) unexpected,
+    required TResult Function(String message) notFound,
+    required TResult Function(String message) unauthorized,
+    required TResult Function(String message) validation,
+    required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
+  }) {
+    return consentRequired(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String message)? unexpected,
+    TResult? Function(String message)? notFound,
+    TResult? Function(String message)? unauthorized,
+    TResult? Function(String message)? validation,
+    TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
+  }) {
+    return consentRequired?.call(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String message)? unexpected,
+    TResult Function(String message)? notFound,
+    TResult Function(String message)? unauthorized,
+    TResult Function(String message)? validation,
+    TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (consentRequired != null) {
+      return consentRequired(message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Unexpected value) unexpected,
+    required TResult Function(_NotFound value) notFound,
+    required TResult Function(_Unauthorized value) unauthorized,
+    required TResult Function(_Validation value) validation,
+    required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
+  }) {
+    return consentRequired(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Unexpected value)? unexpected,
+    TResult? Function(_NotFound value)? notFound,
+    TResult? Function(_Unauthorized value)? unauthorized,
+    TResult? Function(_Validation value)? validation,
+    TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
+  }) {
+    return consentRequired?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Unexpected value)? unexpected,
+    TResult Function(_NotFound value)? notFound,
+    TResult Function(_Unauthorized value)? unauthorized,
+    TResult Function(_Validation value)? validation,
+    TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (consentRequired != null) {
+      return consentRequired(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ConsentRequired implements AppFailure {
+  const factory _ConsentRequired({required final String message}) =
+      _$ConsentRequiredImpl;
+
+  @override
+  String get message;
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ConsentRequiredImplCopyWith<_$ConsentRequiredImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ConflictImplCopyWith<$Res>
+    implements $AppFailureCopyWith<$Res> {
+  factory _$$ConflictImplCopyWith(
+          _$ConflictImpl value, $Res Function(_$ConflictImpl) then) =
+      __$$ConflictImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String message});
+}
+
+/// @nodoc
+class __$$ConflictImplCopyWithImpl<$Res>
+    extends _$AppFailureCopyWithImpl<$Res, _$ConflictImpl>
+    implements _$$ConflictImplCopyWith<$Res> {
+  __$$ConflictImplCopyWithImpl(
+      _$ConflictImpl _value, $Res Function(_$ConflictImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$ConflictImpl(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ConflictImpl implements _Conflict {
+  const _$ConflictImpl({required this.message});
+
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'AppFailure.conflict(message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ConflictImpl &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ConflictImplCopyWith<_$ConflictImpl> get copyWith =>
+      __$$ConflictImplCopyWithImpl<_$ConflictImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String message) unexpected,
+    required TResult Function(String message) notFound,
+    required TResult Function(String message) unauthorized,
+    required TResult Function(String message) validation,
+    required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
+  }) {
+    return conflict(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String message)? unexpected,
+    TResult? Function(String message)? notFound,
+    TResult? Function(String message)? unauthorized,
+    TResult? Function(String message)? validation,
+    TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
+  }) {
+    return conflict?.call(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String message)? unexpected,
+    TResult Function(String message)? notFound,
+    TResult Function(String message)? unauthorized,
+    TResult Function(String message)? validation,
+    TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (conflict != null) {
+      return conflict(message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Unexpected value) unexpected,
+    required TResult Function(_NotFound value) notFound,
+    required TResult Function(_Unauthorized value) unauthorized,
+    required TResult Function(_Validation value) validation,
+    required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
+  }) {
+    return conflict(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Unexpected value)? unexpected,
+    TResult? Function(_NotFound value)? notFound,
+    TResult? Function(_Unauthorized value)? unauthorized,
+    TResult? Function(_Validation value)? validation,
+    TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
+  }) {
+    return conflict?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Unexpected value)? unexpected,
+    TResult Function(_NotFound value)? notFound,
+    TResult Function(_Unauthorized value)? unauthorized,
+    TResult Function(_Validation value)? validation,
+    TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (conflict != null) {
+      return conflict(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _Conflict implements AppFailure {
+  const factory _Conflict({required final String message}) = _$ConflictImpl;
+
+  @override
+  String get message;
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ConflictImplCopyWith<_$ConflictImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ForbiddenImplCopyWith<$Res>
+    implements $AppFailureCopyWith<$Res> {
+  factory _$$ForbiddenImplCopyWith(
+          _$ForbiddenImpl value, $Res Function(_$ForbiddenImpl) then) =
+      __$$ForbiddenImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String message});
+}
+
+/// @nodoc
+class __$$ForbiddenImplCopyWithImpl<$Res>
+    extends _$AppFailureCopyWithImpl<$Res, _$ForbiddenImpl>
+    implements _$$ForbiddenImplCopyWith<$Res> {
+  __$$ForbiddenImplCopyWithImpl(
+      _$ForbiddenImpl _value, $Res Function(_$ForbiddenImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$ForbiddenImpl(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ForbiddenImpl implements _Forbidden {
+  const _$ForbiddenImpl({required this.message});
+
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'AppFailure.forbidden(message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ForbiddenImpl &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ForbiddenImplCopyWith<_$ForbiddenImpl> get copyWith =>
+      __$$ForbiddenImplCopyWithImpl<_$ForbiddenImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String message) unexpected,
+    required TResult Function(String message) notFound,
+    required TResult Function(String message) unauthorized,
+    required TResult Function(String message) validation,
+    required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
+  }) {
+    return forbidden(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String message)? unexpected,
+    TResult? Function(String message)? notFound,
+    TResult? Function(String message)? unauthorized,
+    TResult? Function(String message)? validation,
+    TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
+  }) {
+    return forbidden?.call(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String message)? unexpected,
+    TResult Function(String message)? notFound,
+    TResult Function(String message)? unauthorized,
+    TResult Function(String message)? validation,
+    TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (forbidden != null) {
+      return forbidden(message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Unexpected value) unexpected,
+    required TResult Function(_NotFound value) notFound,
+    required TResult Function(_Unauthorized value) unauthorized,
+    required TResult Function(_Validation value) validation,
+    required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
+  }) {
+    return forbidden(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Unexpected value)? unexpected,
+    TResult? Function(_NotFound value)? notFound,
+    TResult? Function(_Unauthorized value)? unauthorized,
+    TResult? Function(_Validation value)? validation,
+    TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
+  }) {
+    return forbidden?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Unexpected value)? unexpected,
+    TResult Function(_NotFound value)? notFound,
+    TResult Function(_Unauthorized value)? unauthorized,
+    TResult Function(_Validation value)? validation,
+    TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (forbidden != null) {
+      return forbidden(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _Forbidden implements AppFailure {
+  const factory _Forbidden({required final String message}) = _$ForbiddenImpl;
+
+  @override
+  String get message;
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ForbiddenImplCopyWith<_$ForbiddenImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$BusinessRuleImplCopyWith<$Res>
+    implements $AppFailureCopyWith<$Res> {
+  factory _$$BusinessRuleImplCopyWith(
+          _$BusinessRuleImpl value, $Res Function(_$BusinessRuleImpl) then) =
+      __$$BusinessRuleImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String code, String message});
+}
+
+/// @nodoc
+class __$$BusinessRuleImplCopyWithImpl<$Res>
+    extends _$AppFailureCopyWithImpl<$Res, _$BusinessRuleImpl>
+    implements _$$BusinessRuleImplCopyWith<$Res> {
+  __$$BusinessRuleImplCopyWithImpl(
+      _$BusinessRuleImpl _value, $Res Function(_$BusinessRuleImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? code = null,
+    Object? message = null,
+  }) {
+    return _then(_$BusinessRuleImpl(
+      code: null == code
+          ? _value.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as String,
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$BusinessRuleImpl implements _BusinessRule {
+  const _$BusinessRuleImpl({required this.code, required this.message});
+
+  @override
+  final String code;
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'AppFailure.businessRule(code: $code, message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BusinessRuleImpl &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, code, message);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BusinessRuleImplCopyWith<_$BusinessRuleImpl> get copyWith =>
+      __$$BusinessRuleImplCopyWithImpl<_$BusinessRuleImpl>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String message) unexpected,
+    required TResult Function(String message) notFound,
+    required TResult Function(String message) unauthorized,
+    required TResult Function(String message) validation,
+    required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
+  }) {
+    return businessRule(code, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String message)? unexpected,
+    TResult? Function(String message)? notFound,
+    TResult? Function(String message)? unauthorized,
+    TResult? Function(String message)? validation,
+    TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
+  }) {
+    return businessRule?.call(code, message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String message)? unexpected,
+    TResult Function(String message)? notFound,
+    TResult Function(String message)? unauthorized,
+    TResult Function(String message)? validation,
+    TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (businessRule != null) {
+      return businessRule(code, message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Unexpected value) unexpected,
+    required TResult Function(_NotFound value) notFound,
+    required TResult Function(_Unauthorized value) unauthorized,
+    required TResult Function(_Validation value) validation,
+    required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
+  }) {
+    return businessRule(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Unexpected value)? unexpected,
+    TResult? Function(_NotFound value)? notFound,
+    TResult? Function(_Unauthorized value)? unauthorized,
+    TResult? Function(_Validation value)? validation,
+    TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
+  }) {
+    return businessRule?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Unexpected value)? unexpected,
+    TResult Function(_NotFound value)? notFound,
+    TResult Function(_Unauthorized value)? unauthorized,
+    TResult Function(_Validation value)? validation,
+    TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (businessRule != null) {
+      return businessRule(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _BusinessRule implements AppFailure {
+  const factory _BusinessRule(
+      {required final String code,
+      required final String message}) = _$BusinessRuleImpl;
+
+  String get code;
+  @override
+  String get message;
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BusinessRuleImplCopyWith<_$BusinessRuleImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class _$$ServiceUnavailableImplCopyWith<$Res>
+    implements $AppFailureCopyWith<$Res> {
+  factory _$$ServiceUnavailableImplCopyWith(_$ServiceUnavailableImpl value,
+          $Res Function(_$ServiceUnavailableImpl) then) =
+      __$$ServiceUnavailableImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String message});
+}
+
+/// @nodoc
+class __$$ServiceUnavailableImplCopyWithImpl<$Res>
+    extends _$AppFailureCopyWithImpl<$Res, _$ServiceUnavailableImpl>
+    implements _$$ServiceUnavailableImplCopyWith<$Res> {
+  __$$ServiceUnavailableImplCopyWithImpl(_$ServiceUnavailableImpl _value,
+      $Res Function(_$ServiceUnavailableImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? message = null,
+  }) {
+    return _then(_$ServiceUnavailableImpl(
+      message: null == message
+          ? _value.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$ServiceUnavailableImpl implements _ServiceUnavailable {
+  const _$ServiceUnavailableImpl({required this.message});
+
+  @override
+  final String message;
+
+  @override
+  String toString() {
+    return 'AppFailure.serviceUnavailable(message: $message)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ServiceUnavailableImpl &&
+            (identical(other.message, message) || other.message == message));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, message);
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ServiceUnavailableImplCopyWith<_$ServiceUnavailableImpl> get copyWith =>
+      __$$ServiceUnavailableImplCopyWithImpl<_$ServiceUnavailableImpl>(
+          this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>({
+    required TResult Function(String message) unexpected,
+    required TResult Function(String message) notFound,
+    required TResult Function(String message) unauthorized,
+    required TResult Function(String message) validation,
+    required TResult Function(String message) networkError,
+    required TResult Function(String message) consentRequired,
+    required TResult Function(String message) conflict,
+    required TResult Function(String message) forbidden,
+    required TResult Function(String code, String message) businessRule,
+    required TResult Function(String message) serviceUnavailable,
+  }) {
+    return serviceUnavailable(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>({
+    TResult? Function(String message)? unexpected,
+    TResult? Function(String message)? notFound,
+    TResult? Function(String message)? unauthorized,
+    TResult? Function(String message)? validation,
+    TResult? Function(String message)? networkError,
+    TResult? Function(String message)? consentRequired,
+    TResult? Function(String message)? conflict,
+    TResult? Function(String message)? forbidden,
+    TResult? Function(String code, String message)? businessRule,
+    TResult? Function(String message)? serviceUnavailable,
+  }) {
+    return serviceUnavailable?.call(message);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>({
+    TResult Function(String message)? unexpected,
+    TResult Function(String message)? notFound,
+    TResult Function(String message)? unauthorized,
+    TResult Function(String message)? validation,
+    TResult Function(String message)? networkError,
+    TResult Function(String message)? consentRequired,
+    TResult Function(String message)? conflict,
+    TResult Function(String message)? forbidden,
+    TResult Function(String code, String message)? businessRule,
+    TResult Function(String message)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (serviceUnavailable != null) {
+      return serviceUnavailable(message);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>({
+    required TResult Function(_Unexpected value) unexpected,
+    required TResult Function(_NotFound value) notFound,
+    required TResult Function(_Unauthorized value) unauthorized,
+    required TResult Function(_Validation value) validation,
+    required TResult Function(_NetworkError value) networkError,
+    required TResult Function(_ConsentRequired value) consentRequired,
+    required TResult Function(_Conflict value) conflict,
+    required TResult Function(_Forbidden value) forbidden,
+    required TResult Function(_BusinessRule value) businessRule,
+    required TResult Function(_ServiceUnavailable value) serviceUnavailable,
+  }) {
+    return serviceUnavailable(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>({
+    TResult? Function(_Unexpected value)? unexpected,
+    TResult? Function(_NotFound value)? notFound,
+    TResult? Function(_Unauthorized value)? unauthorized,
+    TResult? Function(_Validation value)? validation,
+    TResult? Function(_NetworkError value)? networkError,
+    TResult? Function(_ConsentRequired value)? consentRequired,
+    TResult? Function(_Conflict value)? conflict,
+    TResult? Function(_Forbidden value)? forbidden,
+    TResult? Function(_BusinessRule value)? businessRule,
+    TResult? Function(_ServiceUnavailable value)? serviceUnavailable,
+  }) {
+    return serviceUnavailable?.call(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>({
+    TResult Function(_Unexpected value)? unexpected,
+    TResult Function(_NotFound value)? notFound,
+    TResult Function(_Unauthorized value)? unauthorized,
+    TResult Function(_Validation value)? validation,
+    TResult Function(_NetworkError value)? networkError,
+    TResult Function(_ConsentRequired value)? consentRequired,
+    TResult Function(_Conflict value)? conflict,
+    TResult Function(_Forbidden value)? forbidden,
+    TResult Function(_BusinessRule value)? businessRule,
+    TResult Function(_ServiceUnavailable value)? serviceUnavailable,
+    required TResult orElse(),
+  }) {
+    if (serviceUnavailable != null) {
+      return serviceUnavailable(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ServiceUnavailable implements AppFailure {
+  const factory _ServiceUnavailable({required final String message}) =
+      _$ServiceUnavailableImpl;
+
+  @override
+  String get message;
+
+  /// Create a copy of AppFailure
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ServiceUnavailableImplCopyWith<_$ServiceUnavailableImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/session/user_role.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 
@@ -17,6 +18,7 @@ class _SignupBodyState extends State<SignupBody> {
   late TextEditingController _confirmPasswordController;
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
+  UserRole _role = UserRole.cuidadora;
 
   @override
   void initState() {
@@ -132,6 +134,30 @@ class _SignupBodyState extends State<SignupBody> {
                   ),
                 ),
                 const SizedBox(height: 24),
+                Text(
+                  'Eu sou',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                SegmentedButton<UserRole>(
+                  segments: const [
+                    ButtonSegment(
+                      value: UserRole.cuidadora,
+                      label: Text('Familiar / Cuidador(a)'),
+                      icon: Icon(Icons.favorite_outline),
+                    ),
+                    ButtonSegment(
+                      value: UserRole.paciente,
+                      label: Text('Paciente'),
+                      icon: Icon(Icons.elderly),
+                    ),
+                  ],
+                  selected: {_role},
+                  onSelectionChanged: (selection) {
+                    setState(() => _role = selection.first);
+                  },
+                ),
+                const SizedBox(height: 24),
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     if (state is AuthFailure) {
@@ -171,6 +197,7 @@ class _SignupBodyState extends State<SignupBody> {
                                       SignupEvent(
                                         _emailController.text,
                                         _passwordController.text,
+                                        _role,
                                       ),
                                     );
                               },

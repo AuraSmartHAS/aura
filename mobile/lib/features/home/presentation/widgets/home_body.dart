@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../shared/widgets/big_mic_button.dart';
+import '../../../../shared/widgets/keyboard_fallback_bar.dart';
 import '../bloc/home_bloc.dart';
 
 class HomeBody extends StatelessWidget {
@@ -22,6 +25,7 @@ class HomeBody extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
+            tooltip: 'Sobre e sair',
             onPressed: () => context.push(AppRoutes.credits),
           ),
         ],
@@ -29,124 +33,63 @@ class HomeBody extends StatelessWidget {
       body: BlocBuilder<HomeBloc, HomeState>(
         builder: (context, state) {
           if (state.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           return SafeArea(
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppDimensions.lg),
                   child: Text(
                     'Olá, ${state.userName}',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    // Patient surface: large title (>=32sp).
+                    style: Theme.of(context).textTheme.displayLarge,
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.borderColor),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: state.transcript.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Comece uma conversa',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: state.transcript.length,
-                            itemBuilder: (context, index) {
-                              final message = state.transcript[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Align(
-                                  alignment: message.isUser
-                                      ? Alignment.centerRight
-                                      : Alignment.centerLeft,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: message.isUser
-                                          ? AppColors.primary
-                                          : AppColors.surface,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      message.text,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: message.isUser
-                                                ? Colors.white
-                                                : AppColors.textPrimary,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ),
+                Expanded(child: _Transcript(state: state)),
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(AppDimensions.lg),
                   child: Column(
                     children: [
                       if (state.errorMessage != null)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding:
+                              const EdgeInsets.only(bottom: AppDimensions.md),
                           child: Text(
                             state.errorMessage!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.error,
-                                ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(color: AppColors.error),
                           ),
                         ),
-                      GestureDetector(
-                        onTap: () {
-                          context.read<HomeBloc>().add(const HomeMicTappedEvent());
-                        },
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: _getMicButtonColor(state.voiceState),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              if (state.voiceState != VoiceUIState.idle)
-                                BoxShadow(
-                                  color: _getMicButtonColor(state.voiceState)
-                                      .withValues(alpha: 0.5),
-                                  blurRadius: 16,
-                                  spreadRadius: 2,
-                                ),
-                            ],
-                          ),
-                          child: Icon(
-                            _getMicIcon(state.voiceState),
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                        ),
+                      BigMicButton(
+                        state: _toMicState(state.voiceState),
+                        onTap: () => context
+                            .read<HomeBloc>()
+                            .add(const HomeMicTappedEvent()),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppDimensions.md),
                       Text(
-                        _getMicStateText(state.voiceState),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
+                        _micStateText(state.voiceState),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: AppDimensions.md),
+                      // RN-008 / UI-02: keyboard fallback always available.
+                      KeyboardFallbackBar(
+                        actions: [
+                          FallbackAction(
+                            label: 'Falar com a Aura',
+                            icon: Icons.touch_app,
+                            onTap: () => context
+                                .read<HomeBloc>()
+                                .add(const HomeMicTappedEvent()),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -159,37 +102,22 @@ class HomeBody extends StatelessWidget {
     );
   }
 
-  Color _getMicButtonColor(VoiceUIState state) {
+  MicState _toMicState(VoiceUIState state) {
     switch (state) {
       case VoiceUIState.idle:
-        return AppColors.primary;
+        return MicState.idle;
       case VoiceUIState.connecting:
-        return AppColors.warning;
+        return MicState.connecting;
       case VoiceUIState.listening:
-        return AppColors.primary;
+        return MicState.listening;
       case VoiceUIState.speaking:
-        return AppColors.success;
+        return MicState.speaking;
       case VoiceUIState.error:
-        return AppColors.error;
+        return MicState.error;
     }
   }
 
-  IconData _getMicIcon(VoiceUIState state) {
-    switch (state) {
-      case VoiceUIState.idle:
-        return Icons.mic;
-      case VoiceUIState.connecting:
-        return Icons.hourglass_empty;
-      case VoiceUIState.listening:
-        return Icons.mic;
-      case VoiceUIState.speaking:
-        return Icons.mic;
-      case VoiceUIState.error:
-        return Icons.error;
-    }
-  }
-
-  String _getMicStateText(VoiceUIState state) {
+  String _micStateText(VoiceUIState state) {
     switch (state) {
       case VoiceUIState.idle:
         return 'Toque para começar';
@@ -202,5 +130,69 @@ class HomeBody extends StatelessWidget {
       case VoiceUIState.error:
         return 'Erro na conexão';
     }
+  }
+}
+
+class _Transcript extends StatelessWidget {
+  const _Transcript({required this.state});
+
+  final HomeState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.borderColor),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+      ),
+      child: state.transcript.isEmpty
+          ? Center(
+              child: Text(
+                'Comece uma conversa',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: AppColors.textSecondary),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(AppDimensions.md),
+              itemCount: state.transcript.length,
+              itemBuilder: (context, index) {
+                final message = state.transcript[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppDimensions.sm),
+                  child: Align(
+                    alignment: message.isUser
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.md,
+                        vertical: AppDimensions.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: message.isUser
+                            ? AppColors.primary
+                            : AppColors.surface,
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.radiusSm),
+                      ),
+                      child: Text(
+                        message.text,
+                        style:
+                            Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: message.isUser
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
   }
 }

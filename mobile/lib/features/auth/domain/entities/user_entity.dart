@@ -1,12 +1,11 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../../../core/session/user_role.dart';
 
-part 'user_entity.freezed.dart';
+/// Authenticated user as exposed to the presentation layer. The aura-server
+/// `/auth/login` returns the role; the access/refresh tokens are persisted by
+/// the data layer (not surfaced here).
+class UserEntity {
+  const UserEntity({required this.role, this.email});
 
-@freezed
-class UserEntity with _$UserEntity {
-  const factory UserEntity({
-    required String id,
-    required String email,
-    required String? fullName,
-  }) = _UserEntity;
+  final UserRole role;
+  final String? email;
 }

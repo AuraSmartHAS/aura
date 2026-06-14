@@ -5,20 +5,20 @@ class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         error: AppColors.error,
         surface: AppColors.surface,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: _titleLarge,
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: _displayLarge,
         displayMedium: _displayMedium,
         displaySmall: _displaySmall,
