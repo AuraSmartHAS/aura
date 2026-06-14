@@ -1,0 +1,65 @@
+name: aura
+description: "Mobile app for real estate brokers - Flutter version"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Architecture & State Management
+  flutter_bloc: ^8.1.5
+  get_it: ^7.6.0
+
+  # Navigation
+  go_router: ^14.2.0
+
+  # Database
+  drift: ^2.17.1
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # Firebase
+  firebase_auth: ^5.1.4
+
+  # Supabase (for edge functions only)
+  supabase_flutter: ^2.7.0
+
+  # HTTP & Serialization
+  http: ^1.2.1
+  json_serializable: ^6.8.0
+
+  # UI & Theme
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+  # Utilities
+  freezed_annotation: ^2.4.4
+  equatable: ^2.0.5
+
+  firebase_core: ^3.15.2
+
+  elevenlabs_agents: ^0.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  freezed: ^2.4.7
+  drift_dev: ^2.17.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
+    - assets/images/
+    - assets/icons/
