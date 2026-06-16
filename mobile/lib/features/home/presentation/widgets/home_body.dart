@@ -40,16 +40,26 @@ class HomeBody extends StatelessWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(AppDimensions.lg),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.lg,
+                    AppDimensions.lg,
+                    AppDimensions.lg,
+                    AppDimensions.sm,
+                  ),
                   child: Text(
                     'Olá, ${state.userName}',
-                    // Patient surface: large title (>=32sp).
+                    // Patient surface: large warm greeting (>=32sp).
                     style: Theme.of(context).textTheme.displayLarge,
                   ),
                 ),
                 Expanded(child: _Transcript(state: state)),
                 Padding(
-                  padding: const EdgeInsets.all(AppDimensions.lg),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.lg,
+                    AppDimensions.md,
+                    AppDimensions.lg,
+                    AppDimensions.lg,
+                  ),
                   child: Column(
                     children: [
                       if (state.errorMessage != null)
@@ -58,33 +68,36 @@ class HomeBody extends StatelessWidget {
                               const EdgeInsets.only(bottom: AppDimensions.md),
                           child: Text(
                             state.errorMessage!,
+                            textAlign: TextAlign.center,
                             style: Theme.of(context)
                                 .textTheme
-                                .bodyMedium
+                                .bodyLarge
                                 ?.copyWith(color: AppColors.error),
                           ),
                         ),
+                      // Hero: the giant accessible mic button stays centered.
                       BigMicButton(
                         state: _toMicState(state.voiceState),
                         onTap: () => context
                             .read<HomeBloc>()
                             .add(const HomeMicTappedEvent()),
                       ),
-                      const SizedBox(height: AppDimensions.md),
+                      const SizedBox(height: AppDimensions.sm),
                       Text(
                         _micStateText(state.voiceState),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: AppColors.textSecondary),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(color: AppColors.textPrimary),
                       ),
                       const SizedBox(height: AppDimensions.md),
-                      // RN-008 / UI-02: keyboard fallback always available.
+                      // RN-008 / UI-02: keyboard fallback always available — a
+                      // distinct "prefiro digitar" affordance, not a copy of
+                      // the mic. Wiring preserved (dispatches HomeMicTapped).
                       KeyboardFallbackBar(
                         actions: [
                           FallbackAction(
-                            label: 'Falar com a Aura',
-                            icon: Icons.touch_app,
+                            label: 'Prefiro digitar',
+                            icon: Icons.keyboard_outlined,
                             onTap: () => context
                                 .read<HomeBloc>()
                                 .add(const HomeMicTappedEvent()),
@@ -140,59 +153,162 @@ class _Transcript extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.lg),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.borderColor),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+    if (state.transcript.isEmpty) {
+      return const _EmptyTranscript();
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.lg,
+        AppDimensions.sm,
+        AppDimensions.lg,
+        AppDimensions.md,
       ),
-      child: state.transcript.isEmpty
-          ? Center(
-              child: Text(
-                'Comece uma conversa',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(AppDimensions.md),
-              itemCount: state.transcript.length,
-              itemBuilder: (context, index) {
-                final message = state.transcript[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimensions.sm),
-                  child: Align(
-                    alignment: message.isUser
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.md,
-                        vertical: AppDimensions.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color: message.isUser
-                            ? AppColors.primary
-                            : AppColors.surface,
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusSm),
-                      ),
-                      child: Text(
-                        message.text,
-                        style:
-                            Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: message.isUser
-                                      ? Colors.white
-                                      : AppColors.textPrimary,
-                                ),
-                      ),
-                    ),
-                  ),
-                );
-              },
+      itemCount: state.transcript.length,
+      itemBuilder: (context, index) {
+        final message = state.transcript[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppDimensions.md),
+          child: _ChatBubble(text: message.text, isUser: message.isUser),
+        );
+      },
+    );
+  }
+}
+
+/// Warm, welcoming empty state: AURA has a face and an invitation — not a cold
+/// bordered box. This is the patient's first impression of "her".
+class _EmptyTranscript extends StatelessWidget {
+  const _EmptyTranscript();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // AURA's identity mark — a calm, friendly presence.
+            const _AuraAvatar(),
+            const SizedBox(height: AppDimensions.lg),
+            Text(
+              'Olá, vamos conversar?',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.displaySmall
+                  ?.copyWith(color: AppColors.textPrimary),
             ),
+            const SizedBox(height: AppDimensions.sm),
+            Text(
+              'Sou a Aura. Toque no microfone e fale comigo — '
+              'estou aqui para te ouvir, com calma.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// AURA's avatar / identity mark: a soft petrol disc holding a gentle
+/// "presence" glyph. Decorative — hidden from screen readers.
+class _AuraAvatar extends StatelessWidget {
+  const _AuraAvatar();
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: Container(
+        width: AppDimensions.xxl * 2,
+        height: AppDimensions.xxl * 2,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.spatial_audio_off,
+          size: AppDimensions.xxl,
+          color: AppColors.primary,
+        ),
+      ),
+    );
+  }
+}
+
+/// Asymmetric chat bubble. The user speaks in solid petrol; Aura answers in a
+/// clearly differentiated soft petrol surface so her voice is never invisible.
+class _ChatBubble extends StatelessWidget {
+  const _ChatBubble({required this.text, required this.isUser});
+
+  final String text;
+  final bool isUser;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    final bubbleColor = isUser ? AppColors.primary : scheme.primaryContainer;
+    final textColor =
+        isUser ? Colors.white : scheme.onPrimaryContainer;
+
+    // Asymmetric corners: a small "tail" corner on the sender's side.
+    final radius = BorderRadius.only(
+      topLeft: const Radius.circular(AppDimensions.radiusLg),
+      topRight: const Radius.circular(AppDimensions.radiusLg),
+      bottomLeft: Radius.circular(
+          isUser ? AppDimensions.radiusLg : AppDimensions.radiusSm),
+      bottomRight: Radius.circular(
+          isUser ? AppDimensions.radiusSm : AppDimensions.radiusLg),
+    );
+
+    final bubble = Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width * 0.82,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.md,
+        vertical: AppDimensions.md,
+      ),
+      decoration: BoxDecoration(
+        color: bubbleColor,
+        borderRadius: radius,
+      ),
+      child: Text(
+        text,
+        // Patient body: large, legible (>=18sp via bodyLarge).
+        style: theme.textTheme.bodyLarge?.copyWith(color: textColor),
+      ),
+    );
+
+    return Column(
+      crossAxisAlignment:
+          isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        // Quiet speaker label so each side is identifiable beyond color.
+        Padding(
+          padding: const EdgeInsets.only(
+            left: AppDimensions.xs,
+            right: AppDimensions.xs,
+            bottom: AppDimensions.xs,
+          ),
+          child: Text(
+            isUser ? 'Você' : 'Aura',
+            style: theme.textTheme.labelMedium
+                ?.copyWith(color: AppColors.textTertiary),
+          ),
+        ),
+        Align(
+          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+          child: bubble,
+        ),
+      ],
     );
   }
 }

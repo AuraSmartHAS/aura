@@ -1,11 +1,11 @@
 {
-  "name": "Aura",
-  "short_name": "Aura",
+  "name": "AURA Care-Chain",
+  "short_name": "AURA",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2D6A4F",
-  "description": "Mobile app for real estate brokers",
+  "background_color": "#F7F5F1",
+  "theme_color": "#1A5276",
+  "description": "Adaptação preditiva como serviço: cuidado domiciliar voz-first, explicável e acessível — a casa se adapta ao idoso antes da queda.",
   "orientation": "portrait-primary",
   "prefer_related_applications": false,
   "icons": [

@@ -1,29 +1,58 @@
 import 'package:flutter/material.dart';
 
+/// AURA Care-Chain palette.
+///
+/// Identity (validated for the Leroy Merlin pitch): deep petrol blue as the
+/// brand/primary, care-green as the "safe / on-track / confirm" signal, and a
+/// clinical severity system (green · amber · red). Neutrals are intentionally
+/// *warm* (paper-toned, not cold white) so cards sit above the background and
+/// gain depth without heavy shadows — "accessibility is the aesthetic":
+/// generous contrast and legible, calm surfaces are the look.
+///
+/// Existing token names are preserved so every screen keeps compiling; new
+/// semantic tokens are additive.
 class AppColors {
-  static const Color primary = Color(0xFF2D6A4F);
-  static const Color primaryLight = Color(0xFF40916C);
-  static const Color primaryDark = Color(0xFF1B4332);
+  const AppColors._();
 
-  static const Color secondary = Color(0xFF74C0FC);
-  static const Color secondaryLight = Color(0xFFA5D8FF);
-  static const Color secondaryDark = Color(0xFF4C9AFF);
+  // ── Brand (petrol) ─────────────────────────────────────────────
+  static const Color primary = Color(0xFF1A5276); // petrol — brand / actions
+  static const Color primaryLight = Color(0xFF2E6E91);
+  static const Color primaryDark = Color(0xFF123C56);
 
-  static const Color background = Color(0xFFFFFFFF);
-  static const Color surface = Color(0xFFFAFAFA);
-  static const Color surfaceVariant = Color(0xFFF0F0F0);
+  /// Near-black petrol ink for headings/body — AAA on light surfaces.
+  static const Color ink = Color(0xFF10303C);
 
-  static const Color textPrimary = Color(0xFF1F2937);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textTertiary = Color(0xFF9CA3AF);
+  // ── Care green (safe / confirm / on-track) ─────────────────────
+  static const Color careGreen = Color(0xFF148F77); // accent + "ok" severity
+  static const Color confirm = Color(0xFF0E7561); // filled CTA bg (white text, AA)
 
-  static const Color borderColor = Color(0xFFE5E7EB);
-  static const Color dividerColor = Color(0xFFD1D5DB);
+  // Secondary now belongs to the green family (was sky blue).
+  static const Color secondary = Color(0xFF148F77);
+  static const Color secondaryLight = Color(0xFF2FA890);
+  static const Color secondaryDark = Color(0xFF0E7561);
 
-  static const Color error = Color(0xFFDC2626);
-  static const Color success = Color(0xFF16A34A);
-  static const Color warning = Color(0xFFF59E0B);
+  // ── Warm neutrals ──────────────────────────────────────────────
+  static const Color background = Color(0xFFF7F5F1); // warm off-white app bg
+  static const Color surface = Color(0xFFFFFFFF); // cards (above the warm bg)
+  static const Color surfaceVariant = Color(0xFFEFEBE4); // sunken / explain block
+  static const Color surfaceTinted = Color(0xFFF1EEE8);
 
-  static const Color hint = Color(0xFF9CA3AF);
-  static const Color link = Color(0xFF2563EB);
+  // ── Text ───────────────────────────────────────────────────────
+  static const Color textPrimary = Color(0xFF10303C);
+  static const Color textSecondary = Color(0xFF4E5D63);
+  static const Color textTertiary = Color(0xFF657076); // AA on both bg & surface
+
+  // ── Lines ──────────────────────────────────────────────────────
+  static const Color borderColor = Color(0xFFE3DED5); // warm hairline
+  static const Color dividerColor = Color(0xFFE3DED5);
+  static const Color focus = Color(0xFF1A5276);
+
+  // ── Status / severity ──────────────────────────────────────────
+  static const Color error = Color(0xFFC0392B); // high risk / SLA breach
+  static const Color success = Color(0xFF148F77); // ok
+  static const Color warning = Color(0xFF9A6109); // attention (amber, AA-hardened)
+
+  // ── Misc ───────────────────────────────────────────────────────
+  static const Color hint = Color(0xFF657076);
+  static const Color link = Color(0xFF1A5276);
 }

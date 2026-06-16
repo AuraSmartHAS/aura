@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/session/user_role.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../bloc/auth_bloc.dart';
 
 class SignupBody extends StatefulWidget {
@@ -38,60 +39,54 @@ class _SignupBodyState extends State<SignupBody> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.lg,
+              vertical: AppDimensions.xl,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 40),
-                Center(
-                  child: Text(
-                    'AURA',
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          color: AppColors.primary,
-                          letterSpacing: 6,
-                        ),
+                // ── Branded header (typographic lockup, no logo asset) ──
+                const _AuraWordmark(tagline: 'Crie sua conta para começar a cuidar.'),
+                const SizedBox(height: AppDimensions.xxl),
+                Text('Criar conta', style: textTheme.displaySmall),
+                const SizedBox(height: AppDimensions.xs),
+                Text(
+                  'Leva menos de um minuto.',
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 40),
-                Text(
-                  'Criar Conta',
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'E-mail',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.xl),
+
+                // ── E-mail ──────────────────────────────────────────────
+                Text('E-mail', style: textTheme.labelLarge),
+                const SizedBox(height: AppDimensions.sm),
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: 'Seu email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
+                  decoration: const InputDecoration(hintText: 'Seu e-mail'),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Senha',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.md),
+
+                // ── Senha ───────────────────────────────────────────────
+                Text('Senha', style: textTheme.labelLarge),
+                const SizedBox(height: AppDimensions.sm),
                 TextField(
                   controller: _passwordController,
                   obscureText: !_passwordVisible,
                   decoration: InputDecoration(
                     hintText: 'Sua senha',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
                     suffixIcon: IconButton(
+                      tooltip: _passwordVisible
+                          ? 'Ocultar senha'
+                          : 'Mostrar senha',
                       icon: Icon(
                         _passwordVisible
                             ? Icons.visibility
@@ -105,21 +100,20 @@ class _SignupBodyState extends State<SignupBody> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Confirmar Senha',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.md),
+
+                // ── Confirmar senha ─────────────────────────────────────
+                Text('Confirmar senha', style: textTheme.labelLarge),
+                const SizedBox(height: AppDimensions.sm),
                 TextField(
                   controller: _confirmPasswordController,
                   obscureText: !_confirmPasswordVisible,
                   decoration: InputDecoration(
                     hintText: 'Confirme sua senha',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
                     suffixIcon: IconButton(
+                      tooltip: _confirmPasswordVisible
+                          ? 'Ocultar senha'
+                          : 'Mostrar senha',
                       icon: Icon(
                         _confirmPasswordVisible
                             ? Icons.visibility
@@ -133,12 +127,11 @@ class _SignupBodyState extends State<SignupBody> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Eu sou',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.lg),
+
+                // ── Papel / role ────────────────────────────────────────
+                Text('Eu sou', style: textTheme.labelLarge),
+                const SizedBox(height: AppDimensions.sm),
                 SegmentedButton<UserRole>(
                   segments: const [
                     ButtonSegment(
@@ -157,29 +150,45 @@ class _SignupBodyState extends State<SignupBody> {
                     setState(() => _role = selection.first);
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppDimensions.lg),
+
+                // ── Inline error ────────────────────────────────────────
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     if (state is AuthFailure) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          state.message,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.error,
+                        padding: const EdgeInsets.only(bottom: AppDimensions.md),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: AppDimensions.lg,
+                              color: AppColors.error,
+                            ),
+                            const SizedBox(width: AppDimensions.sm),
+                            Expanded(
+                              child: Text(
+                                state.message,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.error,
+                                ),
                               ),
+                            ),
+                          ],
                         ),
                       );
                     }
                     return const SizedBox.shrink();
                   },
                 ),
+
+                // ── Submit ──────────────────────────────────────────────
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     final isLoading = state is AuthLoading;
                     return SizedBox(
                       width: double.infinity,
-                      height: 48,
                       child: FilledButton(
                         onPressed: isLoading
                             ? null
@@ -203,53 +212,93 @@ class _SignupBodyState extends State<SignupBody> {
                               },
                         child: isLoading
                             ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                                width: AppDimensions.lg,
+                                height: AppDimensions.lg,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
                               )
-                            : const Text('Criar Conta'),
+                            : const Text('Criar conta'),
                       ),
                     );
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppDimensions.lg),
+
+                // ── Switch to login ─────────────────────────────────────
                 Center(
-                  child: GestureDetector(
-                    onTap: () => context.pop(),
-                    child: RichText(
-                      text: TextSpan(
+                  child: TextButton(
+                    onPressed: () => context.pop(),
+                    child: Text.rich(
+                      TextSpan(
                         children: [
                           TextSpan(
                             text: 'Já tem uma conta? ',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           TextSpan(
                             text: 'Entrar',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: AppColors.link,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.link,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Typographic brand lockup used across the auth screens. No logo asset is
+/// available, so the wordmark leans on the display (Bricolage Grotesque) voice
+/// plus a short, warm tagline — a real header, not a bare letterspaced label.
+class _AuraWordmark extends StatelessWidget {
+  const _AuraWordmark({required this.tagline});
+
+  final String tagline;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      header: true,
+      label: 'AURA. $tagline',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'AURA',
+            style: textTheme.displayLarge?.copyWith(color: AppColors.primary),
+          ),
+          const SizedBox(height: AppDimensions.xs),
+          Container(
+            width: AppDimensions.xxl,
+            height: AppDimensions.xs,
+            decoration: BoxDecoration(
+              color: AppColors.careGreen,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.md),
+          Text(
+            tagline,
+            style: textTheme.titleMedium?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
       ),
     );
   }
