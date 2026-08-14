@@ -304,8 +304,12 @@ class _InfoTileRow extends StatelessWidget {
       return tiles.first;
     }
 
+    // NB: dentro de um ListView a altura é ilimitada; `stretch` no eixo
+    // vertical estoura o layout e derruba os widgets seguintes (timeline,
+    // botão do mapa, controle de avanço). Como as duas tiles têm a mesma
+    // estrutura, `start` mantém o visual sem depender de altura limitada.
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: tiles[0]),
         const SizedBox(width: AppDimensions.md),
