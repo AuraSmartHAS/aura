@@ -47,7 +47,9 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint('[AURA-AUTH] signup requested email=$email role="$role"');
       await _remoteDataSource.signup(email, password, role);
       // Login right after to obtain token + refreshToken + canonical role.
-      return login(email, password);
+      // `await` garante que uma falha do login caia neste catch (e vire uma
+      // mensagem amigável), em vez de escapar como erro não tratado.
+      return await login(email, password);
     } catch (e) {
       return Failure(mapDioError(e));
     }

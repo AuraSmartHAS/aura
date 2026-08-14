@@ -5,6 +5,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../bloc/auth_bloc.dart';
+import '../form_validators.dart';
 
 class LoginBody extends StatefulWidget {
   const LoginBody({super.key});
@@ -14,9 +15,12 @@ class LoginBody extends StatefulWidget {
 }
 
 class _LoginBodyState extends State<LoginBody> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
   bool _passwordVisible = false;
+  // Só valida enquanto digita depois da primeira tentativa de envio.
+  AutovalidateMode _autovalidate = AutovalidateMode.disabled;
 
   @override
   void initState() {
@@ -52,159 +56,176 @@ class _LoginBodyState extends State<LoginBody> {
               horizontal: AppDimensions.lg,
               vertical: AppDimensions.xl,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Branded header (typographic lockup, no logo asset) ──
-                const _AuraWordmark(tagline: 'Cuidado em casa, com calma e clareza.'),
-                const SizedBox(height: AppDimensions.xxl),
-                Text('Entrar', style: textTheme.displaySmall),
-                const SizedBox(height: AppDimensions.xs),
-                Text(
-                  'Bom te ver de novo.',
-                  style: textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.xl),
-
-                // ── E-mail ──────────────────────────────────────────────
-                Text('E-mail', style: textTheme.labelLarge),
-                const SizedBox(height: AppDimensions.sm),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: 'Seu e-mail'),
-                ),
-                const SizedBox(height: AppDimensions.md),
-
-                // ── Senha ───────────────────────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text('Senha', style: textTheme.labelLarge),
-                    TextButton(
-                      onPressed: _onForgotPassword,
-                      child: const Text('Esqueci minha senha'),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: _autovalidate,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── Branded header (typographic lockup, no logo asset) ──
+                  const _AuraWordmark(
+                      tagline: 'Cuidado em casa, com calma e clareza.'),
+                  const SizedBox(height: AppDimensions.xxl),
+                  Text('Entrar', style: textTheme.displaySmall),
+                  const SizedBox(height: AppDimensions.xs),
+                  Text(
+                    'Bom te ver de novo.',
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: AppColors.textSecondary,
                     ),
-                  ],
-                ),
-                const SizedBox(height: AppDimensions.sm),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: !_passwordVisible,
-                  decoration: InputDecoration(
-                    hintText: 'Sua senha',
-                    suffixIcon: IconButton(
-                      tooltip: _passwordVisible
-                          ? 'Ocultar senha'
-                          : 'Mostrar senha',
-                      icon: Icon(
-                        _passwordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                  ),
+                  const SizedBox(height: AppDimensions.xl),
+
+                  // ── E-mail ──────────────────────────────────────────────
+                  Text('E-mail', style: textTheme.labelLarge),
+                  const SizedBox(height: AppDimensions.sm),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: validateEmail,
+                    decoration: const InputDecoration(hintText: 'Seu e-mail'),
+                  ),
+                  const SizedBox(height: AppDimensions.md),
+
+                  // ── Senha ───────────────────────────────────────────────
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('Senha', style: textTheme.labelLarge),
+                      TextButton(
+                        onPressed: _onForgotPassword,
+                        child: const Text('Esqueci minha senha'),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _passwordVisible = !_passwordVisible;
-                        });
-                      },
+                    ],
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: !_passwordVisible,
+                    validator: validateLoginPassword,
+                    decoration: InputDecoration(
+                      hintText: 'Sua senha',
+                      suffixIcon: IconButton(
+                        tooltip: _passwordVisible
+                            ? 'Ocultar senha'
+                            : 'Mostrar senha',
+                        icon: Icon(
+                          _passwordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _passwordVisible = !_passwordVisible;
+                          });
+                        },
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppDimensions.lg),
+                  const SizedBox(height: AppDimensions.lg),
 
-                // ── Inline error ────────────────────────────────────────
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    if (state is AuthFailure) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppDimensions.md),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              size: AppDimensions.lg,
-                              color: AppColors.error,
-                            ),
-                            const SizedBox(width: AppDimensions.sm),
-                            Expanded(
-                              child: Text(
-                                state.message,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.error,
+                  // ── Inline error ────────────────────────────────────────
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      if (state is AuthFailure) {
+                        return Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: AppDimensions.md),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: AppDimensions.lg,
+                                color: AppColors.error,
+                              ),
+                              const SizedBox(width: AppDimensions.sm),
+                              Expanded(
+                                child: Text(
+                                  state.message,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.error,
+                                  ),
                                 ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+
+                  // ── Submit ──────────────────────────────────────────────
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isLoading = state is AuthLoading;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  // Valida localmente antes de chamar a API —
+                                  // mensagens amigáveis junto de cada campo.
+                                  setState(() {
+                                    _autovalidate =
+                                        AutovalidateMode.onUserInteraction;
+                                  });
+                                  if (!_formKey.currentState!.validate()) {
+                                    return;
+                                  }
+                                  context.read<AuthBloc>().add(
+                                        LoginEvent(
+                                          _emailController.text.trim(),
+                                          _passwordController.text,
+                                        ),
+                                      );
+                                },
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: AppDimensions.lg,
+                                  height: AppDimensions.lg,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Entrar'),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppDimensions.lg),
+
+                  // ── Switch to signup ────────────────────────────────────
+                  Center(
+                    child: TextButton(
+                      onPressed: () => context.push(AppRoutes.signup),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Não tem uma conta? ',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Criar conta',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: AppColors.link,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-
-                // ── Submit ──────────────────────────────────────────────
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    final isLoading = state is AuthLoading;
-                    return SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                context.read<AuthBloc>().add(
-                                      LoginEvent(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      ),
-                                    );
-                              },
-                        child: isLoading
-                            ? const SizedBox(
-                                width: AppDimensions.lg,
-                                height: AppDimensions.lg,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Entrar'),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppDimensions.lg),
-
-                // ── Switch to signup ────────────────────────────────────
-                Center(
-                  child: TextButton(
-                    onPressed: () => context.push(AppRoutes.signup),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Não tem uma conta? ',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'Criar conta',
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: AppColors.link,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
