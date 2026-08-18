@@ -5,7 +5,9 @@ import { Platform } from 'react-native';
  * Em device físico troque pelo IP da máquina — localhost lá é o próprio aparelho.
  */
 const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-export const BASE_URL = `http://${HOST}:8080/api/v1`;
+
+/** Em device físico, defina EXPO_PUBLIC_API_URL com o IP da máquina antes de iniciar o Expo. */
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? `http://${HOST}:8080/api/v1`;
 
 let token: string | null = null;
 

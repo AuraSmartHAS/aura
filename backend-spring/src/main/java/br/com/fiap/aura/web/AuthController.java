@@ -2,6 +2,7 @@ package br.com.fiap.aura.web;
 
 import br.com.fiap.aura.security.CurrentUser;
 import br.com.fiap.aura.service.AuthService;
+import br.com.fiap.aura.service.LgpdService;
 import br.com.fiap.aura.web.dto.AuthDtos;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,10 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService auth;
+    private final LgpdService lgpd;
     private final CurrentUser currentUser;
 
-    public AuthController(AuthService auth, CurrentUser currentUser) {
+    public AuthController(AuthService auth, LgpdService lgpd, CurrentUser currentUser) {
         this.auth = auth;
+        this.lgpd = lgpd;
         this.currentUser = currentUser;
     }
 
@@ -56,6 +60,13 @@ public class AuthController {
     @Operation(summary = "Dados do usuário autenticado, incluindo se já aceitou a política")
     public AuthDtos.MeResponse me() {
         return auth.me(currentUser.require());
+    }
+
+    @DeleteMapping("/auth/me")
+    @Operation(summary = "Exclui a conta e todos os dados do titular (LGPD, art. 18)")
+    public AuthDtos.OkResponse deleteAccount() {
+        lgpd.deleteAccount(currentUser.require());
+        return new AuthDtos.OkResponse(true);
     }
 
     @PostMapping("/auth/password")

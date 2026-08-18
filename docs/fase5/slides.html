@@ -157,13 +157,15 @@
 <!-- 4 · parte 1 -->
 <section class="slide">
   <p class="kicker">Parte 1 · escolha da stack</p>
-  <h2>Migração parcial para React Native — e por quê</h2>
+  <h2>As duas frentes do enunciado, e por quê</h2>
   <div class="cols">
     <div class="col">
       <div class="card">
         <h3 class="accent">A decisão</h3>
-        <p class="muted">Recriar em React Native o <strong>fluxo crítico</strong> (login → risco explicado →
-        aprovação → entrega), mantendo o Flutter como app principal.</p>
+        <p class="muted"><strong>Opção B:</strong> o app Flutter seguiu evoluindo — validação inline nos
+        formulários de acesso e correção do detalhe do pedido, ambas com teste.<br>
+        <strong>Opção A:</strong> o fluxo crítico recriado em React Native (login → risco explicado →
+        aprovação → entrega) como spike de avaliação da stack.</p>
       </div>
       <div class="card">
         <h3>Por que não migrar tudo</h3>
@@ -171,6 +173,7 @@
           <li>O app Flutter carrega voz, acessibilidade, mapas e wearable já validados</li>
           <li>Reescrever tudo destruiria patrimônio técnico de duas fases</li>
           <li>Opinar sobre RN sem escrever RN não é avaliação — é achismo</li>
+          <li>Com as duas em código, a comparação ao lado vira evidência, não opinião</li>
         </ul>
       </div>
     </div>
@@ -197,9 +200,9 @@
   <p class="kicker">Parte 2 · back-end</p>
   <h2>API REST em Java 21 + Spring Boot 3.3</h2>
   <div class="grid4">
-    <div class="card"><div class="metric metric--accent">30</div><div class="metric-label">operações REST em 26 rotas de <code>/api/v1</code></div></div>
+    <div class="card"><div class="metric metric--accent">32</div><div class="metric-label">operações REST em 26 rotas de <code>/api/v1</code></div></div>
     <div class="card"><div class="metric">9</div><div class="metric-label">entidades JPA no domínio</div></div>
-    <div class="card"><div class="metric green">10</div><div class="metric-label">testes automatizados verdes</div></div>
+    <div class="card"><div class="metric green">11</div><div class="metric-label">testes automatizados verdes</div></div>
     <div class="card"><div class="metric">3</div><div class="metric-label">clientes no mesmo contrato</div></div>
   </div>
   <div class="cols" style="margin-top:7mm">

@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { CatalogItem, Home, Kpis, Order, Recommendation, Score, Signal, TokenResponse } from './models';
 
 /** Todas as chamadas ao backend Spring Boot passam por aqui. */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  /** Trocar por variável de ambiente ao publicar; localhost é o cenário da demo. */
-  readonly baseUrl = 'http://localhost:8080/api/v1';
+  readonly baseUrl = environment.apiBaseUrl;
 
   private readonly http = inject(HttpClient);
 

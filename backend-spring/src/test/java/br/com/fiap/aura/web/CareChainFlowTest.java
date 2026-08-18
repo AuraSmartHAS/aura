@@ -1,6 +1,7 @@
 package br.com.fiap.aura.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -191,6 +192,44 @@ class CareChainFlowTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.error.details.password").exists());
+    }
+
+    @Test
+    @DisplayName("exclusão LGPD: apaga a casa com seus dados e a conta do titular")
+    void lgpdDeletion() throws Exception {
+        String auth = "Bearer " + signup("apagar@aura.com");
+        mvc.perform(post("/api/v1/consent").header("Authorization", auth)).andExpect(status().isCreated());
+
+        String homeId = body(mvc.perform(post("/api/v1/homes").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100"}"""))
+                .andReturn()).get("homeId").asText();
+
+        mvc.perform(post("/api/v1/signals").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","type":"mobility","source":"voice",
+                                 "value":{"event":"near_fall"}}""".formatted(homeId)))
+                .andExpect(status().isCreated());
+
+        mvc.perform(delete("/api/v1/homes/{id}", homeId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+
+        // a casa some de verdade, e com ela os sinais observados
+        mvc.perform(get("/api/v1/homes/{id}", homeId).header("Authorization", auth))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(delete("/api/v1/auth/me").header("Authorization", auth))
+                .andExpect(status().isOk());
+
+        // sem conta, não há login
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"apagar@aura.com","password":"aura1234"}"""))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("INVALID_CREDENTIALS"));
     }
 
     @Test

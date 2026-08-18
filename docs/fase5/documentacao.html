@@ -124,9 +124,12 @@ em Python/FastAPI.
 </table>
 
 <div class="callout">
-  <strong>O ponto de encontro é o contrato.</strong> Os três clientes — Flutter, React Native e
-  Angular — falam com o mesmo <code>/api/v1</code>. Foi essa decisão que permitiu trocar de stack
-  no mobile e de linguagem no backend sem reescrever o produto: o que define o AURA são as regras
+  <strong>O ponto de encontro é o contrato.</strong> O painel Angular e o app React Native
+  consomem a API Spring Boot desta fase; o app Flutter fala o mesmo contrato <code>/api/v1</code> e
+  passa a consumi-la apontando <code>BACKEND_BASE_URL</code> para a porta 8080, sem alteração de
+  código — enquanto a migração das rotas restantes não termina (estratégia de transição no fim da seção 2), ele segue apontado
+  para o serviço da Fase 4. Foi essa decisão de contrato único que permitiu trocar de stack no
+  mobile e de linguagem no backend sem reescrever o produto: o que define o AURA são as regras
   (escore explicável, gate LGPD, aprovação humana), não a tecnologia de cada superfície.
 </div>
 
@@ -135,9 +138,11 @@ em Python/FastAPI.
 <h3>2.1 A decisão</h3>
 
 <p>
-O time optou por <strong>migrar parcialmente para React Native</strong> — recriando o fluxo de
-maior valor do produto — <strong>mantendo o app Flutter como aplicação principal</strong>.
-Não é meio-termo por indecisão: é a forma tecnicamente honesta de avaliar uma stack.
+O time executou <strong>as duas frentes previstas no enunciado</strong>: manteve e aprimorou o
+app <strong>Flutter</strong>, que segue sendo a aplicação principal (Opção B — detalhado em 2.5),
+e, adicionalmente, recriou em <strong>React Native</strong> o fluxo de maior valor do produto
+como <em>spike</em> executável (Opção A). Não é meio-termo por indecisão: é a forma
+tecnicamente honesta de avaliar uma stack sem interromper o produto.
 </p>
 
 <p>
@@ -232,7 +237,40 @@ função que ele permanece no roadmap. A migração total não se justifica hoje
 existe, agora com dados.
 </p>
 
-<h3>2.5 Roadmap tecnológico</h3>
+<h3>2.5 O que evoluiu no app Flutter nesta janela</h3>
+
+<p>
+O app principal não ficou parado. Duas entregas foram feitas no Flutter durante esta fase,
+ambas cobertas por teste automatizado — e ambas atacando a experiência das personas, não
+detalhe interno:
+</p>
+
+<table>
+  <tr><th>Entrega</th><th>O que mudou</th><th>Teste</th></tr>
+  <tr>
+    <td><strong>Validação inline nos formulários de acesso</strong><br><span class="note">feat(auth), 14/08/2026</span></td>
+    <td>Login e cadastro passaram a validar antes de chamar a API, com mensagens em linguagem
+        simples (“E-mail inválido. Confira e tente de novo.”, “Use pelo menos 6 caracteres.”).
+        Erro técnico do servidor deixou de ser a primeira resposta que a pessoa vê — princípio
+        de acessibilidade que vale duplo para a persona idosa. Validadores extraídos em funções
+        puras (<code>form_validators.dart</code>).</td>
+    <td>68 linhas cobrindo e-mail, senha de login, senha de cadastro e confirmação</td>
+  </tr>
+  <tr>
+    <td><strong>Correção do detalhe do pedido</strong><br><span class="note">fix(orders), 14/08/2026</span></td>
+    <td>Pedido em rota deixou de ocultar o mapa e a linha do tempo — justamente o momento em
+        que a cuidadora mais precisa dessas duas informações.</td>
+    <td>70 linhas garantindo que o pedido em rota expõe rota válida para o mapa</td>
+  </tr>
+</table>
+
+<p>
+São mudanças de escopo contido, e a documentação não as apresenta como reescrita: a frente
+principal do mobile nesta fase foi o spike em React Native. O ponto é que a Opção B também
+foi exercida, com código e teste verificáveis no histórico do repositório.
+</p>
+
+<h3>2.6 Roadmap tecnológico</h3>
 
 <table>
   <tr><th>Momento</th><th>O que foi/será feito</th><th>Situação</th></tr>
@@ -277,6 +315,13 @@ existe, agora com dados.
   <tr><td>Build e execução</td><td>Maven Wrapper — <code>./mvnw spring-boot:run</code>, sem instalar Maven</td></tr>
 </table>
 
+<p>
+O H2 é o <strong>perfil de demonstração</strong>, escolhido para que a avaliação rode com um
+comando e sem instalar banco nenhum. A persistência real é <strong>PostgreSQL</strong> no perfil
+<code>postgres</code>, com o mesmo código, o mesmo mapeamento e o mesmo schema — os campos JSON
+usam conversores dedicados justamente para que nada mude entre os dois bancos.
+</p>
+
 <h3>3.2 Arquitetura em camadas</h3>
 
 <pre><code>br.com.fiap.aura
@@ -318,7 +363,7 @@ produção.
 <h3>3.4 API REST</h3>
 
 <p>
-São <strong>30 operações REST distribuídas em 26 rotas</strong> sob <code>/api/v1</code> — o número
+São <strong>32 operações REST distribuídas em 26 rotas</strong> sob <code>/api/v1</code> — o número
 pode ser conferido no próprio <code>/v3/api-docs</code> da aplicação rodando. A tabela abaixo
 agrupa as operações por recurso.
 </p>
@@ -330,10 +375,12 @@ agrupa as operações por recurso.
   <tr><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>Troca o refresh por um novo access</td><td>pública</td></tr>
   <tr><td>GET</td><td><code>/api/v1/auth/me</code></td><td>Usuário atual e situação do consentimento</td><td>autenticado</td></tr>
   <tr><td>POST</td><td><code>/api/v1/auth/password</code></td><td>Troca de senha</td><td>autenticado</td></tr>
+  <tr><td>DELETE</td><td><code>/api/v1/auth/me</code></td><td>Exclui a conta e todos os dados do titular (LGPD, art. 18)</td><td>autenticado</td></tr>
   <tr><td>POST</td><td><code>/api/v1/consent</code></td><td>Aceite LGPD</td><td>autenticado</td></tr>
   <tr><td>POST</td><td><code>/api/v1/notifications/register-token</code></td><td>Registra o token do dispositivo para push (FCM)</td><td>autenticado</td></tr>
   <tr><td>POST/GET</td><td><code>/api/v1/homes</code></td><td>Cria e lista casas (endereço resolvido por CEP)</td><td>autenticado</td></tr>
   <tr><td>GET</td><td><code>/api/v1/homes/{id}</code></td><td>Detalhe da casa e checklist</td><td>dono da casa</td></tr>
+  <tr><td>DELETE</td><td><code>/api/v1/homes/{id}</code></td><td>Exclui a casa e tudo que foi observado nela</td><td>dono da casa</td></tr>
   <tr><td>PUT</td><td><code>/api/v1/homes/{id}/checklist</code></td><td>Atualiza os itens de segurança</td><td>dono da casa</td></tr>
   <tr><td>POST/GET</td><td><code>/api/v1/signals</code> · <code>/homes/{id}/signals</code></td><td>Registra e lista sinais (com filtros e paginação)</td><td>dono da casa</td></tr>
   <tr><td>POST</td><td><code>/api/v1/scores/recompute</code></td><td>Recalcula o escore explicável</td><td>dono da casa</td></tr>
@@ -368,6 +415,13 @@ segurança. A autorização tem três camadas:
 As senhas são gravadas com <strong>BCrypt</strong>. O segredo do JWT vem da variável
 <code>AURA_JWT_SECRET</code>; o valor embutido serve apenas à demonstração local. O CORS é
 configurável por propriedade — liberado na demo, restrito por origem em produção.
+</p>
+
+<p>
+Em ambiente publicado, a comunicação entre mobile e back-end fica atrás de <strong>TLS</strong>
+(HTTPS obrigatório, com HSTS), com o segredo injetado por variável de ambiente e o CORS
+restrito às origens conhecidas. O cenário local usa HTTP apenas para dispensar certificado
+durante a avaliação — nenhuma credencial trafega fora da máquina do avaliador.
 </p>
 
 <h3>3.6 Validação e tratamento de erros</h3>
@@ -428,6 +482,11 @@ escreve o texto — está no caminho de saída.</p>
 <p><strong>Gate LGPD.</strong> Criar casa, registrar sinal, recalcular escore e gerar
 recomendação exigem consentimento aceito. Sem ele, a resposta é <code>422 CONSENT_REQUIRED</code>.</p>
 
+<p><strong>Direito de exclusão.</strong> <code>DELETE /auth/me</code> e
+<code>DELETE /homes/{id}</code> apagam de verdade — conta, consentimento, casas, sinais,
+escores, recomendações e pedidos — em vez de marcar registros como inativos. É a contrapartida
+do gate de consentimento: quem autoriza também consegue revogar.</p>
+
 <p><strong>Nenhum pedido sem aprovação humana.</strong> A recomendação só vira pedido em
 <code>POST /recommendations/{id}/approve</code>. Enquanto a cuidadora não aprova, a lista de
 pedidos da casa é literalmente vazia — e isso é verificado por teste automatizado.</p>
@@ -445,7 +504,7 @@ contagem de produtos, casas e pedidos abertos.
 <h3>3.9 Testes</h3>
 
 <p>
-São <strong>10 testes automatizados</strong>, todos verdes (<code>./mvnw test</code>):
+São <strong>11 testes automatizados</strong>, todos verdes (<code>./mvnw test</code>):
 </p>
 
 <table>
@@ -459,6 +518,7 @@ São <strong>10 testes automatizados</strong>, todos verdes (<code>./mvnw test</
   <tr><td>Dupla aprovação</td><td><code>409 CONFLICT</code></td></tr>
   <tr><td>Isolamento entre pacientes</td><td>Casa de outra cuidadora responde <code>403</code></td></tr>
   <tr><td>Autenticação e RBAC</td><td>Sem token → <code>401</code>; cuidadora em <code>/ops</code> → <code>403</code>; admin → <code>200</code></td></tr>
+  <tr><td>Exclusão LGPD</td><td>Apagar a casa remove os sinais junto; apagar a conta impede o login seguinte</td></tr>
   <tr><td>Validação e rotas públicas</td><td><code>VALIDATION_ERROR</code> com o campo culpado; health e página de status abertos</td></tr>
 </table>
 
@@ -586,6 +646,16 @@ Para rodar com PostgreSQL: <code>docker compose up -d</code> e
 </p>
 
 <h2>7. Indicadores e próximos passos de validação</h2>
+
+<p>
+<strong>Sobre o compromisso assumido na Fase 4.</strong> Naquela entrega o grupo se comprometeu,
+respondendo ao feedback do professor, a levar o sistema a usuários reais e apresentar evidência
+quantitativa. Esta fase <em>não</em> cumpriu essa parte: o esforço foi integralmente para tornar o
+sistema testável de ponta a ponta — API própria, painel web e segundo cliente mobile — que é a
+pré-condição para uma sessão de teste que valha alguma coisa. O protocolo (perfis, tarefas,
+métricas e metas) segue definido e sem alteração; o que falta é executá-lo. Assumimos o atraso
+em vez de repetir a promessa.
+</p>
 
 <p>
 Os indicadores de produto definidos na fase anterior continuam valendo e agora têm de onde sair:
