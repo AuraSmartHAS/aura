@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AURA Care-Chain — Documentação Fase 5</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    color: #1c2128; font-size: 10.5pt; line-height: 1.55;
+  }
+  h1 { font-size: 20pt; margin: 0 0 2mm; color: #0d1117; letter-spacing: -0.01em; }
+  h2 { font-size: 13pt; margin: 9mm 0 3mm; color: #0d1117; padding-bottom: 1.5mm; border-bottom: 2px solid #f0883e; }
+  h3 { font-size: 11pt; margin: 6mm 0 2mm; color: #24292f; }
+  p { margin: 0 0 3mm; text-align: justify; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9pt; background: #f2f4f7;
+         padding: 0.4mm 1.2mm; border-radius: 2px; color: #b5451b; }
+  pre { background: #0d1117; color: #c9d1d9; padding: 4mm; border-radius: 3mm; font-size: 8.5pt;
+        line-height: 1.45; overflow: hidden; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm; font-size: 9.5pt; }
+  th { background: #f2f4f7; text-align: left; padding: 2mm 2.5mm; border-bottom: 1.5px solid #d0d7de;
+       font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; color: #57606a; }
+  td { padding: 2mm 2.5mm; border-bottom: 1px solid #e4e8ed; vertical-align: top; }
+  .cover { text-align: center; padding: 22mm 0 10mm; }
+  .cover .kicker { color: #f0883e; font-size: 9pt; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 4mm; }
+  .cover h1 { font-size: 30pt; }
+  .cover .sub { color: #57606a; font-size: 12pt; margin-top: 1mm; }
+  .cover .ctx { color: #57606a; font-size: 9.5pt; margin-top: 6mm; }
+  .cover img { width: 26mm; height: 26mm; border-radius: 6mm; margin-bottom: 6mm; }
+  .callout { background: #fff6ef; border-left: 3px solid #f0883e; padding: 3mm 4mm; margin: 4mm 0; font-size: 9.5pt; }
+  .callout strong { color: #b5451b; }
+  .note { color: #57606a; font-size: 9pt; font-style: italic; }
+  figure { margin: 4mm 0 6mm; page-break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 108mm; width: auto; display: block; margin: 0 auto;
+                border: 1px solid #d0d7de; border-radius: 2mm; }
+  figcaption { font-size: 8.5pt; color: #57606a; margin-top: 1.5mm; text-align: center; }
+  .two { display: flex; gap: 4mm; }
+  .two figure { flex: 1; }
+  .phone img { max-height: 105mm; width: auto; display: block; margin: 0 auto; }
+  .break { page-break-before: always; }
+  .avoid { page-break-inside: avoid; }
+  .tag { display: inline-block; background: #eef4ff; color: #0a4bb5; border-radius: 999px;
+         padding: 0.4mm 2mm; font-size: 8pt; font-weight: 600; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .footer-note { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid #e4e8ed; color: #57606a; font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <img src="img/aura-logo.png" alt="AURA">
+  <p class="kicker">Documentação do projeto — Fase 5</p>
+  <h1>AURA Care-Chain</h1>
+  <p class="sub">Assistente Ubíquo de Resposta Ativa</p>
+  <p class="ctx">
+    Mobile Hybrid App e a Sociedade 5.0<br>
+    Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · FIAP
+  </p>
+</section>
+
+<h2 style="margin-top:4mm">Equipe</h2>
+<table>
+  <tr><th>Nome completo</th><th>RM</th><th>Papel</th><th>Frente nesta fase</th></tr>
+  <tr><td>Vinícius Miranda Baptista</td><td>555081</td><td>Tech Lead</td><td>Arquitetura da API e decisão de stack</td></tr>
+  <tr><td>João Domingos Góes Filho</td><td>564465</td><td>Dev Senior Mobile</td><td>App React Native e comparação de stacks</td></tr>
+  <tr><td>Pedro Henrique Arenas Negri</td><td>554971</td><td>Dev Pleno</td><td>Back-end Spring Boot e regras de negócio</td></tr>
+  <tr><td>Júlia Alves Dias</td><td>557151</td><td>Infra</td><td>Persistência, perfis de execução e testes</td></tr>
+  <tr><td>Frederico Enrique Garcia da Silva Passos</td><td>550532</td><td>Dev Junior</td><td>Painel Angular e evidências</td></tr>
+</table>
+
+<table>
+  <tr><th>Entregável</th><th>Onde</th></tr>
+  <tr><td>Código-fonte (monorepo)</td><td>github.com/AuraSmartHAS/aura</td></tr>
+  <tr><td>Vídeo de demonstração (YouTube, não listado)</td><td>«inserir link do YouTube (não listado)»</td></tr>
+  <tr><td>Apresentação de slides</td><td>AURA - Apresentacao Fase 5.pdf (mesma pasta)</td></tr>
+  <tr><td>Equipe e links</td><td>Equipe e Links.txt (mesma pasta)</td></tr>
+</table>
+
+<p style="text-align:center; color:#57606a; margin-top:8mm">Agosto / 2026</p>
+
+<div class="break"></div>
+
+<h2>1. Onde o projeto está e o que muda nesta fase</h2>
+
+<p>
+O AURA é um assistente de saúde domiciliar para idosos e pessoas com Doença de Parkinson,
+alinhado à Sociedade 5.0. Ele atende duas personas: <strong>Maria</strong>, a paciente, que
+interage inteiramente por voz, e <strong>Ana</strong>, a cuidadora, que acompanha o cuidado
+por um painel visual. Sobre esse núcleo de saúde roda a <strong>Care-Chain</strong>: quando o
+sistema percebe um risco na casa, ele explica o risco, recomenda o item de segurança
+correspondente (base NBR 9050) e — só depois da aprovação humana — dispara a cadeia
+logística até a instalação.
+</p>
+
+<p>
+Nas fases anteriores o time entregou a estratégia de serviço (Fase 1), os processos e a
+arquitetura (Fase 2), o aplicativo nativo em Kotlin (Fase 3) e a migração para Flutter com a
+camada de logística inteligente, mapas e Firebase (Fase 4). O backend daquela fase foi escrito
+em Python/FastAPI.
+</p>
+
+<p><strong>Esta fase entrega três frentes novas, todas rodando e integradas pelo mesmo contrato de API:</strong></p>
+
+<table>
+  <tr><th>Parte</th><th>Entrega</th><th>Onde no repositório</th></tr>
+  <tr>
+    <td>Parte 1 — Stack mobile</td>
+    <td>Fluxo crítico do app recriado em <strong>React Native</strong> (Expo), mantendo o app Flutter como produto principal</td>
+    <td><code>mobile-rn/</code></td>
+  </tr>
+  <tr>
+    <td>Parte 2 — Back-end</td>
+    <td><strong>API REST em Java 21 + Spring Boot 3.3</strong>: Controllers, Services, Models, JWT, JPA, validação, tratamento de erros e Swagger</td>
+    <td><code>backend-spring/</code></td>
+  </tr>
+  <tr>
+    <td>Parte 3 — Web</td>
+    <td>Painel administrativo em <strong>Angular 20</strong> consumindo a mesma API</td>
+    <td><code>web-admin/</code></td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>O ponto de encontro é o contrato.</strong> Os três clientes — Flutter, React Native e
+  Angular — falam com o mesmo <code>/api/v1</code>. Foi essa decisão que permitiu trocar de stack
+  no mobile e de linguagem no backend sem reescrever o produto: o que define o AURA são as regras
+  (escore explicável, gate LGPD, aprovação humana), não a tecnologia de cada superfície.
+</div>
+
+<h2>2. Parte 1 — Escolha da stack tecnológica e justificativa</h2>
+
+<h3>2.1 A decisão</h3>
+
+<p>
+O time optou por <strong>migrar parcialmente para React Native</strong> — recriando o fluxo de
+maior valor do produto — <strong>mantendo o app Flutter como aplicação principal</strong>.
+Não é meio-termo por indecisão: é a forma tecnicamente honesta de avaliar uma stack.
+</p>
+
+<p>
+Descartar um aplicativo Flutter maduro (Clean Architecture, BLoC por feature, banco local com
+drift, integração com Health Connect, Google Maps e FCM) para reescrevê-lo inteiro em React
+Native destruiria patrimônio técnico validado em duas entregas — e, com o prazo da fase,
+provavelmente resultaria numa demonstração mais pobre do que a que já existe. Por outro lado,
+opinar sobre React Native sem escrever uma linha de React Native não é avaliação de stack,
+é achismo.
+</p>
+
+<p>
+O caminho escolhido — um <em>spike</em> executável do caminho crítico — dá ao time as duas
+coisas: código real nas duas stacks para comparar, e nenhuma regressão no produto.
+</p>
+
+<h3>2.2 O que foi recriado em React Native</h3>
+
+<table>
+  <tr><th>Tela</th><th>Arquivo</th><th>O que faz</th><th>Componentes</th></tr>
+  <tr>
+    <td>Login</td><td><code>src/screens/LoginScreen.tsx</code></td>
+    <td>Autenticação contra a API, estado de carregamento e erro traduzido do envelope da API</td>
+    <td><code>View</code>, <code>Text</code>, <code>Image</code>, <code>Button</code>, <code>TextInput</code>, <code>ActivityIndicator</code></td>
+  </tr>
+  <tr>
+    <td>Painel da cuidadora</td><td><code>src/screens/DashboardScreen.tsx</code></td>
+    <td>Risco por dimensão com barra, nível, fatores e pesos; recalcular escore; registrar quase-queda</td>
+    <td><code>View</code>, <code>Text</code>, <code>Image</code>, <code>Button</code>, <code>ScrollView</code>, <code>RefreshControl</code></td>
+  </tr>
+  <tr>
+    <td>Care-Chain</td><td><code>src/screens/CareChainScreen.tsx</code></td>
+    <td>Recomendação explicada, aprovação da cuidadora e linha do tempo do pedido até a instalação</td>
+    <td><code>View</code>, <code>Text</code>, <code>Button</code>, <code>ScrollView</code></td>
+  </tr>
+</table>
+
+<p>
+A navegação usa <strong>React Navigation</strong> (<code>@react-navigation/native-stack</code>)
+com rotas tipadas em <code>src/navigation.ts</code> — o TypeScript passa a cobrar os parâmetros
+de cada tela, e a chamada <code>navigation.navigate('CareChain', { homeId, scoreId })</code> só
+compila se os dois campos existirem:
+</p>
+
+<pre><code>export type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+  CareChain: { homeId: string; scoreId: string };
+};</code></pre>
+
+<p>
+Todas as telas são <strong>componentes funcionais</strong> com hooks
+(<code>useState</code>, <code>useEffect</code>, <code>useCallback</code>). O acesso à rede fica
+isolado em <code>src/api.ts</code>, que anexa o Bearer e converte o envelope de erro
+<code>{"error":{"code","message"}}</code> em mensagem de tela — o mesmo padrão do app Flutter.
+</p>
+
+<h3>2.3 Benefícios observados na migração</h3>
+
+<ul>
+  <li><strong>Ciclo de feedback mais curto na web.</strong> <code>npm run web</code> abre o app
+      no navegador em segundos; é o caminho mais rápido para demonstrar o produto sem emulador —
+      o que reduz o atrito nas apresentações e nos testes com usuários.</li>
+  <li><strong>Reaproveitamento de conhecimento do time.</strong> O time já domina
+      TypeScript/React do painel Angular e das ferramentas internas; o RN aproveita esse
+      repertório, enquanto o Dart continua sendo uma linguagem exclusiva do app.</li>
+  <li><strong>Ecossistema JavaScript.</strong> O mesmo cliente HTTP, os mesmos tipos de domínio e
+      a mesma paleta são compartilháveis entre o app RN e o painel web com pouco esforço.</li>
+  <li><strong>Prova de que o contrato é neutro.</strong> O app RN funcionou contra a API sem
+      nenhuma rota nova ou adaptação no servidor — evidência prática de que a arquitetura
+      cliente-servidor do AURA não está acoplada a uma stack de UI.</li>
+</ul>
+
+<h3>2.4 Comparação com evidência de código</h3>
+
+<table>
+  <tr><th>Critério</th><th>Flutter (app principal)</th><th>React Native (spike desta fase)</th></tr>
+  <tr><td>Superfícies</td><td>Android, iOS e Web com uma base</td><td>Android, iOS e Web (via react-native-web)</td></tr>
+  <tr><td>Desempenho de UI</td><td>Renderização própria (Impeller/Skia), animações previsíveis</td><td>Componentes nativos; ponte JS ainda pesa em listas longas</td></tr>
+  <tr><td>Voz e acessibilidade nativa</td><td>Plugins maduros; a VUI da Maria já está pronta</td><td>Exigiria reimplementar a camada de voz e o TalkBack — <em>fora do escopo do spike</em></td></tr>
+  <tr><td>Tipagem e refactor</td><td>Dart com null-safety forte</td><td>TypeScript, com rotas tipadas via React Navigation</td></tr>
+  <tr><td>Curva para o time</td><td>Dart é exclusivo do app</td><td>Reaproveita o TypeScript do painel Angular</td></tr>
+  <tr><td>Tempo até a primeira tela rodando</td><td>Maior (toolchain e emulador)</td><td>Menor no alvo web</td></tr>
+</table>
+
+<p>
+<strong>Conclusão do time:</strong> o Flutter segue sendo a stack certa para o produto — é onde
+estão a interface por voz, a acessibilidade e os recursos nativos que definem a experiência da
+Maria. O React Native se mostrou uma alternativa viável e produtiva para superfícies
+secundárias (demonstrações web, protótipos e telas de acompanhamento da cuidadora), e é nessa
+função que ele permanece no roadmap. A migração total não se justifica hoje; a opção de fazê-la
+existe, agora com dados.
+</p>
+
+<h3>2.5 Roadmap tecnológico</h3>
+
+<table>
+  <tr><th>Momento</th><th>O que foi/será feito</th><th>Situação</th></tr>
+  <tr><td>Fases 1 e 2</td><td>Estratégia de serviço, personas, processos e arquitetura de referência</td><td class="ok">Concluído</td></tr>
+  <tr><td>Fase 3</td><td>App nativo Android em Kotlin (Jetpack Compose)</td><td class="ok">Concluído</td></tr>
+  <tr><td>Fase 4</td><td>Migração para Flutter, Care-Chain, monitoramento 360, mapas, FCM e backend FastAPI</td><td class="ok">Concluído</td></tr>
+  <tr>
+    <td><strong>Fase 5 (esta entrega)</strong></td>
+    <td>API REST em Spring Boot com JWT e persistência; painel administrativo Angular; fluxo crítico recriado em React Native</td>
+    <td class="ok">Concluído</td>
+  </tr>
+  <tr>
+    <td>Próximas fases</td>
+    <td>Migrar para o Spring Boot as rotas que ainda vivem no serviço FastAPI (voz, medicação, realtime);
+        publicar a API em nuvem com PostgreSQL gerenciado; observabilidade (Actuator + métricas) e CI/CD;
+        testes de usabilidade com idosos medindo SUS e sucesso por tarefa</td>
+    <td>Planejado</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>Estratégia de transição do backend.</strong> A API Spring Boot não substituiu o serviço
+  anterior de uma vez: ela assumiu o núcleo do domínio (autenticação, consentimento, casas,
+  sinais, escore, catálogo, Care-Chain e KPIs), enquanto rotas periféricas seguem no serviço
+  FastAPI da Fase 4 durante a transição. É o padrão <em>strangler fig</em> — a nova aplicação
+  cresce em volta da antiga, rota a rota, sem janela de indisponibilidade.
+</div>
+
+<div class="break"></div>
+
+<h2>3. Parte 2 — Back-end escalável com Spring Boot</h2>
+
+<h3>3.1 Visão geral</h3>
+
+<table>
+  <tr><th>Item</th><th>Escolha</th></tr>
+  <tr><td>Linguagem e plataforma</td><td>Java 21 (virtual threads habilitadas)</td></tr>
+  <tr><td>Framework</td><td>Spring Boot 3.3 — Spring MVC, Data JPA, Security, Validation, Thymeleaf</td></tr>
+  <tr><td>Persistência</td><td>H2 em memória no perfil <code>dev</code> (com carga de demonstração) · PostgreSQL no perfil <code>postgres</code></td></tr>
+  <tr><td>Autenticação</td><td>JWT HS256 — access de 30 min e refresh de 7 dias, sem sessão no servidor</td></tr>
+  <tr><td>Documentação</td><td>springdoc-openapi — Swagger UI em <code>/swagger-ui.html</code></td></tr>
+  <tr><td>Build e execução</td><td>Maven Wrapper — <code>./mvnw spring-boot:run</code>, sem instalar Maven</td></tr>
+</table>
+
+<h3>3.2 Arquitetura em camadas</h3>
+
+<pre><code>br.com.fiap.aura
+├── web/            Controllers REST · DTOs (records) · tratamento global de erro
+├── service/        Regras de negócio: escore, Care-Chain, guardrails, geo, KPIs
+├── repository/     Spring Data JPA (interfaces, sem implementação manual)
+├── domain/         Entidades JPA · enums · conversores JSON
+└── config/         Security (JWT), OpenAPI, propriedades tipadas e carga inicial</code></pre>
+
+<p>
+O controller não conhece JPA e o service não conhece HTTP: o controller recebe o DTO validado,
+delega ao service e devolve o DTO de resposta. Essa separação é o que permitiu escrever o teste
+ponta a ponta em MockMvc sem subir servidor e, ao mesmo tempo, testar o motor de escore
+isoladamente.
+</p>
+
+<h3>3.3 Modelo de dados</h3>
+
+<table>
+  <tr><th>Entidade</th><th>Papel no domínio</th></tr>
+  <tr><td><code>UserAccount</code></td><td>Conta com papel (paciente, cuidadora, profissional, admin) e token de push</td></tr>
+  <tr><td><code>Consent</code></td><td>Aceite da política LGPD — condição para qualquer dado de saúde</td></tr>
+  <tr><td><code>Home</code></td><td>Casa do paciente: endereço, coordenadas e checklist de segurança</td></tr>
+  <tr><td><code>Signal</code></td><td>Sinal observado (voz, auto-relato, uso do app, wearable) — nunca sensor IoT</td></tr>
+  <tr><td><code>Score</code></td><td>Escore por dimensão com fatores, pesos, explicação e versão da configuração</td></tr>
+  <tr><td><code>Product</code></td><td>Item do catálogo de acessibilidade (NBR 9050) e estoque próximo</td></tr>
+  <tr><td><code>Recommendation</code></td><td>Recomendação explicada, com status <code>recommended</code> → <code>approved</code>/<code>rejected</code></td></tr>
+  <tr><td><code>DeliveryOrder</code></td><td>Pedido da cadeia de segurança, com estágio, SLA e dados de entrega</td></tr>
+  <tr><td><code>StockNode</code></td><td>Loja ou centro de distribuição (roteamento <em>ship-from-store</em>)</td></tr>
+</table>
+
+<p>
+Campos livres (checklist, valor do sinal, listas de fatores e pesos) são gravados como JSON em
+texto por <code>AttributeConverter</code> dedicados. A escolha é deliberada: o mesmo mapeamento
+funciona sem alteração em H2 e em PostgreSQL, o que mantém o teste local fiel ao ambiente de
+produção.
+</p>
+
+<h3>3.4 API REST</h3>
+
+<table>
+  <tr><th>Método</th><th>Rota</th><th>Descrição</th><th>Acesso</th></tr>
+  <tr><td>POST</td><td><code>/api/v1/auth/signup</code></td><td>Cria conta e já devolve o par de tokens</td><td>pública</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/auth/login</code></td><td>Autentica</td><td>pública</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/auth/refresh</code></td><td>Troca o refresh por um novo access</td><td>pública</td></tr>
+  <tr><td>GET</td><td><code>/api/v1/auth/me</code></td><td>Usuário atual e situação do consentimento</td><td>autenticado</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/auth/password</code></td><td>Troca de senha</td><td>autenticado</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/consent</code></td><td>Aceite LGPD</td><td>autenticado</td></tr>
+  <tr><td>POST/GET</td><td><code>/api/v1/homes</code></td><td>Cria e lista casas (endereço resolvido por CEP)</td><td>autenticado</td></tr>
+  <tr><td>GET</td><td><code>/api/v1/homes/{id}</code></td><td>Detalhe da casa e checklist</td><td>dono da casa</td></tr>
+  <tr><td>PUT</td><td><code>/api/v1/homes/{id}/checklist</code></td><td>Atualiza os itens de segurança</td><td>dono da casa</td></tr>
+  <tr><td>POST/GET</td><td><code>/api/v1/signals</code> · <code>/homes/{id}/signals</code></td><td>Registra e lista sinais (com filtros e paginação)</td><td>dono da casa</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/scores/recompute</code></td><td>Recalcula o escore explicável</td><td>dono da casa</td></tr>
+  <tr><td>GET</td><td><code>/api/v1/homes/{id}/scores</code> · <code>/scores/latest</code></td><td>Histórico e último por dimensão</td><td>dono da casa</td></tr>
+  <tr><td>GET</td><td><code>/api/v1/catalog</code> · <code>/catalog/{sku}</code></td><td>Catálogo de acessibilidade</td><td>autenticado</td></tr>
+  <tr><td>POST/PUT/DELETE</td><td><code>/api/v1/catalog/{sku}</code></td><td>CRUD do catálogo</td><td><span class="tag">admin</span></td></tr>
+  <tr><td>POST/GET</td><td><code>/api/v1/recommendations</code></td><td>Gera e lista recomendações explicadas</td><td>dono da casa</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/recommendations/{id}/approve</code> · <code>/reject</code></td><td>Aprovação ou recusa humana</td><td>dono da casa</td></tr>
+  <tr><td>POST/GET</td><td><code>/api/v1/orders/{id}/advance</code> · <code>/orders/{id}</code></td><td>Avança o estágio e detalha o pedido</td><td>dono da casa</td></tr>
+  <tr><td>GET</td><td><code>/api/v1/ops/kpis</code></td><td>KPIs da Torre de Controle</td><td><span class="tag">admin</span></td></tr>
+  <tr><td>GET</td><td><code>/api/v1/health</code> · <code>/</code></td><td>Health check e página de status (Thymeleaf)</td><td>pública</td></tr>
+</table>
+
+<h3>3.5 Autenticação e autorização</h3>
+
+<p>
+A API é <strong>stateless</strong>: não há sessão no servidor. O <code>JwtService</code> emite
+dois tokens (access e refresh, distinguidos por uma claim <code>typ</code> — um refresh não vale
+como access), e um <code>OncePerRequestFilter</code> valida o Bearer e popula o contexto de
+segurança. A autorização tem três camadas:
+</p>
+
+<ol>
+  <li><strong>Rota</strong> — <code>/api/v1/ops/**</code> exige <code>ROLE_ADMIN</code> na cadeia de filtros.</li>
+  <li><strong>Método</strong> — o CRUD do catálogo usa <code>@PreAuthorize("hasRole('ADMIN')")</code>.</li>
+  <li><strong>Registro</strong> — o isolamento por paciente é verificado no service:
+      acessar a casa de outro usuário responde <code>403</code>, e não <code>404</code>,
+      porque o cliente precisa distinguir "não é seu" de "não existe".</li>
+</ol>
+
+<p>
+As senhas são gravadas com <strong>BCrypt</strong>. O segredo do JWT vem da variável
+<code>AURA_JWT_SECRET</code>; o valor embutido serve apenas à demonstração local. O CORS é
+configurável por propriedade — liberado na demo, restrito por origem em produção.
+</p>
+
+<h3>3.6 Validação e tratamento de erros</h3>
+
+<p>
+Todo corpo de requisição é um <em>record</em> anotado com Bean Validation
+(<code>@NotBlank</code>, <code>@Email</code>, <code>@Size</code>, <code>@Pattern</code> para o CEP).
+Um <code>@RestControllerAdvice</code> traduz qualquer falha para um envelope único, o mesmo que
+os três clientes já sabiam ler:
+</p>
+
+<pre><code>{ "error": { "code": "CONSENT_REQUIRED",
+             "message": "Aceite a Política de Privacidade antes de registrar dados de saúde.",
+             "details": null } }</code></pre>
+
+<table>
+  <tr><th>Código</th><th>HTTP</th><th>Quando acontece</th></tr>
+  <tr><td><code>VALIDATION_ERROR</code></td><td>400</td><td>Payload inválido — <code>details</code> traz o campo e o motivo</td></tr>
+  <tr><td><code>UNKNOWN_DIMENSION</code></td><td>400</td><td>Dimensão de escore inexistente na configuração</td></tr>
+  <tr><td><code>UNAUTHORIZED</code> · <code>TOKEN_EXPIRED</code> · <code>INVALID_CREDENTIALS</code></td><td>401</td><td>Token ausente, expirado ou credenciais incorretas</td></tr>
+  <tr><td><code>FORBIDDEN</code></td><td>403</td><td>Papel sem permissão ou casa de outro paciente</td></tr>
+  <tr><td><code>NOT_FOUND</code></td><td>404</td><td>Recurso inexistente</td></tr>
+  <tr><td><code>CONFLICT</code></td><td>409</td><td>E-mail duplicado, recomendação já aprovada, pedido terminal</td></tr>
+  <tr><td><code>CONSENT_REQUIRED</code> · <code>APPROVAL_REQUIRED</code> · <code>PRESCRIPTION_BLOCKED</code> · <code>SCORE_HOME_MISMATCH</code> · <code>NO_PRODUCT</code></td><td>422</td><td>Regras de negócio do produto</td></tr>
+  <tr><td><code>INTERNAL_ERROR</code></td><td>500</td><td>Falha inesperada — a mensagem interna nunca vaza ao cliente</td></tr>
+</table>
+
+<h3>3.7 As regras do produto vivem no código</h3>
+
+<p><strong>Escore explicável.</strong> O <code>ScoringService</code> soma os pesos dos fatores
+acionados e devolve, junto do número, a lista de fatores e a frase que o explica. Os pesos
+<em>não</em> estão no código: ficam em <code>scoring-weights.yml</code>, versionado e carregado
+como propriedade tipada. Mudar a política de risco é editar YAML, não recompilar — é o que
+sustenta a promessa de auditabilidade.</p>
+
+<pre><code>mobility:
+  norm: "NBR 9050"
+  risk-tag: fall_bathroom
+  factors:
+    - name: near_fall_reported   weight: 0.4   kind: SIGNAL_EVENT       event: near_fall
+    - name: no_grab_bar          weight: 0.3   kind: CHECKLIST_ABSENT   checklist-key: grab_bar_bathroom
+    - name: slippery_floor       weight: 0.2   kind: CHECKLIST_PRESENT  checklist-key: slippery_floor</code></pre>
+
+<p>Resultado real da API para a casa da Maria (quase-queda relatada, sem barra de apoio, piso escorregadio):</p>
+
+<pre><code>{ "dimension": "mobility", "level": "high", "score": 0.9,
+  "factors": ["near_fall_reported", "no_grab_bar", "slippery_floor"],
+  "weights": [0.4, 0.3, 0.2],
+  "explanation": "Fatores acionados: quase-queda relatada (0,4), ausência de barra de apoio (0,3),
+                  piso escorregadio (0,2). Norma NBR 9050. → risco ALTO.",
+  "configVersion": "2026-06-14" }</code></pre>
+
+<p><strong>Guardrail de não-prescrição.</strong> Todo texto que sai da API passa pelo
+<code>GuardrailService</code>. Se contiver linguagem prescritiva ou diagnóstica, a resposta é
+bloqueada com <code>422 PRESCRIPTION_BLOCKED</code>. A regra não depende de disciplina de quem
+escreve o texto — está no caminho de saída.</p>
+
+<p><strong>Gate LGPD.</strong> Criar casa, registrar sinal, recalcular escore e gerar
+recomendação exigem consentimento aceito. Sem ele, a resposta é <code>422 CONSENT_REQUIRED</code>.</p>
+
+<p><strong>Nenhum pedido sem aprovação humana.</strong> A recomendação só vira pedido em
+<code>POST /recommendations/{id}/approve</code>. Enquanto a cuidadora não aprova, a lista de
+pedidos da casa é literalmente vazia — e isso é verificado por teste automatizado.</p>
+
+<h3>3.8 Documentação e página servida pelo servidor</h3>
+
+<p>
+A API é documentada com <strong>springdoc-openapi</strong>: o Swagger UI lista as rotas
+agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado — dá para autenticar e
+executar o fluxo inteiro pelo navegador. Além da API, o backend serve uma página de status
+renderizada com <strong>Spring MVC + Thymeleaf</strong>, que mostra perfil ativo, banco em uso,
+contagem de produtos, casas e pedidos abertos.
+</p>
+
+<h3>3.9 Testes</h3>
+
+<p>
+São <strong>10 testes automatizados</strong>, todos verdes (<code>./mvnw test</code>):
+</p>
+
+<table>
+  <tr><th>Teste</th><th>O que garante</th></tr>
+  <tr><td>Escore de risco alto</td><td>0,4 + 0,3 + 0,2 = 0,9 → nível <code>high</code>, com os três fatores e pesos corretos na explicação</td></tr>
+  <tr><td>Escore de risco baixo</td><td>Casa protegida e sem eventos não aciona nenhum fator</td></tr>
+  <tr><td>Faixas de nível</td><td>Fronteiras <code>low</code>/<code>medium</code>/<code>high</code> conforme a configuração</td></tr>
+  <tr><td>Dimensão desconhecida</td><td><code>400 UNKNOWN_DIMENSION</code></td></tr>
+  <tr><td>Guardrail</td><td>Texto prescritivo é bloqueado; texto de segurança passa</td></tr>
+  <tr><td>Fluxo ponta a ponta</td><td>Gate LGPD → casa → checklist → sinal → escore alto → recomendação → aprovação → pedido entregue no prazo, com o nó logístico mais próximo</td></tr>
+  <tr><td>Dupla aprovação</td><td><code>409 CONFLICT</code></td></tr>
+  <tr><td>Isolamento entre pacientes</td><td>Casa de outra cuidadora responde <code>403</code></td></tr>
+  <tr><td>Autenticação e RBAC</td><td>Sem token → <code>401</code>; cuidadora em <code>/ops</code> → <code>403</code>; admin → <code>200</code></td></tr>
+  <tr><td>Validação e rotas públicas</td><td><code>VALIDATION_ERROR</code> com o campo culpado; health e página de status abertos</td></tr>
+</table>
+
+<h3>3.10 Escalabilidade</h3>
+
+<ul>
+  <li><strong>Sem estado</strong> — a autorização vem do token, então qualquer instância atende qualquer requisição; escalar é subir réplicas atrás de um balanceador.</li>
+  <li><strong>Virtual threads</strong> (Java 21) — mais requisições concorrentes por instância sem pool de threads inflado.</li>
+  <li><strong>Consultas com paginação</strong> — o histórico de sinais aceita <code>limit</code>/<code>offset</code> e ordena pela chave natural (casa, data).</li>
+  <li><strong>Portabilidade de banco</strong> — o mesmo código roda em H2 e PostgreSQL, só trocando o perfil.</li>
+  <li><strong>Degradação graciosa</strong> — se o ViaCEP não responde, a casa é criada sem endereço resolvido em vez de falhar o cadastro.</li>
+</ul>
+
+<div class="break"></div>
+
+<h2>4. Parte 3 — Integração web com Angular</h2>
+
+<h3>4.1 O que é o painel</h3>
+
+<p>
+O <code>web-admin/</code> é a superfície web do produto: a mesma cuidadora que usa o app pode
+acompanhar a casa pelo navegador, e a operação enxerga a Torre de Controle. É <strong>Angular
+20</strong> com <em>standalone components</em> e <em>signals</em>, consumindo exatamente a mesma
+API REST do Spring Boot — nenhum endpoint foi criado só para a web.
+</p>
+
+<table>
+  <tr><th>Rota</th><th>Tela</th><th>Conteúdo</th></tr>
+  <tr><td><code>/login</code></td><td>Entrada</td><td>Formulário com <code>[(ngModel)]</code>, contas de demonstração e feedback de erro</td></tr>
+  <tr><td><code>/home</code></td><td>Casa do paciente</td><td>Ficha da casa, checklist editável, risco por dimensão com fatores e pesos, Care-Chain e pedidos com linha do tempo</td></tr>
+  <tr><td><code>/admin</code></td><td>Torre de Controle</td><td>KPIs (OTIF, fill rate, lead time, SLA), pedidos por estágio e CRUD do catálogo</td></tr>
+</table>
+
+<h3>4.2 Recursos de Angular e onde estão</h3>
+
+<table>
+  <tr><th>Recurso</th><th>Uso no projeto</th></tr>
+  <tr><td>Interpolação <code>{{ }}</code></td><td>Todos os templates — <code>{{ score.explanation }}</code>, <code>{{ percent(k.otif) }}</code></td></tr>
+  <tr><td>Property binding <code>[ ]</code></td><td><code>[disabled]</code> nos botões, <code>[value]</code> no seletor de casa, <code>[style.width]</code> na barra de risco, <code>[class.kpi__value--good]</code> quando o KPI bate a meta</td></tr>
+  <tr><td>Event binding <code>( )</code></td><td><code>(click)</code> em aprovar/avançar, <code>(ngSubmit)</code> nos formulários, <code>(change)</code> no filtro de risco</td></tr>
+  <tr><td>Two-way <code>[( )]</code></td><td><code>[(ngModel)]</code> no login, nos checkboxes do checklist de segurança e em todos os campos do formulário de produto</td></tr>
+  <tr><td><code>*ngIf</code></td><td>Estados vazios, mensagens de erro e sucesso, botões condicionais por status e por papel</td></tr>
+  <tr><td><code>*ngFor</code></td><td>Escores, fatores, recomendações, pedidos, estágios da linha do tempo, catálogo e KPIs por estágio</td></tr>
+  <tr><td>Serviços e DI</td><td><code>ApiService</code> e <code>AuthService</code> injetados com <code>inject()</code></td></tr>
+  <tr><td><code>HttpClient</code></td><td>Todas as chamadas, com <code>HttpParams</code> nos filtros</td></tr>
+  <tr><td>Interceptor e guard</td><td><code>authInterceptor</code> injeta o Bearer e derruba a sessão em 401; <code>authGuard</code> protege as rotas</td></tr>
+  <tr><td>Pipes</td><td><code>date</code>, <code>currency: 'BRL'</code>, <code>json</code> e <code>keyvalue</code> (locale pt-BR registrado)</td></tr>
+</table>
+
+<h3>4.3 Comunicação segura e feedback visual</h3>
+
+<p>
+O token JWT é guardado no navegador e anexado por um <strong>interceptor funcional</strong> — nenhum
+componente monta cabeçalho na mão. Se a API responde 401, a sessão é limpa e o usuário volta ao
+login sem tela quebrada. Cada ação tem estado próprio (<code>busy()</code>), com botão desabilitado
+e rótulo mudando para "Salvando…", "Calculando…"; erros aparecem traduzidos do envelope da API
+(inclusive o caso de backend fora do ar, com instrução do que fazer) e as confirmações somem
+sozinhas após alguns segundos. A interface é escura, com contraste conferido para leitura
+confortável, e os níveis de risco usam cor <em>e</em> texto — nunca só cor.
+</p>
+
+<div class="break"></div>
+
+<h2>5. Evidências de execução</h2>
+
+<p class="note">Capturas obtidas com as três aplicações rodando simultaneamente contra a mesma
+API (Spring Boot na porta 8080, painel Angular na 4200 e app React Native na 8081).</p>
+
+<figure class="avoid">
+  <img src="img/api-1-swagger.png" alt="Swagger UI da API">
+  <figcaption>Swagger UI — rotas agrupadas por contexto, com autenticação Bearer configurada.</figcaption>
+</figure>
+
+<figure class="avoid">
+  <img src="img/api-2-status.png" alt="Página de status Thymeleaf">
+  <figcaption>Página de status servida por Spring MVC + Thymeleaf, com perfil, banco e contagens reais.</figcaption>
+</figure>
+
+<figure class="avoid">
+  <img src="img/angular-3-score.png" alt="Painel Angular — casa do paciente">
+  <figcaption>Painel Angular: checklist editável, risco alto com os três fatores e seus pesos, e a recomendação já aprovada.</figcaption>
+</figure>
+
+<figure class="avoid">
+  <img src="img/angular-4-admin.png" alt="Painel Angular — Torre de Controle">
+  <figcaption>Torre de Controle: KPIs calculados a partir dos pedidos reais e CRUD do catálogo de acessibilidade.</figcaption>
+</figure>
+
+<div class="two avoid">
+  <figure class="phone">
+    <img src="img/rn-2-dashboard.png" alt="App React Native — painel">
+    <figcaption>App React Native: risco por dimensão com fatores e pesos.</figcaption>
+  </figure>
+  <figure class="phone">
+    <img src="img/rn-4-pedido.png" alt="App React Native — Care-Chain">
+    <figcaption>Recomendação explicada, aprovação e linha do tempo do pedido.</figcaption>
+  </figure>
+</div>
+
+<h2>6. Como executar</h2>
+
+<pre><code># 1) API (porta 8080) — não precisa de Docker nem de banco instalado
+cd backend-spring && ./mvnw spring-boot:run
+#    Swagger: http://localhost:8080/swagger-ui.html
+#    Status : http://localhost:8080/
+
+# 2) Painel Angular (porta 4200)
+cd web-admin && npm install && npm start
+
+# 3) App React Native (porta 8081 — abre no navegador)
+cd mobile-rn && npm install && npm run web
+
+# 4) App Flutter
+cd mobile && cp .env.example .env && flutter pub get && flutter run -d chrome
+
+# Testes do backend
+cd backend-spring && ./mvnw test</code></pre>
+
+<p>
+Contas criadas automaticamente (senha <code>aura1234</code>): <code>ana@aura.com</code>
+(cuidadora, já com consentimento aceito e a casa da Maria cadastrada),
+<code>admin@aura.com</code> (Torre de Controle) e <code>maria@aura.com</code> (paciente).
+Para rodar com PostgreSQL: <code>docker compose up -d</code> e
+<code>./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres</code>.
+</p>
+
+<h2>7. Indicadores e próximos passos de validação</h2>
+
+<p>
+Os indicadores de produto definidos na fase anterior continuam valendo e agora têm de onde sair:
+o endpoint <code>/api/v1/ops/kpis</code> calcula OTIF, fill rate, lead time, pedidos abertos e
+violações de SLA a partir dos pedidos reais — não são números escritos à mão no slide.
+</p>
+
+<table>
+  <tr><th>Indicador</th><th>Meta</th><th>Origem</th></tr>
+  <tr><td>OTIF — entregas no prazo</td><td>≥ 95%</td><td>calculado pela API sobre os pedidos entregues</td></tr>
+  <tr><td>Fill rate — disponibilidade</td><td>≥ 90%</td><td>catálogo com estoque próximo</td></tr>
+  <tr><td>Lead time — pedido → entrega</td><td>monitorar</td><td>diferença entre criação e entrega</td></tr>
+  <tr><td>SUS — usabilidade</td><td>≥ 70</td><td>sessões com idosos e cuidadores (planejado)</td></tr>
+  <tr><td>Sucesso por tarefa</td><td>≥ 80%</td><td>sessões com idosos e cuidadores (planejado)</td></tr>
+</table>
+
+<h2>8. Entregáveis</h2>
+
+<ul>
+  <li>Esta documentação em PDF.</li>
+  <li>Código-fonte no GitHub — monorepo <code>github.com/AuraSmartHAS/aura</code>
+      (<code>backend-spring/</code>, <code>web-admin/</code>, <code>mobile-rn/</code>, <code>mobile/</code>).</li>
+  <li>Apresentação de slides em PDF (até 10 slides, com nome, RM e foto do time).</li>
+  <li>Vídeo de até 5 minutos no YouTube (não listado): <strong>«inserir link do YouTube (não listado)»</strong></li>
+  <li>Arquivo .ZIP único reunindo documentação, links do código, slides e link do vídeo.</li>
+</ul>
+
+<p class="footer-note">
+AURA Care-Chain · Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · FIAP —
+Mobile Hybrid App e a Sociedade 5.0 · Agosto de 2026.
+O AURA não prescreve nem diagnostica: sintomas relevantes são sempre encaminhados ao médico.
+</p>
+
+</body>
+</html>

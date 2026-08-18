@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AURA Care-Chain — Apresentação Fase 5</title>
+<style>
+  @page { size: 338mm 190mm; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+         background: #0d1117; color: #c9d1d9; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide {
+    width: 338mm; height: 190mm; padding: 16mm 20mm 12mm; position: relative;
+    page-break-after: always; overflow: hidden; background: #0d1117;
+    display: flex; flex-direction: column;
+  }
+  .slide:last-child { page-break-after: auto; }
+  .kicker { color: #f0883e; font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 3mm; }
+  h1 { font-size: 30pt; color: #f0f6fc; letter-spacing: -0.02em; line-height: 1.1; }
+  h2 { font-size: 22pt; color: #f0f6fc; letter-spacing: -0.01em; margin-bottom: 6mm; }
+  h3 { font-size: 12pt; color: #f0f6fc; margin-bottom: 2mm; }
+  p { font-size: 11pt; line-height: 1.55; }
+  .lead { font-size: 13pt; color: #8b949e; margin-top: 3mm; }
+  .foot { position: absolute; left: 20mm; right: 20mm; bottom: 8mm;
+          display: flex; justify-content: space-between; color: #57606a; font-size: 8.5pt; }
+  .accent { color: #f0883e; }
+  .blue { color: #58a6ff; }
+  .green { color: #3fb950; }
+  .red { color: #f85149; }
+  .muted { color: #8b949e; }
+  .cols { display: flex; gap: 8mm; flex: 1; }
+  .col { flex: 1; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 4mm; padding: 6mm; }
+  .card + .card { margin-top: 4mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm; }
+  ul { list-style: none; }
+  li { font-size: 10.5pt; line-height: 1.7; padding-left: 6mm; position: relative; }
+  li::before { content: '▸'; position: absolute; left: 0; color: #f0883e; }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  th { text-align: left; color: #8b949e; font-size: 8pt; text-transform: uppercase;
+       letter-spacing: 0.06em; padding: 2mm 3mm; border-bottom: 1px solid #21262d; }
+  td { padding: 2.4mm 3mm; border-bottom: 1px solid #21262d; color: #c9d1d9; }
+  .pill { display: inline-block; padding: 1mm 3mm; border-radius: 999px; font-size: 8.5pt; font-weight: 700; }
+  .pill--ok { background: rgba(63,185,80,.16); color: #3fb950; }
+  .pill--now { background: rgba(240,136,62,.18); color: #f0883e; }
+  .pill--next { background: rgba(88,166,255,.16); color: #58a6ff; }
+  .metric { font-size: 30pt; color: #f0f6fc; font-weight: 700; line-height: 1; }
+  .metric--accent { color: #f0883e; }
+  .metric-label { font-size: 9pt; color: #8b949e; margin-top: 2mm; }
+  .team { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6mm; flex: 1; align-content: center; }
+  .member { text-align: center; }
+  .avatar { width: 40mm; height: 40mm; border-radius: 50%; margin: 0 auto 4mm;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24pt; font-weight: 700; color: #0d1117;
+            background: linear-gradient(140deg, #ffb26b, #f0883e); }
+  .member .nm { font-size: 10pt; color: #f0f6fc; line-height: 1.35; }
+  .member .rm { font-size: 9pt; color: #8b949e; margin-top: 1mm; }
+  .member .role { font-size: 8pt; color: #58a6ff; margin-top: 1mm; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5pt; color: #58a6ff; }
+  pre { background: #0b0f14; border: 1px solid #21262d; border-radius: 3mm; padding: 4mm;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 8.5pt;
+        color: #c9d1d9; line-height: 1.5; }
+  .shot { width: 100%; border: 1px solid #21262d; border-radius: 3mm; display: block; }
+  .flow { display: flex; align-items: center; gap: 3mm; margin-top: 5mm; }
+  .step { flex: 1; background: #161b22; border: 1px solid #21262d; border-radius: 3mm;
+          padding: 4mm 3mm; text-align: center; }
+  .step .n { color: #f0883e; font-size: 8pt; font-weight: 700; letter-spacing: .1em; }
+  .step .t { font-size: 9.5pt; color: #f0f6fc; margin-top: 1.5mm; }
+  .arrow { color: #30363d; font-size: 14pt; }
+  .cover-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cover-logo { width: 30mm; height: 30mm; border-radius: 8mm; margin-bottom: 8mm; }
+  .stack-row { display: flex; align-items: center; gap: 4mm; margin-top: 3mm; font-size: 10pt; }
+  .chip { background: #161b22; border: 1px solid #21262d; border-radius: 999px; padding: 1.6mm 4mm; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<!-- 1 · capa -->
+<section class="slide">
+  <div class="cover-wrap">
+    <img class="cover-logo" src="img/aura-logo.png" alt="AURA">
+    <p class="kicker">Fase 5 · Mobile Hybrid App e a Sociedade 5.0</p>
+    <h1>AURA <span class="accent">Care-Chain</span></h1>
+    <p class="lead">
+      Saúde domiciliar voice-first + cadeia logística de segurança da casa.<br>
+      Agora com API própria em Spring Boot, painel Angular e app React Native.
+    </p>
+    <div class="stack-row">
+      <span class="chip">Java 21 · Spring Boot 3.3</span>
+      <span class="chip">Angular 20</span>
+      <span class="chip">React Native · Expo</span>
+      <span class="chip">Flutter</span>
+    </div>
+  </div>
+  <div class="foot"><span>01 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 2 · equipe -->
+<section class="slide">
+  <p class="kicker">Equipe</p>
+  <h2>Quem construiu</h2>
+  <div class="team">
+    <div class="member">
+      <div class="avatar">VM</div>
+      <div class="nm">Vinícius Miranda Baptista</div>
+      <div class="rm">RM 555081</div>
+      <div class="role">Tech Lead</div>
+    </div>
+    <div class="member">
+      <div class="avatar">JD</div>
+      <div class="nm">João Domingos Góes Filho</div>
+      <div class="rm">RM 564465</div>
+      <div class="role">Dev Senior Mobile</div>
+    </div>
+    <div class="member">
+      <div class="avatar">PH</div>
+      <div class="nm">Pedro Henrique Arenas Negri</div>
+      <div class="rm">RM 554971</div>
+      <div class="role">Dev Pleno</div>
+    </div>
+    <div class="member">
+      <div class="avatar">JA</div>
+      <div class="nm">Júlia Alves Dias</div>
+      <div class="rm">RM 557151</div>
+      <div class="role">Infra</div>
+    </div>
+    <div class="member">
+      <div class="avatar">FE</div>
+      <div class="nm">Frederico Enrique G. da Silva Passos</div>
+      <div class="rm">RM 550532</div>
+      <div class="role">Dev Junior</div>
+    </div>
+  </div>
+  <div class="foot"><span>02 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 3 · o que muda -->
+<section class="slide">
+  <p class="kicker">Onde estamos</p>
+  <h2>Da prova de conceito ao sistema conectado</h2>
+  <table>
+    <tr><th>Fase</th><th>Entrega</th><th>Situação</th></tr>
+    <tr><td>1 e 2</td><td>Estratégia de serviço, processos e arquitetura</td><td><span class="pill pill--ok">concluído</span></td></tr>
+    <tr><td>3</td><td>App nativo Android em Kotlin</td><td><span class="pill pill--ok">concluído</span></td></tr>
+    <tr><td>4</td><td>Migração para Flutter · Care-Chain · mapas · Firebase · backend FastAPI</td><td><span class="pill pill--ok">concluído</span></td></tr>
+    <tr><td><strong>5 — esta entrega</strong></td><td><strong>API Spring Boot · painel Angular · app React Native</strong></td><td><span class="pill pill--now">agora</span></td></tr>
+    <tr><td>Próximas</td><td>Migrar rotas restantes, publicar em nuvem, observabilidade e testes com idosos</td><td><span class="pill pill--next">planejado</span></td></tr>
+  </table>
+  <div class="cols" style="margin-top:8mm">
+    <div class="col card">
+      <h3>O ponto de encontro é o contrato</h3>
+      <p class="muted">Flutter, React Native e Angular consomem o mesmo <code>/api/v1</code>.
+      Trocar a stack de uma superfície não mexe nas outras.</p>
+    </div>
+    <div class="col card">
+      <h3>O que define o AURA são as regras</h3>
+      <p class="muted">Escore explicável, gate LGPD e aprovação humana estão no servidor —
+      não dependem de qual app está na frente.</p>
+    </div>
+  </div>
+  <div class="foot"><span>03 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 4 · parte 1 -->
+<section class="slide">
+  <p class="kicker">Parte 1 · escolha da stack</p>
+  <h2>Migração parcial para React Native — e por quê</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card">
+        <h3 class="accent">A decisão</h3>
+        <p class="muted">Recriar em React Native o <strong>fluxo crítico</strong> (login → risco explicado →
+        aprovação → entrega), mantendo o Flutter como app principal.</p>
+      </div>
+      <div class="card">
+        <h3>Por que não migrar tudo</h3>
+        <ul>
+          <li>O app Flutter carrega voz, acessibilidade, mapas e wearable já validados</li>
+          <li>Reescrever tudo destruiria patrimônio técnico de duas fases</li>
+          <li>Opinar sobre RN sem escrever RN não é avaliação — é achismo</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <table>
+        <tr><th>Critério</th><th>Flutter</th><th>React Native</th></tr>
+        <tr><td>Voz e acessibilidade</td><td class="green">pronto</td><td class="muted">reimplementar</td></tr>
+        <tr><td>Superfícies</td><td>Android · iOS · Web</td><td>Android · iOS · Web</td></tr>
+        <tr><td>Demo no navegador</td><td>build maior</td><td class="green">segundos</td></tr>
+        <tr><td>Repertório do time</td><td>Dart exclusivo</td><td class="green">TS do painel</td></tr>
+        <tr><td>Papel no produto</td><td class="accent">app principal</td><td class="blue">superfícies secundárias</td></tr>
+      </table>
+      <div class="card" style="margin-top:5mm">
+        <p class="muted">O app RN rodou contra a API <strong>sem nenhuma rota nova</strong> —
+        prova prática de que a arquitetura não está acoplada à stack de UI.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>04 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 5 · parte 2 arquitetura -->
+<section class="slide">
+  <p class="kicker">Parte 2 · back-end</p>
+  <h2>API REST em Java 21 + Spring Boot 3.3</h2>
+  <div class="grid4">
+    <div class="card"><div class="metric metric--accent">21</div><div class="metric-label">rotas REST em <code>/api/v1</code></div></div>
+    <div class="card"><div class="metric">9</div><div class="metric-label">entidades JPA no domínio</div></div>
+    <div class="card"><div class="metric green">10</div><div class="metric-label">testes automatizados verdes</div></div>
+    <div class="card"><div class="metric">3</div><div class="metric-label">clientes no mesmo contrato</div></div>
+  </div>
+  <div class="cols" style="margin-top:7mm">
+    <div class="col card">
+      <h3>Camadas</h3>
+      <pre>web/         Controllers · DTOs · erro global
+service/     escore · Care-Chain · guardrails
+repository/  Spring Data JPA
+domain/      entidades · enums · conversores
+config/      Security (JWT) · OpenAPI · seed</pre>
+    </div>
+    <div class="col card">
+      <h3>Decisões</h3>
+      <ul>
+        <li><strong>Stateless com JWT</strong> — access 30 min + refresh 7 dias; escalar é subir réplicas</li>
+        <li><strong>H2 no dev, PostgreSQL no perfil <code>postgres</code></strong> — mesmo código, um comando para demonstrar</li>
+        <li><strong>Swagger</strong> em <code>/swagger-ui.html</code> e página de status em Thymeleaf</li>
+        <li><strong>Envelope único de erro</strong> <code>{error:{code,message}}</code> lido pelos três clientes</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>05 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 6 · regras no código -->
+<section class="slide">
+  <p class="kicker">Parte 2 · regras de negócio</p>
+  <h2>A promessa do produto está no código</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card">
+        <h3 class="accent">Escore explicável — pesos fora do código</h3>
+        <pre>mobility:
+  factors:
+    - near_fall_reported  0.4  SIGNAL_EVENT
+    - no_grab_bar         0.3  CHECKLIST_ABSENT
+    - slippery_floor      0.2  CHECKLIST_PRESENT</pre>
+        <p class="muted" style="margin-top:3mm">Mudar a política de risco é editar YAML versionado,
+        não recompilar. Auditável por quem não programa.</p>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3>Resposta real da API</h3>
+        <pre>{ "level": "high", "score": 0.9,
+  "factors": ["near_fall_reported",
+              "no_grab_bar", "slippery_floor"],
+  "weights": [0.4, 0.3, 0.2],
+  "explanation": "Fatores acionados: quase-queda
+   relatada (0,4), ausência de barra de apoio (0,3),
+   piso escorregadio (0,2). NBR 9050. → risco ALTO." }</pre>
+      </div>
+      <div class="card">
+        <ul>
+          <li><strong class="red">Nunca prescreve</strong> — guardrail bloqueia texto prescritivo na saída (422)</li>
+          <li><strong>Gate LGPD</strong> — sem consentimento, nenhum dado de saúde entra</li>
+          <li><strong>403, não 404</strong> — casa de outro paciente é negada, não escondida</li>
+          <li><strong>Nada é comprado sem a cuidadora aprovar</strong> — testado automaticamente</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>06 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 7 · parte 3 angular -->
+<section class="slide">
+  <p class="kicker">Parte 3 · web</p>
+  <h2>Painel Angular sobre a mesma API</h2>
+  <div class="cols">
+    <div class="col" style="flex:1.45">
+      <img class="shot" src="img/angular-4-admin.png" alt="Torre de Controle no painel Angular">
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3>Duas telas, um contrato</h3>
+        <ul>
+          <li><code>/home</code> — casa, checklist, risco explicado, Care-Chain e pedidos</li>
+          <li><code>/admin</code> — Torre de Controle e CRUD do catálogo</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Recursos aplicados</h3>
+        <ul>
+          <li><code>{{ }}</code> · <code>[ ]</code> · <code>( )</code> · <code>[(ngModel)]</code></li>
+          <li><code>*ngIf</code> e <code>*ngFor</code> em listas e estados vazios</li>
+          <li><code>HttpClient</code> + interceptor que injeta o JWT</li>
+          <li>Guard de rota e feedback visual em cada ação</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>07 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 8 · demo -->
+<section class="slide">
+  <p class="kicker">Demonstração</p>
+  <h2>O mesmo fluxo em três superfícies</h2>
+  <div class="flow">
+    <div class="step"><div class="n">01</div><div class="t">Maria relata quase-queda</div></div>
+    <span class="arrow">→</span>
+    <div class="step"><div class="n">02</div><div class="t">Risco explicado (0,9 · alto)</div></div>
+    <span class="arrow">→</span>
+    <div class="step"><div class="n">03</div><div class="t">Recomendação NBR 9050</div></div>
+    <span class="arrow">→</span>
+    <div class="step"><div class="n">04</div><div class="t">Ana aprova</div></div>
+    <span class="arrow">→</span>
+    <div class="step"><div class="n">05</div><div class="t">Entrega e instalação</div></div>
+  </div>
+  <div class="grid3" style="margin-top:7mm; align-items:start">
+    <div>
+      <img class="shot" src="img/rn-2-dashboard.png" alt="App React Native" style="max-height:78mm; width:auto; margin:0 auto">
+      <p class="metric-label" style="text-align:center">App React Native · risco por dimensão</p>
+    </div>
+    <div>
+      <img class="shot" src="img/rn-4-pedido.png" alt="Care-Chain no React Native" style="max-height:78mm; width:auto; margin:0 auto">
+      <p class="metric-label" style="text-align:center">Care-Chain · aprovação e linha do tempo</p>
+    </div>
+    <div>
+      <img class="shot" src="img/angular-3-score.png" alt="Painel Angular">
+      <p class="metric-label" style="text-align:center">Painel Angular · mesma casa, mesmo escore</p>
+    </div>
+  </div>
+  <div class="foot"><span>08 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 9 · impacto -->
+<section class="slide">
+  <p class="kicker">Impacto e roadmap</p>
+  <h2>Por que isso importa</h2>
+  <div class="cols">
+    <div class="col">
+      <div class="card">
+        <h3 class="accent">Sociedade 5.0 na prática</h3>
+        <p class="muted">Tecnologia que <strong>previne a queda</strong> — a maior causa de internação
+        de idosos no Brasil — em vez de apenas registrar o acidente. A decisão continua humana:
+        o sistema explica, a cuidadora aprova.</p>
+      </div>
+      <div class="card">
+        <h3>KPIs que saem do sistema, não do slide</h3>
+        <ul>
+          <li>OTIF, fill rate, lead time e SLA calculados pela API sobre pedidos reais</li>
+          <li>Toda recomendação carrega os fatores e pesos que a originaram</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card">
+        <h3>Próximos passos</h3>
+        <table>
+          <tr><td>Migrar voz, medicação e realtime para o Spring Boot</td><td><span class="pill pill--next">próxima</span></td></tr>
+          <tr><td>Publicar a API em nuvem com PostgreSQL gerenciado</td><td><span class="pill pill--next">próxima</span></td></tr>
+          <tr><td>Observabilidade (Actuator + métricas) e CI/CD</td><td><span class="pill pill--next">próxima</span></td></tr>
+          <tr><td>Testes com idosos: SUS ≥ 70 e sucesso por tarefa ≥ 80%</td><td><span class="pill pill--next">próxima</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>09 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 10 · fechamento -->
+<section class="slide">
+  <div class="cover-wrap">
+    <p class="kicker">Obrigado</p>
+    <h1>AURA <span class="accent">Care-Chain</span></h1>
+    <p class="lead">O cuidado que percebe o risco, explica e age — sem tirar a decisão de quem cuida.</p>
+    <div class="cols" style="margin-top:10mm; flex:0">
+      <div class="col card">
+        <h3>Código</h3>
+        <p class="muted">github.com/AuraSmartHAS/aura<br>
+        <span style="font-size:9.5pt">backend-spring · web-admin · mobile-rn · mobile</span></p>
+      </div>
+      <div class="col card">
+        <h3>Vídeo da demonstração</h3>
+        <p class="muted">«inserir link do YouTube (não listado)»<br>
+        <span style="font-size:9.5pt">até 5 minutos, com o sistema rodando</span></p>
+      </div>
+      <div class="col card">
+        <h3>Como rodar</h3>
+        <p class="muted"><code>./mvnw spring-boot:run</code><br>
+        <span style="font-size:9.5pt">API + Swagger + dados de demonstração em um comando</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>10 / 10</span><span>AURA Care-Chain · Smart HAS · FIAP 2026</span></div>
+</section>
+
+</body>
+</html>
