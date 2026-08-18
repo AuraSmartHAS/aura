@@ -1,0 +1,138 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <p class="eyebrow">Torre de Controle · NOC</p>
+      <h1>Operação</h1>
+    </div>
+  </header>
+
+  <p class="notice" *ngIf="notice()">{{ notice() }}</p>
+  <p class="error" *ngIf="error()">{{ error() }}</p>
+
+  <p class="empty" *ngIf="!isAdmin()">
+    KPIs de operação são exclusivos do papel <strong>admin</strong> — entre com admin&#64;aura.com para vê-los.
+    O catálogo abaixo continua visível.
+  </p>
+
+  <div class="kpis" *ngIf="kpis() as k">
+    <div class="kpi">
+      <span class="kpi__label">OTIF</span>
+      <strong class="kpi__value" [class.kpi__value--good]="k.otif >= 0.95">{{ percent(k.otif) }}</strong>
+      <span class="kpi__meta">meta ≥ 95%</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">Fill rate</span>
+      <strong class="kpi__value" [class.kpi__value--good]="k.fillRate >= 0.9">{{ percent(k.fillRate) }}</strong>
+      <span class="kpi__meta">meta ≥ 90%</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">Lead time</span>
+      <strong class="kpi__value">{{ k.leadTimeHours }}h</strong>
+      <span class="kpi__meta">pedido → entrega</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">Pedidos abertos</span>
+      <strong class="kpi__value">{{ k.openOrders }}</strong>
+      <span class="kpi__meta">{{ k.slaBreaches }} com SLA estourado</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">Casas monitoradas</span>
+      <strong class="kpi__value">{{ k.homes }}</strong>
+      <span class="kpi__meta">{{ k.signals }} sinais captados</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi__label">Risco alto</span>
+      <strong class="kpi__value" [class.kpi__value--alert]="k.highRiskScores > 0">{{ k.highRiskScores }}</strong>
+      <span class="kpi__meta">uptime {{ k.uptime }}</span>
+    </div>
+  </div>
+
+  <article class="card" *ngIf="kpis() as k">
+    <h2>Pedidos por estágio</h2>
+    <div class="stages">
+      <div class="stage" *ngFor="let s of k.byStage">
+        <span class="stage__count">{{ s.count }}</span>
+        <span class="stage__label">{{ s.stage }}</span>
+      </div>
+    </div>
+  </article>
+
+  <div class="grid grid--2">
+    <article class="card">
+      <div class="card__head">
+        <h2>Catálogo de acessibilidade</h2>
+        <select [(ngModel)]="riskFilter" (change)="loadCatalog()" name="riskFilter">
+          <option value="">todos os riscos</option>
+          <option *ngFor="let tag of riskTags" [value]="tag">{{ tag }}</option>
+        </select>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Risco</th><th>Preço</th><th>Estoque</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of catalog()">
+            <td>
+              <strong>{{ item.name }}</strong>
+              <span class="small muted">{{ item.sku }} · {{ item.normRef }}</span>
+            </td>
+            <td><span class="tag">{{ item.riskTag }}</span></td>
+            <td>{{ item.price | currency: 'BRL' }}</td>
+            <td [class.low]="item.stockNearby === 0">{{ item.stockNearby }}</td>
+            <td class="row-actions">
+              <button class="btn btn--small" (click)="edit(item)" *ngIf="isAdmin()">Editar</button>
+              <button class="btn btn--small btn--danger" (click)="remove(item)" *ngIf="isAdmin()">Excluir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="empty" *ngIf="catalog().length === 0">Nenhum item para este filtro.</p>
+    </article>
+
+    <article class="card" *ngIf="isAdmin()">
+      <h2>{{ editing ? 'Editar item' : 'Novo item' }}</h2>
+      <form (ngSubmit)="save()" #productForm="ngForm" novalidate>
+        <label for="sku">SKU</label>
+        <input id="sku" name="sku" required [(ngModel)]="form.sku" [readonly]="editing" placeholder="LM-BARRA-90" />
+
+        <label for="name">Nome</label>
+        <input id="name" name="name" required [(ngModel)]="form.name" placeholder="Barra de apoio 90cm" />
+
+        <label for="category">Categoria</label>
+        <input id="category" name="category" required [(ngModel)]="form.category" placeholder="Barra de apoio" />
+
+        <div class="row">
+          <div>
+            <label for="price">Preço (R$)</label>
+            <input id="price" name="price" type="number" min="0" step="0.01" required [(ngModel)]="form.price" />
+          </div>
+          <div>
+            <label for="stock">Estoque próximo</label>
+            <input id="stock" name="stockNearby" type="number" min="0" required [(ngModel)]="form.stockNearby" />
+          </div>
+        </div>
+
+        <label for="riskTag">Risco que mitiga</label>
+        <select id="riskTag" name="riskTag" [(ngModel)]="form.riskTag">
+          <option *ngFor="let tag of riskTags" [value]="tag">{{ tag }}</option>
+        </select>
+
+        <label for="normRef">Norma de referência</label>
+        <input id="normRef" name="normRef" [(ngModel)]="form.normRef" placeholder="NBR 9050" />
+
+        <label class="check">
+          <input type="checkbox" name="installable" [(ngModel)]="form.installable" />
+          <span>Requer instalação por técnico</span>
+        </label>
+
+        <div class="actions">
+          <button type="submit" class="btn btn--primary" [disabled]="saving() || productForm.invalid">
+            {{ saving() ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar item' }}
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="reset()" *ngIf="editing">Cancelar</button>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>

@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: aura-api
+  config:
+    import: classpath:scoring-weights.yml
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate.format_sql: false
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+  error:
+    include-message: never
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+  api-docs:
+    path: /v3/api-docs
+
+aura:
+  jwt:
+    # Em produção vem de AURA_JWT_SECRET; o default só existe para a demo local.
+    secret: ${AURA_JWT_SECRET:aura-care-chain-fiap-2026-smart-has-chave-de-demonstracao-hs256}
+    access-ttl-minutes: 30
+    refresh-ttl-days: 7
+  scoring:
+    window-days: 14
+    config-version: "2026-06-14"
+    levels:
+      medium: 0.4
+      high: 0.7
+  carechain:
+    delivery-sla-hours: 24
+    install-sla-hours: 72
+  cors:
+    allowed-origins: "*"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:aura;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+aura:
+  seed:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${AURA_DB_URL:jdbc:postgresql://localhost:5432/aura}
+    username: ${AURA_DB_USER:aura}
+    password: ${AURA_DB_PASSWORD:aura}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+aura:
+  seed:
+    enabled: ${AURA_SEED:false}

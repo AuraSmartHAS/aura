@@ -1,0 +1,208 @@
+package br.com.fiap.aura.web;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+/**
+ * Percurso completo do produto: cadastro → consentimento → casa → sinal →
+ * escore explicável → recomendação → aprovação → pedido entregue.
+ * Cobre também o gate LGPD e o isolamento entre pacientes.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("dev")
+class CareChainFlowTest {
+
+    @Autowired
+    private MockMvc mvc;
+
+    @Autowired
+    private ObjectMapper json;
+
+    private String signup(String email) throws Exception {
+        MvcResult res = mvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","password":"aura1234","role":"cuidadora"}""".formatted(email)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return json.readTree(res.getResponse().getContentAsString()).get("token").asText();
+    }
+
+    private JsonNode body(MvcResult res) throws Exception {
+        return json.readTree(res.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    @Test
+    @DisplayName("fluxo ponta a ponta: risco explicado vira pedido entregue no prazo")
+    void endToEnd() throws Exception {
+        String token = signup("fluxo@aura.com");
+        String auth = "Bearer " + token;
+
+        // sem consentimento, nenhum dado de saúde entra (RN-001)
+        mvc.perform(post("/api/v1/homes").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100","label":"Casa da Maria"}"""))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.error.code").value("CONSENT_REQUIRED"));
+
+        mvc.perform(post("/api/v1/consent").header("Authorization", auth))
+                .andExpect(status().isCreated());
+
+        String homeId = body(mvc.perform(post("/api/v1/homes").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100","label":"Casa da Maria"}"""))
+                .andExpect(status().isCreated())
+                .andReturn()).get("homeId").asText();
+
+        // a casa não tem barra de apoio e o piso é escorregadio
+        mvc.perform(put("/api/v1/homes/{id}/checklist", homeId).header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"items":{"grab_bar_bathroom":false,"slippery_floor":true}}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.safetyChecklist.slippery_floor").value(true));
+
+        // Maria relata uma quase-queda por voz
+        mvc.perform(post("/api/v1/signals").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","type":"mobility","source":"voice",
+                                 "value":{"event":"near_fall","place":"bathroom"}}""".formatted(homeId)))
+                .andExpect(status().isCreated());
+
+        JsonNode score = body(mvc.perform(post("/api/v1/scores/recompute").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","dimension":"mobility"}""".formatted(homeId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.level").value("high"))
+                .andReturn());
+
+        assertThat(score.get("factors").toString()).contains("near_fall_reported", "no_grab_bar");
+        assertThat(score.get("explanation").asText()).contains("NBR 9050");
+
+        JsonNode rec = body(mvc.perform(post("/api/v1/recommendations").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","scoreId":"%s"}"""
+                                .formatted(homeId, score.get("scoreId").asText())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.sku").value("LM-1566953614"))
+                .andReturn());
+
+        // nada de pedido antes da aprovação humana (RN-022)
+        mvc.perform(get("/api/v1/homes/{id}/orders", homeId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        String recId = rec.get("recommendationId").asText();
+        String orderId = body(mvc.perform(post("/api/v1/recommendations/{id}/approve", recId)
+                        .header("Authorization", auth))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.stage").value("approved"))
+                        .andReturn())
+                .get("orderId").asText();
+
+        // aprovar de novo é conflito
+        mvc.perform(post("/api/v1/recommendations/{id}/approve", recId).header("Authorization", auth))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("CONFLICT"));
+
+        for (String expected : new String[] {"sourcing", "in_route", "delivered"}) {
+            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.stage").value(expected));
+        }
+
+        mvc.perform(get("/api/v1/orders/{id}", orderId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stage").value("delivered"))
+                .andExpect(jsonPath("$.sla.breached").value(false))
+                .andExpect(jsonPath("$.delivery.nodeName").value("Loja Marginal"));
+    }
+
+    @Test
+    @DisplayName("casa de outra cuidadora responde 403, não 404 (RN-017)")
+    void isolationBetweenPatients() throws Exception {
+        String owner = "Bearer " + signup("dona@aura.com");
+        String stranger = "Bearer " + signup("estranha@aura.com");
+
+        mvc.perform(post("/api/v1/consent").header("Authorization", owner)).andExpect(status().isCreated());
+        String homeId = body(mvc.perform(post("/api/v1/homes").header("Authorization", owner)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100"}"""))
+                .andReturn()).get("homeId").asText();
+
+        mvc.perform(get("/api/v1/homes/{id}", homeId).header("Authorization", stranger))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    @DisplayName("sem token: 401 no envelope padrão; a Torre de Controle exige admin")
+    void authAndRbac() throws Exception {
+        mvc.perform(get("/api/v1/catalog"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+
+        String cuidadora = "Bearer " + signup("semops@aura.com");
+        mvc.perform(get("/api/v1/ops/kpis").header("Authorization", cuidadora))
+                .andExpect(status().isForbidden());
+
+        MvcResult login = mvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"admin@aura.com","password":"aura1234"}"""))
+                .andExpect(status().isOk())
+                .andReturn();
+        String adminToken = body(login).get("token").asText();
+
+        mvc.perform(get("/api/v1/ops/kpis").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fillRate").value(1.0));
+    }
+
+    @Test
+    @DisplayName("validação de payload devolve VALIDATION_ERROR com o campo culpado")
+    void validation() throws Exception {
+        mvc.perform(post("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"nao-e-email","password":"123"}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.error.details.password").exists());
+    }
+
+    @Test
+    @DisplayName("página de status (Thymeleaf) e health respondem sem autenticação")
+    void publicSurfaces() throws Exception {
+        mvc.perform(get("/api/v1/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ok"));
+
+        mvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
+                        .contains("AURA Care-Chain API", "Swagger"));
+    }
+}

@@ -1,0 +1,83 @@
+# ============================================================================
+# AURA Care-Chain · Escore explicável — fatores e pesos VERSIONADOS
+# Cada fator é OBSERVÁVEL (voz, auto-relato, checklist, uso do app, wearable).
+# Nenhum peso fica embutido no código: mudar risco = mudar este arquivo.
+#   kind: SIGNAL_EVENT | CHECKLIST_PRESENT | CHECKLIST_ABSENT
+# ============================================================================
+aura:
+  scoring:
+    dimensions:
+      mobility:
+        norm: "NBR 9050"
+        risk-tag: fall_bathroom
+        factors:
+          - name: near_fall_reported
+            label: "quase-queda relatada"
+            weight: 0.4
+            kind: SIGNAL_EVENT
+            signal-type: mobility
+            event: near_fall
+          - name: no_grab_bar
+            label: "ausência de barra de apoio"
+            weight: 0.3
+            kind: CHECKLIST_ABSENT
+            checklist-key: grab_bar_bathroom
+          - name: slippery_floor
+            label: "piso escorregadio"
+            weight: 0.2
+            kind: CHECKLIST_PRESENT
+            checklist-key: slippery_floor
+          - name: dizziness_bath
+            label: "tontura ao banho"
+            weight: 0.1
+            kind: SIGNAL_EVENT
+            signal-type: mobility
+            event: dizziness
+
+      sleep:
+        norm: "NBR 9050"
+        risk-tag: night_trips
+        factors:
+          - name: night_trips_reported
+            label: "idas noturnas frequentes"
+            weight: 0.6
+            kind: SIGNAL_EVENT
+            signal-type: sleep
+            event: night_trip
+          - name: poor_night_lighting
+            label: "iluminação noturna insuficiente"
+            weight: 0.4
+            kind: CHECKLIST_ABSENT
+            checklist-key: night_light
+
+      cognition:
+        norm: "NBR 9050"
+        risk-tag: cognition
+        factors:
+          - name: confusion_reported
+            label: "confusão/repetição na fala"
+            weight: 0.5
+            kind: SIGNAL_EVENT
+            signal-type: cognition
+            event: confusion
+          - name: no_gas_detector
+            label: "sem detector de gás/fumaça"
+            weight: 0.5
+            kind: CHECKLIST_ABSENT
+            checklist-key: gas_detector
+
+      environment:
+        norm: "NBR 9050"
+        risk-tag: environment
+        factors:
+          - name: poor_air_reported
+            label: "qualidade do ar ruim relatada"
+            weight: 0.6
+            kind: SIGNAL_EVENT
+            signal-type: environment
+            event: poor_air
+          - name: no_air_purifier
+            label: "sem purificador de ar"
+            weight: 0.4
+            kind: CHECKLIST_ABSENT
+            checklist-key: air_purifier

@@ -1,0 +1,29 @@
+<section class="login">
+  <div class="card login__card">
+    <p class="eyebrow">Smart HAS · FIAP 2026</p>
+    <h1>AURA <span class="accent">Care-Chain</span></h1>
+    <p class="muted">Painel administrativo — Torre de Controle e acompanhamento do cuidado.</p>
+
+    <form (ngSubmit)="submit()" #loginForm="ngForm" novalidate>
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" required
+             [(ngModel)]="email" [disabled]="loading()" placeholder="ana@aura.com" />
+
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" required minlength="6"
+             [(ngModel)]="password" [disabled]="loading()" placeholder="••••••••" />
+
+      <p class="error" *ngIf="error()">{{ error() }}</p>
+
+      <button type="submit" class="btn btn--primary" [disabled]="loading() || loginForm.invalid">
+        {{ loading() ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <div class="demo">
+      <span class="muted">Contas de demonstração:</span>
+      <button type="button" class="chip" (click)="useDemo('ana@aura.com')">ana@aura.com · cuidadora</button>
+      <button type="button" class="chip" (click)="useDemo('admin@aura.com')">admin@aura.com · torre</button>
+    </div>
+  </div>
+</section>

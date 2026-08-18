@@ -1,0 +1,28 @@
+<header class="topbar">
+  <a class="brand" routerLink="/home">
+    AURA <span class="accent">Care-Chain</span>
+    <span class="brand__sub">painel administrativo</span>
+  </a>
+
+  <nav *ngIf="auth.isLoggedIn()">
+    <a routerLink="/home" routerLinkActive="active">Casa</a>
+    <a routerLink="/admin" routerLinkActive="active">Torre de Controle</a>
+  </nav>
+
+  <div class="topbar__right" *ngIf="auth.isLoggedIn(); else anon">
+    <span class="chip chip--role">{{ auth.role() }}</span>
+    <button class="btn btn--ghost btn--small" (click)="logout()">Sair</button>
+  </div>
+  <ng-template #anon>
+    <a class="btn btn--small" routerLink="/login">Entrar</a>
+  </ng-template>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  Smart HAS · Enterprise Challenge 2026 · FIAP — o painel consome a mesma API REST
+  (Spring Boot) usada pelos apps Flutter e React Native.
+</footer>

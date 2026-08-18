@@ -1,1 +1,14 @@
 CLAUDE.md
+.DS_Store
+
+# Java / Spring Boot
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Node (Angular e React Native)
+node_modules/
+dist/
+.angular/
+.expo/
+*.tsbuildinfo
+npm-debug.log*

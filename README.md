@@ -1,119 +1,89 @@
-# 📱 AURA Care-Chain — App (Flutter)
+# 🌅 AURA Care-Chain
 
-> Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · **FIAP**
+> Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · **FIAP — Sociedade 5.0**
 > Assistente de saúde domiciliar **voice-first** para idosos com Parkinson +
 > **cadeia logística de segurança da casa**, com recomendação sempre explicada.
 > Duas personas, duas superfícies: **Maria** (paciente, fala com o app) e
 > **Ana** (cuidadora, acompanha tudo pelo painel).
 
-O código do app vive em [`mobile/`](mobile/) — Flutter para **Android, iOS e Web**.
-O backend fica em outro repositório: [aura-server](https://github.com/AuraSmartHAS/aura-server)
-(FastAPI + PostgreSQL).
+## 📦 Monorepo
+
+| Pasta | Stack | O que é |
+|---|---|---|
+| [`mobile/`](mobile/) | Flutter (Dart) | App principal — Android, iOS e Web. Voz para a Maria, painel para a Ana |
+| [`mobile-rn/`](mobile-rn/) | React Native (Expo) | Fluxo crítico recriado na nova stack: login → risco explicado → aprovação → entrega |
+| [`backend-spring/`](backend-spring/) | Java 21 + Spring Boot 3.3 | API REST `/api/v1` com JWT, JPA, Swagger e página Thymeleaf |
+| [`web-admin/`](web-admin/) | Angular 20 | Painel da cuidadora e Torre de Controle (NOC) |
+
+Os **três clientes consomem exatamente a mesma API**. O contrato é o ponto de
+encontro do projeto: mudar de stack no mobile não muda o backend, e vice-versa.
+
+```
+ Flutter (Android/iOS/Web) ┐
+ React Native (Expo)       ├──► Spring Boot /api/v1 ──► H2 (dev) · PostgreSQL (prod)
+ Angular (painel web)      ┘        JWT · JPA · Swagger
+```
 
 ## ⛔ Regras de ouro (nunca violar)
 1. **Nunca prescreve/diagnostica** — não é dispositivo médico; sintoma relevante é sempre encaminhado ao médico.
 2. **Sem sensores IoT** — o monitoramento vem do próprio app + wearable leve (Health Connect / HealthKit).
 3. **Acessibilidade WCAG 2.1 AA, voice-first** — microfone gigante, texto grande, alvos ≥48dp e fallback de teclado sempre disponível.
 4. **LGPD desde o desenho** — gate de consentimento antes de qualquer dado de saúde, JWT em storage seguro, exclusão pelo servidor.
+5. **Inteligência explicável** — todo escore de risco mostra os fatores e os pesos que o produziram.
 
----
+## 🚀 Subir tudo localmente
 
-## 🗺️ Telas e fluxos
+```bash
+# 1. API (porta 8080) — sem Docker, banco H2 com dados de demonstração
+cd backend-spring && ./mvnw spring-boot:run
+
+# 2. Painel Angular (porta 4200)
+cd web-admin && npm install && npm start
+
+# 3. App React Native (porta 8081)
+cd mobile-rn && npm install && npm run web
+
+# 4. App Flutter
+cd mobile && cp .env.example .env && flutter pub get && flutter run -d chrome
+```
+
+Contas de demonstração (senha `aura1234`): `ana@aura.com` (cuidadora),
+`admin@aura.com` (Torre de Controle), `maria@aura.com` (paciente).
+
+## 🗺️ Telas do app Flutter
 
 ### Maria — paciente (voz)
 | Rota | O que acontece |
 |---|---|
-| `/voice` | **Home de voz (VUI)**: microfone gigante, transcrição ao vivo e fallback de teclado. É por conversa que Maria registra **sintomas**, confirma a **medicação** do dia e pede **ajuda/emergência** — o agente de voz (ElevenLabs) conversa e o app registra no servidor. |
+| `/voice` | **Home de voz (VUI)**: microfone gigante, transcrição ao vivo e fallback de teclado. É por conversa que Maria registra **sintomas**, confirma a **medicação** do dia e pede **ajuda/emergência**. |
 
 ### Ana — cuidadora (painel)
 | Rota | Feature | O que acontece |
 |---|---|---|
-| `/onboarding` | `home_setup` | Cadastro da casa (CEP via servidor) + checklist de segurança |
+| `/onboarding` | `home_setup` | Cadastro da casa (CEP) + checklist de segurança |
 | `/dashboard` | `caregiver_dashboard` | Status do dia da Maria num olhar |
 | `/wellbeing` | `wellbeing360` | **Bem-estar 360**: sinais de saúde e humor ao longo do tempo |
-| `/carechain` | `carechain` | **Care-Chain**: card de recomendação com risco + fatores + motivo sempre visíveis, e o botão de aprovar — única porta do pedido |
+| `/carechain` | `carechain` | **Care-Chain**: recomendação com risco + fatores + motivo, e o botão de aprovar |
 | `/orders/:id` | `orders` | Detalhe e linha do tempo do pedido |
 | `/map/:orderId` | `delivery_map` | **Mapa da entrega** (Google Maps) com ETA |
-| `/medications` | `medications` | CRUD de medicamentos + lembretes (notificações locais) |
+| `/medications` | `medications` | CRUD de medicamentos + lembretes |
 | `/wearable` | `wearable` | Conectar o wearable e sincronizar sinais |
 
-Ana também recebe **push (FCM)** de saúde e de pedido — o token é registrado no servidor no login.
-
 ### Compartilhadas
-| Rota | O que acontece |
-|---|---|
-| `/login` · `/signup` | Entrar / criar conta — no cadastro escolhe-se o papel (paciente ou cuidadora), e o roteador leva cada uma para sua casa (`/voice` ou `/dashboard`) |
-| `/consent` | **Consentimento LGPD** — obrigatório antes de qualquer tela com dado de saúde |
-| `/credits` | Créditos da equipe |
+`/login` · `/signup` · `/consent` (gate LGPD) · `/credits`
 
----
-
-## 🧱 Arquitetura do app
+## 🧱 Arquitetura do app Flutter
 
 ```
 UI (pages/widgets) ──> BLoC (por feature) ──> UseCases ──> Repositories
-                                                              │
-                              ┌───────────────────────────────┤
-                              │ dio + JWT ──> aura-server /api/v1
+                              │ dio + JWT ──> API /api/v1
                               │ drift ─────> banco local (SQLite)
                               │ health ────> wearable (HC/HealthKit)
-                              │ FCM ───────> push  ·  Supabase ──> só o token de voz ElevenLabs
+                              │ FCM ───────> push
 ```
 
-- **BLoC por feature**, cada uma com camadas `data / domain / presentation` (Clean Architecture).
-- **go_router** com guards de sessão: sem login → `/login`; sem consentimento → `/consent`; depois, rota por papel.
-- **get_it** para injeção de dependência (um módulo `di/` por feature).
-- **drift** como banco local; **dio + flutter_secure_storage** para falar com o aura-server via JWT.
-- **firebase_messaging** só para push; **Supabase** só para buscar o token efêmero do agente de voz — todo o resto passa pelo aura-server.
-
----
-
-## 🚀 Como rodar
-
-**1. Suba o backend** (repo [aura-server](https://github.com/AuraSmartHAS/aura-server)):
-```bash
-docker compose up --build
-# Swagger em http://localhost:8000/docs
-```
-
-**2. Configure o app:**
-```bash
-cd mobile
-cp .env.example .env   # preencha as chaves (o .env fica fora do git)
-```
-> Em device físico, troque `localhost` pelo IP da sua máquina no `BACKEND_BASE_URL`.
-
-**3. Instale as dependências:**
-```bash
-flutter pub get
-```
-
-**4. Rode:**
-```bash
-flutter run -d chrome     # web
-flutter build web         # build web
-flutter build apk         # build Android
-```
-> Mexeu em modelos drift/freezed? `dart run build_runner build` regenera o código.
-
----
-
-## 📁 Estrutura
-
-```
-mobile/
-  lib/
-    core/        config · database (drift) · di (get_it) · network (dio+JWT)
-                 notifications (FCM + locais) · router (guards) · session · theme
-    features/    auth · consent · home (VUI) · home_setup · caregiver_dashboard
-                 wellbeing360 · carechain · orders · delivery_map · medications
-                 wearable · profile   — cada uma com data/domain/presentation
-    shared/      models e widgets reutilizáveis
-  docs/          specs 00–10 (produto, telas, a11y, integrações)
-  android/ ios/ web/
-```
-
----
+**BLoC por feature** com camadas `data / domain / presentation`, **go_router** com
+guards de sessão, **get_it** para injeção de dependência.
 
 ## 👥 Equipe
 
@@ -123,7 +93,8 @@ mobile/
 | João Domingos Góes Filho | 564465 | Dev Senior Mobile |
 | Pedro Henrique Arenas Negri | 554971 | Dev Pleno |
 | Júlia Alves Dias | 557151 | Infra |
+| Frederico Enrique Garcia da Silva Passos | 550532 | Dev Junior |
 
 ## 🔗 Links
-- **Backend:** [github.com/AuraSmartHAS/aura-server](https://github.com/AuraSmartHAS/aura-server)
+- **Backend da fase anterior (FastAPI):** [github.com/AuraSmartHAS/aura-server](https://github.com/AuraSmartHAS/aura-server)
 - **Figma:** [AURA — design](https://www.figma.com/design/vEyinUEawJndUsIAMlJJGc/AURA)

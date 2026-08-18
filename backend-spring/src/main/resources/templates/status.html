@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${appName} + ' · status'">AURA Care-Chain API</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; background:#0d1117; color:#c9d1d9; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    main { max-width:780px; margin:0 auto; padding:48px 24px; }
+    h1 { font-size:28px; margin:0 0 4px; color:#f0f6fc; }
+    .sub { color:#8b949e; margin:0 0 32px; }
+    .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600;
+            background:rgba(63,185,80,.15); color:#3fb950; border:1px solid rgba(63,185,80,.4); }
+    table { width:100%; border-collapse:collapse; margin:24px 0; }
+    th, td { text-align:left; padding:10px 12px; border-bottom:1px solid #21262d; font-size:14px; }
+    th { color:#8b949e; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.06em; }
+    code { color:#58a6ff; }
+    a { color:#58a6ff; }
+    .links a { display:inline-block; margin-right:16px; }
+    footer { margin-top:40px; color:#8b949e; font-size:12px; border-top:1px solid #21262d; padding-top:16px; }
+  </style>
+</head>
+<body>
+<main>
+  <span class="pill" th:text="'● ' + ${status}">● ok</span>
+  <h1 th:text="${appName}">AURA Care-Chain API</h1>
+  <p class="sub">Smart HAS · Enterprise Challenge 2026 · FIAP — backend Spring Boot (Spring MVC + Thymeleaf)</p>
+
+  <table>
+    <tr><th>Item</th><th>Valor</th></tr>
+    <tr><td>Versão</td><td th:text="${version}">1.0.0</td></tr>
+    <tr><td>Perfil ativo</td><td th:text="${profile}">dev</td></tr>
+    <tr><td>Banco</td><td th:text="${database}">H2 (memória)</td></tr>
+    <tr><td>Prefixo da API</td><td><code th:text="${apiPrefix}">/api/v1</code></td></tr>
+    <tr><td>Produtos no catálogo</td><td th:text="${products}">6</td></tr>
+    <tr><td>Casas monitoradas</td><td th:text="${homes}">1</td></tr>
+    <tr><td>Pedidos abertos</td><td th:text="${openOrders}">0</td></tr>
+    <tr><td>Hora do servidor (UTC)</td><td th:text="${now}">—</td></tr>
+  </table>
+
+  <div class="links">
+    <a th:href="@{/swagger-ui.html}">Swagger UI</a>
+    <a th:href="@{/v3/api-docs}">OpenAPI JSON</a>
+    <a th:href="@{/api/v1/health}">Health</a>
+  </div>
+
+  <footer>
+    Esta página é servida por Spring MVC + Thymeleaf. O app Flutter, o app React Native
+    e o painel Angular consomem a mesma API REST em <code th:text="${apiPrefix}">/api/v1</code>.
+  </footer>
+</main>
+</body>
+</html>

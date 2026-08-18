@@ -1,0 +1,23 @@
+# Postgres para rodar a API no perfil `postgres`:
+#   docker compose up -d
+#   AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+# O cenário padrão da demo (H2 em memória) não precisa deste arquivo.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aura-postgres
+    environment:
+      POSTGRES_DB: aura
+      POSTGRES_USER: aura
+      POSTGRES_PASSWORD: aura
+    ports:
+      - "5432:5432"
+    volumes:
+      - aura-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aura"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  aura-pgdata:

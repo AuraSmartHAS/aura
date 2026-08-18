@@ -1,0 +1,159 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <p class="eyebrow">Acompanhamento</p>
+      <h1>Casa do paciente</h1>
+    </div>
+
+    <div class="select" *ngIf="homes().length > 0">
+      <label for="home">Casa</label>
+      <select id="home" [value]="selected()?.id" (change)="onSelectHome($any($event.target).value)">
+        <option *ngFor="let home of homes()" [value]="home.id">
+          {{ home.label || home.patientName }}
+        </option>
+      </select>
+    </div>
+  </header>
+
+  <p class="notice" *ngIf="notice()">{{ notice() }}</p>
+  <p class="error" *ngIf="error()">{{ error() }}</p>
+  <p class="muted" *ngIf="loading()">Carregando casas…</p>
+
+  <p class="empty" *ngIf="!loading() && homes().length === 0">
+    Nenhuma casa cadastrada para esta conta. Cadastre pelo app ou entre com <strong>ana&#64;aura.com</strong>.
+  </p>
+
+  <ng-container *ngIf="selected() as home">
+    <div class="grid">
+      <!-- ficha da casa -->
+      <article class="card">
+        <h2>{{ home.patientName }}</h2>
+        <p class="muted">{{ home.address || 'Endereço não resolvido' }}</p>
+        <dl class="facts">
+          <div><dt>CEP</dt><dd>{{ home.cep || '—' }}</dd></div>
+          <div><dt>Coordenadas</dt><dd>{{ home.lat }}, {{ home.lng }}</dd></div>
+        </dl>
+
+        <h3>Checklist de segurança</h3>
+        <p class="muted small">Cada item alimenta diretamente o escore de risco.</p>
+        <label class="check" *ngFor="let key of checklistLabels | keyvalue">
+          <input type="checkbox" [(ngModel)]="checklist[key.key]" [name]="key.key" />
+          <span>{{ key.value }}</span>
+        </label>
+
+        <div class="actions">
+          <button class="btn" (click)="saveChecklist()" [disabled]="busy() === 'checklist'">
+            {{ busy() === 'checklist' ? 'Salvando…' : 'Salvar checklist' }}
+          </button>
+          <button class="btn btn--ghost" (click)="registerNearFall()" [disabled]="busy() === 'signal'">
+            Registrar quase-queda
+          </button>
+        </div>
+      </article>
+
+      <!-- escore explicável -->
+      <article class="card">
+        <div class="card__head">
+          <h2>Risco por dimensão</h2>
+          <button class="btn btn--primary" (click)="recompute()" [disabled]="busy() === 'score'">
+            {{ busy() === 'score' ? 'Calculando…' : 'Recalcular escore' }}
+          </button>
+        </div>
+
+        <p class="empty" *ngIf="scores().length === 0">
+          Nenhum escore calculado ainda. Clique em “Recalcular escore”.
+        </p>
+
+        <div class="score" *ngFor="let score of scores()">
+          <div class="score__head">
+            <strong>{{ score.dimension }}</strong>
+            <span [class]="levelClass(score.level)">{{ score.level }} · {{ percent(score.score) }}</span>
+          </div>
+          <div class="bar"><span [style.width]="percent(score.score)" [class]="'bar__fill bar__fill--' + score.level"></span></div>
+          <p class="explain">{{ score.explanation }}</p>
+          <ul class="factors">
+            <li *ngFor="let factor of score.factors; let i = index">
+              {{ factor }} <span class="weight">peso {{ score.weights[i] }}</span>
+            </li>
+          </ul>
+          <button class="btn btn--small" (click)="recommend(score)"
+                  *ngIf="score.level !== 'low'" [disabled]="busy() === 'rec'">
+            Gerar recomendação
+          </button>
+        </div>
+      </article>
+
+      <!-- care-chain -->
+      <article class="card">
+        <h2>Care-Chain</h2>
+        <p class="muted small">Nenhum pedido nasce sem aprovação humana.</p>
+
+        <p class="empty" *ngIf="recommendations().length === 0">Sem recomendações no momento.</p>
+
+        <div class="rec" *ngFor="let rec of recommendations()">
+          <div class="rec__head">
+            <strong>{{ rec.productName }}</strong>
+            <span class="tag tag--{{ rec.status }}">{{ rec.status }}</span>
+          </div>
+          <p class="explain">{{ rec.reason }}</p>
+          <p class="small muted">
+            Fatores:
+            <span *ngFor="let factor of rec.factors; let last = last">{{ factor }}{{ last ? '' : ' · ' }}</span>
+          </p>
+          <button class="btn btn--primary btn--small" *ngIf="rec.status === 'recommended'"
+                  (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
+            Aprovar e pedir
+          </button>
+        </div>
+      </article>
+
+      <!-- pedidos -->
+      <article class="card">
+        <h2>Pedidos</h2>
+        <p class="empty" *ngIf="orders().length === 0">Nenhum pedido — aprove uma recomendação.</p>
+
+        <div class="order" *ngFor="let order of orders()">
+          <div class="order__head">
+            <strong>{{ order.productName }}</strong>
+            <span class="tag" [class.tag--danger]="order.slaBreached">
+              {{ order.slaBreached ? 'SLA estourado' : 'SLA ok' }}
+            </span>
+          </div>
+
+          <ol class="timeline">
+            <li *ngFor="let stage of stages; let i = index"
+                [class.done]="i <= stageIndex(order.stage)"
+                [class.current]="i === stageIndex(order.stage)">
+              {{ stageLabels[stage] }}
+            </li>
+          </ol>
+
+          <button class="btn btn--small" (click)="advance(order)"
+                  *ngIf="order.stage !== 'returned'"
+                  [disabled]="busy() === 'advance-' + order.id">
+            Avançar estágio
+          </button>
+        </div>
+      </article>
+
+      <!-- sinais -->
+      <article class="card card--wide">
+        <h2>Sinais recentes</h2>
+        <p class="empty" *ngIf="signals().length === 0">Sem sinais registrados.</p>
+        <table *ngIf="signals().length > 0">
+          <thead>
+            <tr><th>Quando</th><th>Tipo</th><th>Origem</th><th>Conteúdo</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let signal of signals()">
+              <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
+              <td>{{ signal.type }}</td>
+              <td>{{ signal.source }}</td>
+              <td class="mono">{{ signal.value | json }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </ng-container>
+</section>
