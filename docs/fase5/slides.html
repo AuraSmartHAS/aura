@@ -202,7 +202,7 @@
   <div class="grid4">
     <div class="card"><div class="metric metric--accent">32</div><div class="metric-label">operações REST em 26 rotas de <code>/api/v1</code></div></div>
     <div class="card"><div class="metric">9</div><div class="metric-label">entidades JPA no domínio</div></div>
-    <div class="card"><div class="metric green">11</div><div class="metric-label">testes automatizados verdes</div></div>
+    <div class="card"><div class="metric green">54</div><div class="metric-label">testes verdes nos 4 módulos</div></div>
     <div class="card"><div class="metric">3</div><div class="metric-label">clientes no mesmo contrato</div></div>
   </div>
   <div class="cols" style="margin-top:7mm">
@@ -221,6 +221,7 @@ config/      Security (JWT) · OpenAPI · seed</pre>
         <li><strong>H2 no dev, PostgreSQL no perfil <code>postgres</code></strong> — mesmo código, um comando para demonstrar</li>
         <li><strong>Swagger</strong> em <code>/swagger-ui.html</code> e página de status em Thymeleaf</li>
         <li><strong>Envelope único de erro</strong> <code>{error:{code,message}}</code> lido pelos três clientes</li>
+        <li><strong>E2E sem mock</strong> — Playwright percorre o painel contra a API real</li>
       </ul>
     </div>
   </div>

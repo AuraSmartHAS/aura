@@ -322,6 +322,14 @@ comando e sem instalar banco nenhum. A persistência real é <strong>PostgreSQL<
 usam conversores dedicados justamente para que nada mude entre os dois bancos.
 </p>
 
+<p>
+Os dois perfis foram <strong>executados e verificados nesta entrega</strong>. No perfil
+<code>postgres</code>, o fluxo completo foi percorrido e os dados conferidos direto no banco por
+<code>psql</code> — pedido em <code>DELIVERED</code>, casa cadastrada e o escore de mobilidade
+gravado como <code>HIGH 0.9</code> —, comprovando que o mesmo código persiste em PostgreSQL sem
+alteração (evidência na seção 5).
+</p>
+
 <h3>3.2 Arquitetura em camadas</h3>
 
 <pre><code>br.com.fiap.aura
@@ -536,8 +544,25 @@ de superfície operacional do servidor, renderizada sem depender de nenhum clien
 <h3>3.9 Testes</h3>
 
 <p>
-São <strong>11 testes automatizados</strong>, todos verdes (<code>./mvnw test</code>):
+São <strong>54 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
+módulos — e todos executados nesta entrega:
 </p>
+
+<table>
+  <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
+  <tr><td>Back-end (JUnit + MockMvc)</td><td>11</td><td><code>./mvnw test</code></td>
+      <td>motor de escore, guardrail e o percurso completo da API</td></tr>
+  <tr><td>Painel Angular (Jasmine/Karma)</td><td>17</td><td><code>npm test</code></td>
+      <td>cliente HTTP, sessão, interceptor JWT e tradução de erro</td></tr>
+  <tr><td>Painel Angular (Playwright)</td><td>6</td><td><code>npm run e2e</code></td>
+      <td>fluxo ponta a ponta no navegador, contra a API real</td></tr>
+  <tr><td>App React Native (Jest)</td><td>7</td><td><code>npm test</code></td>
+      <td>contrato do cliente da API, Bearer e envelope de erro</td></tr>
+  <tr><td>App Flutter (flutter_test)</td><td>13</td><td><code>flutter test</code></td>
+      <td>validadores dos formulários e layout do detalhe do pedido</td></tr>
+</table>
+
+<h4 style="font-size:10.5pt;margin:5mm 0 2mm">Back-end — o que cada teste garante</h4>
 
 <table>
   <tr><th>Teste</th><th>O que garante</th></tr>
@@ -553,6 +578,17 @@ São <strong>11 testes automatizados</strong>, todos verdes (<code>./mvnw test</
   <tr><td>Exclusão LGPD</td><td>Apagar a casa remove os sinais junto; apagar a conta impede o login seguinte</td></tr>
   <tr><td>Validação e rotas públicas</td><td><code>VALIDATION_ERROR</code> com o campo culpado; health e página de status abertos</td></tr>
 </table>
+
+<h4 style="font-size:10.5pt;margin:6mm 0 2mm">Ponta a ponta no navegador</h4>
+
+<p>
+Os seis testes de Playwright rodam contra a <strong>API real, sem nenhum mock</strong>: se o
+backend quebrar o contrato, eles caem junto. Eles verificam exatamente as promessas do produto —
+que o risco muda quando o checklist muda, que <em>nenhum pedido nasce sem a aprovação da
+cuidadora</em>, que o pedido avança pelos estágios, que os KPIs são exclusivos do admin, que o
+CRUD do catálogo funciona e que um login inválido mostra a mensagem vinda da API. A suíte sobe
+sozinha o backend e o painel, ou reaproveita os que já estiverem no ar.
+</p>
 
 <h3>3.10 Escalabilidade</h3>
 
@@ -622,6 +658,12 @@ API (Spring Boot na porta 8080, painel Angular na 4200 e app React Native na 808
 <figure class="avoid">
   <img src="img/api-1-swagger.png" alt="Swagger UI da API">
   <figcaption>Swagger UI — rotas agrupadas por contexto, com autenticação Bearer configurada.</figcaption>
+</figure>
+
+<figure class="avoid">
+  <img src="img/api-5-postgres.png" alt="Página de status rodando em PostgreSQL">
+  <figcaption>A mesma aplicação no perfil <code>postgres</code>: banco PostgreSQL, com o catálogo,
+  a casa e o pedido persistidos — o H2 é apenas o perfil de demonstração.</figcaption>
 </figure>
 
 <figure class="avoid">
