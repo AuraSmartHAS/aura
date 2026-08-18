@@ -13,18 +13,25 @@ public final class AuthDtos {
     private AuthDtos() { }
 
     public record SignupRequest(
-            @NotBlank @Email String email,
-            @NotBlank @Size(min = 6, message = "A senha precisa ter ao menos 6 caracteres") String password,
+            @NotBlank @Email @Schema(example = "nova.cuidadora@aura.com") String email,
+            @NotBlank @Size(min = 6, message = "A senha precisa ter ao menos 6 caracteres")
+            @Schema(example = "aura1234") String password,
             @Schema(example = "cuidadora") Role role,
             String name) { }
 
-    public record SignupResponse(UUID userId, String token, String refreshToken, Role role) { }
+    public record SignupResponse(UUID userId,
+            @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI3MmEyMWVkMi0xNzhl...") String token,
+            @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJ0eXAiOiJyZWZyZXNoIiwic3Vi...") String refreshToken,
+            Role role) { }
 
     public record LoginRequest(
-            @NotBlank @Email String email,
-            @NotBlank String password) { }
+            @NotBlank @Email @Schema(example = "ana@aura.com") String email,
+            @NotBlank @Schema(example = "aura1234") String password) { }
 
-    public record TokenResponse(String token, Role role, String refreshToken) { }
+    public record TokenResponse(
+            @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI3MmEyMWVkMi0xNzhl...") String token,
+            @Schema(example = "cuidadora") Role role,
+            @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJ0eXAiOiJyZWZyZXNoIiwic3Vi...") String refreshToken) { }
 
     public record RefreshRequest(@NotBlank String refreshToken) { }
 
@@ -36,7 +43,9 @@ public final class AuthDtos {
 
     public record FcmTokenRequest(@NotBlank String fcmToken) { }
 
-    public record ConsentRequest(String version) { }
+    public record ConsentRequest(
+            @Schema(example = "2026-06", description = "Opcional — o default é a versão vigente da política")
+            String version) { }
 
     public record ConsentResponse(Instant acceptedAt, String version) { }
 

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,10 @@ public class OpenApiErrors {
 
     private static final String ERROR_REF = "#/components/schemas/ApiErrorResponse";
     private static final String JSON = "application/json";
+
+    /** Rotas abertas: não faz sentido documentar erro de autorização nelas. */
+    private static final Set<String> PUBLICAS = Set.of(
+            "/api/v1/health", "/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/auth/refresh");
 
     /** Erros possíveis em praticamente qualquer rota autenticada. */
     private static final Map<String, String[]> COMMON = Map.of(
@@ -57,6 +62,10 @@ public class OpenApiErrors {
                             "APPROVAL_REQUIRED", "Recomendação rejeitada não vira pedido."}),
             "/api/v1/orders/{orderId}/advance", Map.of("409", new String[] {
                     "Pedido em estágio terminal", "CONFLICT", "Pedido em estágio terminal."}),
+            "/api/v1/auth/login", Map.of("401", new String[] {"Credenciais incorretas",
+                    "INVALID_CREDENTIALS", "E-mail ou senha incorretos."}),
+            "/api/v1/auth/refresh", Map.of("401", new String[] {"Refresh token inválido ou de tipo errado",
+                    "UNAUTHORIZED", "Token inválido."}),
             "/api/v1/auth/signup", Map.of(
                     "400", new String[] {"Payload inválido — details traz o campo e o motivo",
                             "VALIDATION_ERROR", "Corpo da requisição inválido."},
@@ -74,7 +83,12 @@ public class OpenApiErrors {
 
             openApi.getPaths().forEach((path, pathItem) -> pathItem.readOperations().forEach(operation -> {
                 ApiResponses responses = operation.getResponses();
-                COMMON.forEach((status, spec) -> put(responses, status, spec));
+                // rota pública não devolve 401/403/404 de autorização — listar isso seria ruído
+                if (PUBLICAS.contains(path)) {
+                    put(responses, "500", COMMON.get("500"));
+                } else {
+                    COMMON.forEach((status, spec) -> put(responses, status, spec));
+                }
                 BY_PATH.getOrDefault(path, Map.of()).forEach((status, spec) -> put(responses, status, spec));
             }));
         };

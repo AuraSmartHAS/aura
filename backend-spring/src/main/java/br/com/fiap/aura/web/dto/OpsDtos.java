@@ -18,5 +18,8 @@ public final class OpsDtos {
 
     public record StageCount(String stage, long count) { }
 
-    public record HealthResponse(String status, String version, String env) { }
+    public record HealthResponse(
+            @Schema(example = "ok") String status,
+            @Schema(example = "1.0.0") String version,
+            @Schema(example = "dev") String env) { }
 }

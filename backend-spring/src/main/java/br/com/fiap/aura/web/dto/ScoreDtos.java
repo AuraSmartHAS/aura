@@ -24,7 +24,7 @@ public final class ScoreDtos {
     public record ScoreResponse(
             UUID scoreId,
             @Schema(example = "mobility") String dimension,
-            RiskLevel level,
+            @Schema(example = "high") RiskLevel level,
             @Schema(example = "0.9", description = "Soma dos pesos dos fatores acionados, limitada a 1")
             double score,
             @Schema(example = "[\"near_fall_reported\", \"no_grab_bar\", \"slippery_floor\"]")

@@ -4,12 +4,13 @@ import br.com.fiap.aura.service.OpsService;
 import br.com.fiap.aura.web.dto.OpsDtos;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/ops")
+@RequestMapping(value = "/api/v1/ops", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "6. Torre de Controle", description = "KPIs de operação (somente admin)")
 public class OpsController {
 
