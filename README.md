@@ -93,7 +93,6 @@ guards de sessão, **get_it** para injeção de dependência.
 | João Domingos Góes Filho | 564465 | Dev Senior Mobile |
 | Pedro Henrique Arenas Negri | 554971 | Dev Pleno |
 | Júlia Alves Dias | 557151 | Infra |
-| Frederico Enrique Garcia da Silva Passos | 550532 | Dev Junior |
 
 ## 🔗 Links
 - **Backend da fase anterior (FastAPI):** [github.com/AuraSmartHAS/aura-server](https://github.com/AuraSmartHAS/aura-server)
