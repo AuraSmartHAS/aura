@@ -50,9 +50,8 @@
   .team { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6mm; flex: 1; align-content: center; }
   .member { text-align: center; }
   .avatar { width: 40mm; height: 40mm; border-radius: 50%; margin: 0 auto 4mm;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24pt; font-weight: 700; color: #0d1117;
-            background: linear-gradient(140deg, #ffb26b, #f0883e); }
+            overflow: hidden; border: 1.2mm solid rgba(240,136,62,.55); background: #161b22; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .member .nm { font-size: 10pt; color: #f0f6fc; line-height: 1.35; }
   .member .rm { font-size: 9pt; color: #8b949e; margin-top: 1mm; }
   .member .role { font-size: 8pt; color: #58a6ff; margin-top: 1mm; }
@@ -101,31 +100,31 @@
   <h2>Quem construiu</h2>
   <div class="team">
     <div class="member">
-      <div class="avatar">VM</div>
+      <div class="avatar"><img src="img/foto-vinicius.png" alt="Vinícius Miranda Baptista"></div>
       <div class="nm">Vinícius Miranda Baptista</div>
       <div class="rm">RM 555081</div>
       <div class="role">Tech Lead</div>
     </div>
     <div class="member">
-      <div class="avatar">JD</div>
+      <div class="avatar"><img src="img/foto-joao.png" alt="João Domingos Góes Filho"></div>
       <div class="nm">João Domingos Góes Filho</div>
       <div class="rm">RM 564465</div>
       <div class="role">Dev Senior Mobile</div>
     </div>
     <div class="member">
-      <div class="avatar">PH</div>
+      <div class="avatar"><img src="img/foto-pedro.png" alt="Pedro Henrique Arenas Negri"></div>
       <div class="nm">Pedro Henrique Arenas Negri</div>
       <div class="rm">RM 554971</div>
       <div class="role">Dev Pleno</div>
     </div>
     <div class="member">
-      <div class="avatar">JA</div>
+      <div class="avatar"><img src="img/foto-julia.png" alt="Júlia Alves Dias"></div>
       <div class="nm">Júlia Alves Dias</div>
       <div class="rm">RM 557151</div>
       <div class="role">Infra</div>
     </div>
     <div class="member">
-      <div class="avatar">FE</div>
+      <div class="avatar"><img src="img/foto-frederico.png" alt="Frederico Enrique Garcia da Silva Passos"></div>
       <div class="nm">Frederico Enrique G. da Silva Passos</div>
       <div class="rm">RM 550532</div>
       <div class="role">Dev Junior</div>
@@ -379,7 +378,7 @@ config/      Security (JWT) · OpenAPI · seed</pre>
       <div class="col card">
         <h3>Código</h3>
         <p class="muted">github.com/AuraSmartHAS/aura<br>
-        <span style="font-size:9.5pt">backend-spring · web-admin · mobile-rn · mobile</span></p>
+        <span style="font-size:9.5pt">branch <strong>fase5</strong> · backend-spring · web-admin · mobile-rn · mobile</span></p>
       </div>
       <div class="col card">
         <h3>Vídeo da demonstração</h3>
