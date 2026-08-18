@@ -16,7 +16,23 @@ public final class ScoreDtos {
             String dimension) { }
 
     /** {@code factors} e {@code weights} são listas paralelas — é o que torna o escore explicável. */
-    public record ScoreResponse(UUID scoreId, String dimension, RiskLevel level, double score,
-                                List<String> factors, List<Double> weights,
-                                String explanation, String configVersion) { }
+    @Schema(description = """
+            Escore explicável de uma dimensão. `factors` e `weights` são listas PARALELAS:
+            o peso na posição i corresponde ao fator na posição i, e a soma dos pesos acionados
+            é o `score`. `explanation` é a mesma informação em linguagem natural, pronta para a tela.
+            Faixas: < 0,4 low · < 0,7 medium · >= 0,7 high.""")
+    public record ScoreResponse(
+            UUID scoreId,
+            @Schema(example = "mobility") String dimension,
+            RiskLevel level,
+            @Schema(example = "0.9", description = "Soma dos pesos dos fatores acionados, limitada a 1")
+            double score,
+            @Schema(example = "[\"near_fall_reported\", \"no_grab_bar\", \"slippery_floor\"]")
+            List<String> factors,
+            @Schema(example = "[0.4, 0.3, 0.2]") List<Double> weights,
+            @Schema(example = "Fatores acionados: quase-queda relatada (0,4), ausência de barra de apoio (0,3),"
+                    + " piso escorregadio (0,2). Norma NBR 9050. → risco ALTO.")
+            String explanation,
+            @Schema(example = "2026-06-14", description = "Versão do arquivo de pesos que produziu este escore")
+            String configVersion) { }
 }

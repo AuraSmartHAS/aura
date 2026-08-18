@@ -9,7 +9,7 @@ contrato: app **Flutter**, app **React Native** (`../mobile-rn`) e painel **Angu
 | Stack | Java 21 · Spring Boot 3.3 (Web MVC, Data JPA, Security, Validation, Thymeleaf) |
 | Banco | H2 em memória (perfil `dev`, com seed) · PostgreSQL (perfil `postgres`) |
 | Auth | JWT (HS256) — access 30 min + refresh 7 dias, stateless |
-| Docs | Swagger UI em `/swagger-ui.html` · OpenAPI em `/v3/api-docs` |
+| Docs | Swagger UI em `/swagger-ui.html` · OpenAPI em `/v3/api-docs` · versão offline em [`../docs/api/aura-api.html`](../docs/api/aura-api.html) |
 | Prefixo | `/api/v1` |
 
 ## ▶️ Como rodar
@@ -46,6 +46,21 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
 recomendação → aprovação → pedido entregue, mais isolamento entre pacientes (403),
 RBAC da Torre de Controle e validação de payload.
+
+## 📘 Documentação da API
+
+O Swagger é gerado do código (springdoc), com o botão **Authorize** já configurado para o JWT —
+dá para rodar o fluxo inteiro pelo navegador. Cada operação documenta **todas as respostas de
+erro** que pode devolver, com exemplo do envelope padrão: as comuns (401/403/404/500) entram por
+um `OpenApiCustomizer`, e as de negócio (409, 422 `CONSENT_REQUIRED`, `APPROVAL_REQUIRED`,
+`NO_PRODUCT`, 400 `UNKNOWN_DIMENSION`) só aparecem nas rotas que realmente as produzem.
+
+Para regerar o contrato e a página offline depois de mudar a API:
+
+```bash
+curl -s http://localhost:8080/v3/api-docs | python3 -m json.tool > ../docs/api/openapi.json
+npx @redocly/cli build-docs ../docs/api/openapi.json -o ../docs/api/aura-api.html
+```
 
 ## 🗺️ Rotas
 

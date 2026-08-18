@@ -494,11 +494,43 @@ pedidos da casa é literalmente vazia — e isso é verificado por teste automat
 <h3>3.8 Documentação e página servida pelo servidor</h3>
 
 <p>
-A API é documentada com <strong>springdoc-openapi</strong>: o Swagger UI lista as rotas
-agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado — dá para autenticar e
-executar o fluxo inteiro pelo navegador. Além da API, o backend serve uma página de status
-renderizada com <strong>Spring MVC + Thymeleaf</strong>, que mostra perfil ativo, banco em uso,
-contagem de produtos, casas e pedidos abertos.
+A API é documentada com <strong>springdoc-openapi</strong>, gerada a partir do próprio código —
+não há documento paralelo que possa envelhecer. O Swagger UI (<code>/swagger-ui.html</code>)
+lista as 32 operações agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado:
+dá para autenticar com o botão <em>Authorize</em> e executar o fluxo inteiro pelo navegador.
+</p>
+
+<p>A documentação cobre, para cada operação:</p>
+
+<ul>
+  <li><strong>Descrição do que a rota faz</strong> e a qual contexto pertence (auth/LGPD, casas,
+      monitoramento, catálogo, Care-Chain, torre de controle).</li>
+  <li><strong>Todas as respostas de erro possíveis</strong>, com o envelope
+      <code>{error:{code,message,details}}</code> e um exemplo por código. As comuns
+      (401, 403, 404, 500) são aplicadas por um <em>customizer</em> a todas as operações; as de
+      negócio (409 <code>CONFLICT</code>, 422 <code>CONSENT_REQUIRED</code>,
+      <code>APPROVAL_REQUIRED</code>, <code>NO_PRODUCT</code>, 400 <code>UNKNOWN_DIMENSION</code>)
+      aparecem apenas nas rotas que de fato as devolvem. Documentar 32 métodos à mão ficaria
+      desatualizado no primeiro endpoint novo — aqui a documentação nasce do mesmo envelope que
+      o tratador global de erros produz.</li>
+  <li><strong>Exemplos reais nos modelos.</strong> O escore, por exemplo, é descrito como listas
+      paralelas (<code>factors[i]</code> ↔ <code>weights[i]</code>), com os valores da casa da
+      Maria — <code>0.9</code>, os três fatores e os pesos <code>0.4/0.3/0.2</code>.</li>
+  <li><strong>Requisitos de autorização</strong> por rota, incluindo as exclusivas de administrador.</li>
+</ul>
+
+<p>
+O contrato é exportado para <code>docs/api/openapi.json</code> e publicado também como
+<strong>página navegável offline</strong> (<code>docs/api/aura-api.html</code>, incluída no ZIP
+da entrega): dá para ler a API inteira sem subir o backend — útil para correção e para
+qualquer integração futura.
+</p>
+
+<p>
+Além da API, o backend serve uma página de status renderizada com <strong>Spring MVC +
+Thymeleaf</strong>, mostrando perfil ativo, banco em uso e contagem de produtos, casas e pedidos
+abertos. A camada de apresentação do produto vive nos clientes; o Thymeleaf cumpre aqui o papel
+de superfície operacional do servidor, renderizada sem depender de nenhum cliente estar no ar.
 </p>
 
 <h3>3.9 Testes</h3>
@@ -593,6 +625,12 @@ API (Spring Boot na porta 8080, painel Angular na 4200 e app React Native na 808
 </figure>
 
 <figure class="avoid">
+  <img src="img/api-4-redoc-erros.png" alt="Documentação da API com as respostas de erro">
+  <figcaption>Contrato navegável offline (gerado do OpenAPI): cada operação lista as respostas de
+  erro possíveis, com exemplo do envelope padrão — 401, 403, 404, 422 e 500 no caso da rota de casas.</figcaption>
+</figure>
+
+<figure class="avoid">
   <img src="img/api-2-status.png" alt="Página de status Thymeleaf">
   <figcaption>Página de status servida por Spring MVC + Thymeleaf, com perfil, banco e contagens reais.</figcaption>
 </figure>
@@ -680,6 +718,8 @@ violações de SLA a partir dos pedidos reais — não são números escritos à
       (<code>backend-spring/</code>, <code>web-admin/</code>, <code>mobile-rn/</code>, <code>mobile/</code>).
       <strong>O código desta fase está na branch <code>fase5</code></strong>; a <code>main</code> ainda
       guarda o estado da entrega anterior.</li>
+  <li>Documentação da API: <code>documentacao-api/aura-api.html</code> (navegável, abre no
+      navegador sem servidor) e <code>documentacao-api/openapi.json</code> (contrato OpenAPI 3).</li>
   <li>Apresentação de slides em PDF (até 10 slides, com nome, RM e foto do time).</li>
   <li>Vídeo de até 5 minutos no YouTube (não listado): <strong>«inserir link do YouTube (não listado)»</strong></li>
   <li>Arquivo .ZIP único reunindo documentação, links do código, slides e link do vídeo.</li>
