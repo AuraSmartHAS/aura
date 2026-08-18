@@ -42,8 +42,11 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException.class,
             IllegalArgumentException.class})
     public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
+        // A mensagem do Spring cita classes e parâmetros internos: fica no log, não na resposta.
+        log.warn("Requisição malformada: {}", ex.getMessage());
         return ResponseEntity.badRequest()
-                .body(ApiErrorResponse.of("VALIDATION_ERROR", "Requisição inválida.", ex.getMessage()));
+                .body(ApiErrorResponse.of("VALIDATION_ERROR",
+                        "Requisição inválida: verifique o formato do corpo e dos parâmetros.", null));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

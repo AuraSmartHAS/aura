@@ -318,6 +318,12 @@ produção.
 
 <h3>3.4 API REST</h3>
 
+<p>
+São <strong>30 operações REST distribuídas em 26 rotas</strong> sob <code>/api/v1</code> — o número
+pode ser conferido no próprio <code>/v3/api-docs</code> da aplicação rodando. A tabela abaixo
+agrupa as operações por recurso.
+</p>
+
 <table>
   <tr><th>Método</th><th>Rota</th><th>Descrição</th><th>Acesso</th></tr>
   <tr><td>POST</td><td><code>/api/v1/auth/signup</code></td><td>Cria conta e já devolve o par de tokens</td><td>pública</td></tr>
@@ -326,6 +332,7 @@ produção.
   <tr><td>GET</td><td><code>/api/v1/auth/me</code></td><td>Usuário atual e situação do consentimento</td><td>autenticado</td></tr>
   <tr><td>POST</td><td><code>/api/v1/auth/password</code></td><td>Troca de senha</td><td>autenticado</td></tr>
   <tr><td>POST</td><td><code>/api/v1/consent</code></td><td>Aceite LGPD</td><td>autenticado</td></tr>
+  <tr><td>POST</td><td><code>/api/v1/notifications/register-token</code></td><td>Registra o token do dispositivo para push (FCM)</td><td>autenticado</td></tr>
   <tr><td>POST/GET</td><td><code>/api/v1/homes</code></td><td>Cria e lista casas (endereço resolvido por CEP)</td><td>autenticado</td></tr>
   <tr><td>GET</td><td><code>/api/v1/homes/{id}</code></td><td>Detalhe da casa e checklist</td><td>dono da casa</td></tr>
   <tr><td>PUT</td><td><code>/api/v1/homes/{id}/checklist</code></td><td>Atualiza os itens de segurança</td><td>dono da casa</td></tr>
@@ -334,7 +341,7 @@ produção.
   <tr><td>GET</td><td><code>/api/v1/homes/{id}/scores</code> · <code>/scores/latest</code></td><td>Histórico e último por dimensão</td><td>dono da casa</td></tr>
   <tr><td>GET</td><td><code>/api/v1/catalog</code> · <code>/catalog/{sku}</code></td><td>Catálogo de acessibilidade</td><td>autenticado</td></tr>
   <tr><td>POST/PUT/DELETE</td><td><code>/api/v1/catalog/{sku}</code></td><td>CRUD do catálogo</td><td><span class="tag">admin</span></td></tr>
-  <tr><td>POST/GET</td><td><code>/api/v1/recommendations</code></td><td>Gera e lista recomendações explicadas</td><td>dono da casa</td></tr>
+  <tr><td>POST/GET</td><td><code>/api/v1/recommendations</code> · <code>/homes/{id}/recommendations</code></td><td>Gera e lista recomendações explicadas</td><td>dono da casa</td></tr>
   <tr><td>POST</td><td><code>/api/v1/recommendations/{id}/approve</code> · <code>/reject</code></td><td>Aprovação ou recusa humana</td><td>dono da casa</td></tr>
   <tr><td>POST/GET</td><td><code>/api/v1/orders/{id}/advance</code> · <code>/orders/{id}</code></td><td>Avança o estágio e detalha o pedido</td><td>dono da casa</td></tr>
   <tr><td>GET</td><td><code>/api/v1/ops/kpis</code></td><td>KPIs da Torre de Controle</td><td><span class="tag">admin</span></td></tr>
