@@ -240,7 +240,7 @@ config/      Security (JWT) · OpenAPI · seed</pre>
   factors:
     - near_fall_reported  0.4  SIGNAL_EVENT
     - no_grab_bar         0.3  CHECKLIST_ABSENT
-    - slippery_floor      0.2  CHECKLIST_PRESENT</pre>
+    - anti_slip_floor     0.2  CHECKLIST_ABSENT</pre>
         <p class="muted" style="margin-top:3mm">Mudar a política de risco é editar YAML versionado,
         não recompilar. Auditável por quem não programa.</p>
       </div>
@@ -250,11 +250,11 @@ config/      Security (JWT) · OpenAPI · seed</pre>
         <h3>Resposta real da API</h3>
         <pre>{ "level": "high", "score": 0.9,
   "factors": ["near_fall_reported",
-              "no_grab_bar", "slippery_floor"],
+              "no_grab_bar", "anti_slip_floor"],
   "weights": [0.4, 0.3, 0.2],
   "explanation": "Fatores acionados: quase-queda
    relatada (0,4), ausência de barra de apoio (0,3),
-   piso escorregadio (0,2). NBR 9050. → risco ALTO." }</pre>
+   piso anti-derrapante (0,2). NBR 9050. → risco ALTO." }</pre>
       </div>
       <div class="card">
         <ul>

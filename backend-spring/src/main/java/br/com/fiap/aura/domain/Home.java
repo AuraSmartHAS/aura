@@ -51,7 +51,7 @@ public class Home {
 
     private Double lng;
 
-    /** Itens de segurança da casa: {@code grab_bar_bathroom}, {@code slippery_floor}, ... */
+    /** Itens de segurança da casa: {@code grab_bar_bathroom}, {@code anti_slip_floor}, ... */
     @Convert(converter = JsonMapConverter.class)
     @Column(name = "safety_checklist", length = 2000)
     @Builder.Default

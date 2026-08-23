@@ -471,15 +471,15 @@ sustenta a promessa de auditabilidade.</p>
   factors:
     - name: near_fall_reported   weight: 0.4   kind: SIGNAL_EVENT       event: near_fall
     - name: no_grab_bar          weight: 0.3   kind: CHECKLIST_ABSENT   checklist-key: grab_bar_bathroom
-    - name: slippery_floor       weight: 0.2   kind: CHECKLIST_PRESENT  checklist-key: slippery_floor</code></pre>
+    - name: anti_slip_floor      weight: 0.2   kind: CHECKLIST_ABSENT   checklist-key: anti_slip_floor</code></pre>
 
-<p>Resultado real da API para a casa da Maria (quase-queda relatada, sem barra de apoio, piso escorregadio):</p>
+<p>Resultado real da API para a casa da Maria (quase-queda relatada, sem barra de apoio, sem piso anti-derrapante):</p>
 
 <pre><code>{ "dimension": "mobility", "level": "high", "score": 0.9,
-  "factors": ["near_fall_reported", "no_grab_bar", "slippery_floor"],
+  "factors": ["near_fall_reported", "no_grab_bar", "anti_slip_floor"],
   "weights": [0.4, 0.3, 0.2],
   "explanation": "Fatores acionados: quase-queda relatada (0,4), ausência de barra de apoio (0,3),
-                  piso escorregadio (0,2). Norma NBR 9050. → risco ALTO.",
+                  piso anti-derrapante (0,2). Norma NBR 9050. → risco ALTO.",
   "configVersion": "2026-06-14" }</code></pre>
 
 <p><strong>Guardrail de não-prescrição.</strong> Todo texto que sai da API passa pelo

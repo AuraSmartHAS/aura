@@ -114,7 +114,7 @@ e um **gate de consentimento (422 `CONSENT_REQUIRED`)** em `POST /homes`, `/sign
 
 **2.1 Feature `home_setup` (onboarding)** (`features/home_setup/`)
 - `POST /homes {patientName, birthDate?, cep, label?}` → `{homeId, address, lat, lng}` (ViaCEP no backend).
-- `PUT /homes/{id}/checklist {items:{grab_bar_bathroom, slippery_floor, night_light, gas_detector, air_purifier}}`.
+- `PUT /homes/{id}/checklist {items:{grab_bar_bathroom, anti_slip_floor, night_light, gas_detector, air_purifier}}`.
 - `GET /homes/{id}` para reexibir/editar. Guarda `homeId` ativo em `AuthSession`/`TokenStore`.
 - Wizard: dados do paciente → CEP → checklist de segurança (cada item marcado/desmarcado).
 

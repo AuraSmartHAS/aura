@@ -26,7 +26,7 @@ public final class HomeDtos {
                                Map<String, Object> safetyChecklist) { }
 
     public record ChecklistRequest(
-            @NotNull @Schema(example = "{\"grab_bar_bathroom\": false, \"slippery_floor\": true}")
+            @NotNull @Schema(example = "{\"grab_bar_bathroom\": false, \"anti_slip_floor\": true}")
             Map<String, Object> items) { }
 
     public record ChecklistResponse(Map<String, Object> safetyChecklist) { }

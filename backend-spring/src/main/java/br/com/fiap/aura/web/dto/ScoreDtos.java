@@ -27,11 +27,11 @@ public final class ScoreDtos {
             @Schema(example = "high") RiskLevel level,
             @Schema(example = "0.9", description = "Soma dos pesos dos fatores acionados, limitada a 1")
             double score,
-            @Schema(example = "[\"near_fall_reported\", \"no_grab_bar\", \"slippery_floor\"]")
+            @Schema(example = "[\"near_fall_reported\", \"no_grab_bar\", \"anti_slip_floor\"]")
             List<String> factors,
             @Schema(example = "[0.4, 0.3, 0.2]") List<Double> weights,
             @Schema(example = "Fatores acionados: quase-queda relatada (0,4), ausência de barra de apoio (0,3),"
-                    + " piso escorregadio (0,2). Norma NBR 9050. → risco ALTO.")
+                    + " piso anti-derrapante (0,2). Norma NBR 9050. → risco ALTO.")
             String explanation,
             @Schema(example = "2026-06-14", description = "Versão do arquivo de pesos que produziu este escore")
             String configVersion) { }

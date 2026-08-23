@@ -31,7 +31,7 @@ export class HomePageComponent implements OnInit {
   /** Chaves do checklist ligadas por [(ngModel)] nos checkboxes. */
   checklist: Record<string, boolean> = {
     grab_bar_bathroom: false,
-    slippery_floor: false,
+    anti_slip_floor: false,
     night_light: false,
     gas_detector: false,
     air_purifier: false,
@@ -39,7 +39,7 @@ export class HomePageComponent implements OnInit {
 
   readonly checklistLabels: Record<string, string> = {
     grab_bar_bathroom: 'Barra de apoio no banheiro',
-    slippery_floor: 'Piso escorregadio',
+    anti_slip_floor: 'Piso anti-derrapante',
     night_light: 'Iluminação noturna',
     gas_detector: 'Detector de gás/fumaça',
     air_purifier: 'Purificador de ar',

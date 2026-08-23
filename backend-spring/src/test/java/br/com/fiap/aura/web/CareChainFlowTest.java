@@ -74,13 +74,13 @@ class CareChainFlowTest {
                 .andExpect(status().isCreated())
                 .andReturn()).get("homeId").asText();
 
-        // a casa não tem barra de apoio e o piso é escorregadio
+        // a casa não tem barra de apoio nem piso anti-derrapante
         mvc.perform(put("/api/v1/homes/{id}/checklist", homeId).header("Authorization", auth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"items":{"grab_bar_bathroom":false,"slippery_floor":true}}"""))
+                                {"items":{"grab_bar_bathroom":false,"anti_slip_floor":false}}"""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.safetyChecklist.slippery_floor").value(true));
+                .andExpect(jsonPath("$.safetyChecklist.anti_slip_floor").value(false));
 
         // Maria relata uma quase-queda por voz
         mvc.perform(post("/api/v1/signals").header("Authorization", auth)

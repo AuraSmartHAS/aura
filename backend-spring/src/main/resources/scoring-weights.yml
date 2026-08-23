@@ -22,11 +22,11 @@ aura:
             weight: 0.3
             kind: CHECKLIST_ABSENT
             checklist-key: grab_bar_bathroom
-          - name: slippery_floor
-            label: "piso escorregadio"
+          - name: anti_slip_floor
+            label: "piso anti-derrapante"
             weight: 0.2
-            kind: CHECKLIST_PRESENT
-            checklist-key: slippery_floor
+            kind: CHECKLIST_ABSENT
+            checklist-key: anti_slip_floor
           - name: dizziness_bath
             label: "tontura ao banho"
             weight: 0.1

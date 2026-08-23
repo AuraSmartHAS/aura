@@ -31,16 +31,16 @@ class ScoringServiceTest {
     }
 
     @Test
-    @DisplayName("quase-queda + sem barra + piso escorregadio = risco alto e explicação com os três fatores")
+    @DisplayName("quase-queda + sem barra + sem piso anti-derrapante = risco alto e explicação com os três fatores")
     void highRisk() {
         var result = scoring.compute("mobility",
                 List.of(signal(SignalType.MOBILITY, "near_fall")),
-                Map.of("grab_bar_bathroom", false, "slippery_floor", true));
+                Map.of("grab_bar_bathroom", false, "anti_slip_floor", false));
 
         assertThat(result.score()).isEqualTo(0.9);           // 0.4 + 0.3 + 0.2
         assertThat(result.level()).isEqualTo(RiskLevel.HIGH);
         assertThat(result.factors())
-                .containsExactly("near_fall_reported", "no_grab_bar", "slippery_floor");
+                .containsExactly("near_fall_reported", "no_grab_bar", "anti_slip_floor");
         assertThat(result.weights()).containsExactly(0.4, 0.3, 0.2);
         assertThat(result.explanation()).contains("quase-queda relatada", "NBR 9050", "ALTO");
         assertThat(result.riskTag()).isEqualTo("fall_bathroom");
@@ -50,7 +50,7 @@ class ScoringServiceTest {
     @DisplayName("casa protegida e sem eventos: risco baixo, sem fatores acionados")
     void lowRisk() {
         var result = scoring.compute("mobility", List.of(),
-                Map.of("grab_bar_bathroom", true, "slippery_floor", false));
+                Map.of("grab_bar_bathroom", true, "anti_slip_floor", true));
 
         assertThat(result.score()).isZero();
         assertThat(result.level()).isEqualTo(RiskLevel.LOW);
@@ -60,7 +60,7 @@ class ScoringServiceTest {
     @Test
     @DisplayName("só a falta da barra de apoio já coloca a casa em risco médio")
     void mediumRisk() {
-        var result = scoring.compute("mobility", List.of(), Map.of("slippery_floor", false));
+        var result = scoring.compute("mobility", List.of(), Map.of("anti_slip_floor", true));
 
         assertThat(result.score()).isEqualTo(0.3);
         assertThat(result.level()).isEqualTo(RiskLevel.LOW);

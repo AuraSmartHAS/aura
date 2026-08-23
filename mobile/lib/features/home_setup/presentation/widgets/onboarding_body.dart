@@ -350,7 +350,7 @@ class _ChecklistForm extends StatelessWidget {
       icon: Icons.bathtub_outlined,
       keys: [
         SafetyChecklistKeys.grabBarBathroom,
-        SafetyChecklistKeys.slipperyFloor,
+        SafetyChecklistKeys.antiSlipFloor,
         SafetyChecklistKeys.nightLight,
       ],
     ),
@@ -368,7 +368,7 @@ class _ChecklistForm extends StatelessWidget {
     switch (key) {
       case SafetyChecklistKeys.grabBarBathroom:
         return Icons.accessible_outlined;
-      case SafetyChecklistKeys.slipperyFloor:
+      case SafetyChecklistKeys.antiSlipFloor:
         return Icons.water_drop_outlined;
       case SafetyChecklistKeys.nightLight:
         return Icons.nightlight_outlined;
@@ -469,8 +469,6 @@ class _ChecklistForm extends StatelessWidget {
 }
 
 /// A single safety item: icon + label + a short, honest status line + Switch.
-/// `slippery_floor` is inverted (true = hazard present), so the helper copy and
-/// status are honest about whether the toggle marks something safe or risky.
 class _ChecklistRow extends StatelessWidget {
   const _ChecklistRow({
     required this.itemKey,
@@ -488,8 +486,7 @@ class _ChecklistRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final label = SafetyChecklistKeys.label(itemKey);
-    // Whether the *current* value is the safe condition for this item.
-    final isSafe = value == SafetyChecklistKeys.trueIsSafe(itemKey);
+    final isSafe = value;
     final statusColor = isSafe ? AppColors.success : AppColors.warning;
     final statusIcon =
         isSafe ? Icons.check_circle_outline : Icons.warning_amber_outlined;

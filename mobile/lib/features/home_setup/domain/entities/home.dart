@@ -37,14 +37,14 @@ class SafetyChecklistKeys {
   const SafetyChecklistKeys._();
 
   static const grabBarBathroom = 'grab_bar_bathroom';
-  static const slipperyFloor = 'slippery_floor';
+  static const antiSlipFloor = 'anti_slip_floor';
   static const nightLight = 'night_light';
   static const gasDetector = 'gas_detector';
   static const airPurifier = 'air_purifier';
 
   static const all = [
     grabBarBathroom,
-    slipperyFloor,
+    antiSlipFloor,
     nightLight,
     gasDetector,
     airPurifier,
@@ -54,8 +54,8 @@ class SafetyChecklistKeys {
     switch (key) {
       case grabBarBathroom:
         return 'Barra de apoio no banheiro';
-      case slipperyFloor:
-        return 'Piso escorregadio';
+      case antiSlipFloor:
+        return 'Piso anti-derrapante';
       case nightLight:
         return 'Luz noturna com sensor';
       case gasDetector:
@@ -66,8 +66,4 @@ class SafetyChecklistKeys {
         return key;
     }
   }
-
-  /// Whether a `true` value represents a *safe* condition. `slippery_floor` is
-  /// inverted: marking it true means a hazard is present.
-  static bool trueIsSafe(String key) => key != slipperyFloor;
 }
