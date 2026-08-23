@@ -31,6 +31,14 @@ export class AdminPageComponent implements OnInit {
 
   readonly riskTags = ['fall_bathroom', 'night_trips', 'mobility', 'cognition', 'environment'];
 
+  readonly riskTagLabels: Record<string, string> = {
+    fall_bathroom: 'Queda no banheiro',
+    night_trips: 'Idas noturnas ao banheiro',
+    mobility: 'Mobilidade',
+    cognition: 'Cognição',
+    environment: 'Ambiente',
+  };
+
   ngOnInit(): void {
     this.loadCatalog();
     if (this.isAdmin()) {
@@ -46,6 +54,10 @@ export class AdminPageComponent implements OnInit {
       next: (items) => this.catalog.set(items),
       error: (err) => this.error.set(errorMessage(err)),
     });
+  }
+
+  riskLabel(tag: string | null): string {
+    return (tag && this.riskTagLabels[tag]) ?? (tag ?? '');
   }
 
   edit(item: CatalogItem): void {

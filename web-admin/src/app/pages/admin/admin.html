@@ -63,7 +63,7 @@
         <h2>Catálogo de acessibilidade</h2>
         <select [(ngModel)]="riskFilter" (change)="loadCatalog()" name="riskFilter">
           <option value="">todos os riscos</option>
-          <option *ngFor="let tag of riskTags" [value]="tag">{{ tag }}</option>
+          <option *ngFor="let tag of riskTags" [value]="tag">{{ riskTagLabels[tag] }}</option>
         </select>
       </div>
 
@@ -77,7 +77,7 @@
               <strong>{{ item.name }}</strong>
               <span class="small muted">{{ item.sku }} · {{ item.normRef }}</span>
             </td>
-            <td><span class="tag">{{ item.riskTag }}</span></td>
+            <td><span class="tag">{{ riskLabel(item.riskTag) }}</span></td>
             <td>{{ item.price | currency: 'BRL' }}</td>
             <td [class.low]="item.stockNearby === 0">{{ item.stockNearby }}</td>
             <td class="row-actions">
@@ -115,7 +115,7 @@
 
         <label for="riskTag">Risco que mitiga</label>
         <select id="riskTag" name="riskTag" [(ngModel)]="form.riskTag">
-          <option *ngFor="let tag of riskTags" [value]="tag">{{ tag }}</option>
+          <option *ngFor="let tag of riskTags" [value]="tag">{{ riskTagLabels[tag] }}</option>
         </select>
 
         <label for="normRef">Norma de referência</label>
