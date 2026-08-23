@@ -70,11 +70,11 @@
             <span [class]="levelClass(score.level)">{{ score.level }} · {{ percent(score.score) }}</span>
           </div>
           <div class="bar"><span [style.width]="percent(score.score)" [class]="'bar__fill bar__fill--' + score.level"></span></div>
-          <p class="explain">{{ score.explanation }}</p>
+          <p class="explain">
+            {{ score.explanation }}<ng-container *ngIf="score.factors.length"> Fatores acionados:</ng-container>
+          </p>
           <ul class="factors">
-            <li *ngFor="let factor of score.factors; let i = index">
-              {{ factor }} <span class="weight">peso {{ score.weights[i] }}</span>
-            </li>
+            <li *ngFor="let factor of score.factors">{{ describeScoreFactor(factor) }}.</li>
           </ul>
           <button class="btn btn--small" (click)="recommend(score)"
                   *ngIf="score.level !== 'low'" [disabled]="busy() === 'rec'">

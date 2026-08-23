@@ -89,6 +89,20 @@ export class HomePageComponent implements OnInit {
     bathroom: 'banheiro',
   };
 
+  /** Nomes de fator do escore explicável (ver scoring-weights.yml no backend). */
+  readonly scoreFactorLabels: Record<string, string> = {
+    near_fall_reported: 'quase-queda relatada',
+    no_grab_bar: 'ausência de barra de apoio',
+    anti_slip_floor: 'ausência de piso anti-derrapante',
+    dizziness_bath: 'tontura ao banho',
+    night_trips_reported: 'idas noturnas frequentes',
+    poor_night_lighting: 'iluminação noturna insuficiente',
+    confusion_reported: 'confusão/repetição na fala',
+    no_gas_detector: 'sem detector de gás/fumaça',
+    poor_air_reported: 'qualidade do ar ruim relatada',
+    no_air_purifier: 'sem purificador de ar',
+  };
+
   ngOnInit(): void {
     this.loading.set(true);
     this.api.homes().subscribe({
@@ -227,6 +241,10 @@ export class HomePageComponent implements OnInit {
     return entries
       .map(([key, val]) => `${this.humanize(key)}: ${this.humanize(String(val))}`)
       .join(' · ');
+  }
+
+  describeScoreFactor(factor: string): string {
+    return this.scoreFactorLabels[factor] ?? this.humanize(factor);
   }
 
   /** Fallback para códigos ainda não mapeados: "near_fall" -> "Near fall". */

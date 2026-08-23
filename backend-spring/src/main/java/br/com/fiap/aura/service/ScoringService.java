@@ -43,24 +43,19 @@ public class ScoringService {
 
         List<String> firedNames = new ArrayList<>();
         List<Double> firedWeights = new ArrayList<>();
-        List<String> firedLabels = new ArrayList<>();
         double total = 0;
 
         for (AuraProperties.Factor factor : cfg.factors()) {
             if (fired(factor, signals, checklist)) {
                 firedNames.add(factor.name());
                 firedWeights.add(factor.weight());
-                firedLabels.add("%s (%.1f)".formatted(factor.label(), factor.weight()));
                 total += factor.weight();
             }
         }
 
         double score = Math.min(1.0, Math.round(total * 1000d) / 1000d);
         RiskLevel level = level(score);
-        String explanation = firedLabels.isEmpty()
-                ? "Nenhum fator de risco acionado nesta dimensão. Norma %s. → risco BAIXO.".formatted(cfg.norm())
-                : "Fatores acionados: %s. Norma %s. → risco %s.".formatted(
-                        String.join(", ", firedLabels), cfg.norm(), levelWord(level));
+        String explanation = "Norma %s → risco %s.".formatted(cfg.norm(), levelWord(level));
 
         guardrails.assertNonPrescriptive(explanation);
         return new Result(dimension, score, level, firedNames, firedWeights, explanation,

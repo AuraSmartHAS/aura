@@ -21,7 +21,7 @@ test.describe('painel da cuidadora', () => {
     // o escore precisa mostrar POR QUE subiu — é a promessa do produto
     const explicacao = page.locator('.score .explain').first();
     await expect(explicacao).toContainText('NBR 9050');
-    await expect(page.locator('.score .factors li').first()).toContainText('peso');
+    await expect(page.locator('.score .factors li').first()).not.toContainText('_');
 
     const antes = await page.locator('.score .badge').first().innerText();
 

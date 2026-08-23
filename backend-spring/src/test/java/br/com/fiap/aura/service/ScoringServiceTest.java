@@ -42,7 +42,7 @@ class ScoringServiceTest {
         assertThat(result.factors())
                 .containsExactly("near_fall_reported", "no_grab_bar", "anti_slip_floor");
         assertThat(result.weights()).containsExactly(0.4, 0.3, 0.2);
-        assertThat(result.explanation()).contains("quase-queda relatada", "NBR 9050", "ALTO");
+        assertThat(result.explanation()).contains("NBR 9050", "ALTO");
         assertThat(result.riskTag()).isEqualTo("fall_bathroom");
     }
 
