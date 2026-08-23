@@ -56,6 +56,39 @@ export class HomePageComponent implements OnInit {
     returned: 'Devolvido',
   };
 
+  /** Dimensão observada do sinal (ver SignalType no backend). */
+  readonly signalTypeLabels: Record<string, string> = {
+    mobility: 'Mobilidade',
+    sleep: 'Sono',
+    cognition: 'Cognição',
+    mood: 'Humor',
+    environment: 'Ambiente',
+    adherence: 'Adesão ao tratamento',
+    vitals: 'Sinais vitais',
+  };
+
+  /** Origem do sinal (ver SignalSource no backend). */
+  readonly signalSourceLabels: Record<string, string> = {
+    voice: 'Assistente de voz',
+    self_report: 'Relato da pessoa ou cuidadora',
+    usage: 'Uso do aplicativo',
+    wearable: 'Dispositivo vestível',
+  };
+
+  /** Vocabulário de eventos conhecidos (ver scoring-weights.yml no backend). */
+  readonly signalEventLabels: Record<string, string> = {
+    near_fall: 'Queda ou quase-queda registrada',
+    dizziness: 'Tontura relatada',
+    night_trip: 'Idas noturnas ao banheiro',
+    confusion: 'Confusão ou repetição na fala registrada',
+    poor_air: 'Qualidade do ar ruim relatada',
+  };
+
+  /** Local onde o evento ocorreu, quando informado. */
+  readonly signalPlaceLabels: Record<string, string> = {
+    bathroom: 'banheiro',
+  };
+
   ngOnInit(): void {
     this.loading.set(true);
     this.api.homes().subscribe({
@@ -160,6 +193,46 @@ export class HomePageComponent implements OnInit {
 
   stageIndex(stage: string): number {
     return this.stages.indexOf(stage);
+  }
+
+  describeSignalType(signal: Signal): string {
+    return this.signalTypeLabels[signal.type] ?? this.humanize(signal.type);
+  }
+
+  describeSignalSource(signal: Signal): string {
+    return this.signalSourceLabels[signal.source] ?? this.humanize(signal.source);
+  }
+
+  /** Traduz o `value` do sinal (JSON só faz sentido no código) para uma frase legível. */
+  describeSignalContent(signal: Signal): string {
+    const value = signal.value ?? {};
+    const entries = Object.entries(value);
+
+    if (typeof value['event'] === 'string') {
+      const event = value['event'] as string;
+      const description = this.signalEventLabels[event] ?? this.humanize(event);
+      const place = typeof value['place'] === 'string' ? value['place'] : null;
+      const placeLabel = place ? this.signalPlaceLabels[place] ?? this.humanize(place) : null;
+      return placeLabel ? `${description} · Local: ${placeLabel}` : description;
+    }
+
+    if (typeof value['taken'] === 'boolean') {
+      return value['taken'] ? 'Medicação/tratamento tomado' : 'Medicação/tratamento não tomado';
+    }
+
+    if (entries.length === 0) {
+      return 'Sem detalhes adicionais.';
+    }
+
+    return entries
+      .map(([key, val]) => `${this.humanize(key)}: ${this.humanize(String(val))}`)
+      .join(' · ');
+  }
+
+  /** Fallback para códigos ainda não mapeados: "near_fall" -> "Near fall". */
+  private humanize(raw: string): string {
+    const spaced = raw.replace(/_/g, ' ');
+    return spaced.charAt(0).toUpperCase() + spaced.slice(1);
   }
 
   levelClass(level: string): string {

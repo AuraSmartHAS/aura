@@ -147,9 +147,9 @@
           <tbody>
             <tr *ngFor="let signal of signals()">
               <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
-              <td>{{ signal.type }}</td>
-              <td>{{ signal.source }}</td>
-              <td class="mono">{{ signal.value | json }}</td>
+              <td>{{ describeSignalType(signal) }}</td>
+              <td>{{ describeSignalSource(signal) }}</td>
+              <td>{{ describeSignalContent(signal) }}</td>
             </tr>
           </tbody>
         </table>
