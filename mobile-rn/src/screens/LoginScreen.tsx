@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Button,
-  Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { api, setToken } from '../api';
+import AuraButton from '../components/AuraButton';
 import type { ScreenProps } from '../navigation';
-import { theme } from '../theme';
+import { fontFamily, radius, spacing, theme } from '../theme';
 
 type Props = ScreenProps<'Login'>;
 
@@ -52,7 +44,7 @@ export default function LoginScreen({ navigation }: Props) {
           autoCapitalize="none"
           keyboardType="email-address"
           placeholder="ana@aura.com"
-          placeholderTextColor={theme.muted}
+          placeholderTextColor={theme.hint}
           accessibilityLabel="Campo de e-mail"
         />
 
@@ -63,19 +55,15 @@ export default function LoginScreen({ navigation }: Props) {
           onChangeText={setPassword}
           secureTextEntry
           placeholder="••••••••"
-          placeholderTextColor={theme.muted}
+          placeholderTextColor={theme.hint}
           accessibilityLabel="Campo de senha"
         />
 
         {error !== null && <Text style={styles.error}>{error}</Text>}
 
-        {loading ? (
-          <ActivityIndicator color={theme.accent} style={styles.loader} />
-        ) : (
-          <View style={styles.button}>
-            <Button title="Entrar" color={theme.accent} onPress={handleLogin} />
-          </View>
-        )}
+        <View style={styles.button}>
+          <AuraButton title="Entrar" onPress={handleLogin} loading={loading} />
+        </View>
 
         <TouchableOpacity onPress={() => { setEmail('admin@aura.com'); setPassword('aura1234'); }}>
           <Text style={styles.hint}>usar conta da Torre de Controle</Text>
@@ -88,34 +76,34 @@ export default function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  logo: { width: 108, height: 108, borderRadius: 24 },
-  title: { color: theme.textStrong, fontSize: 26, fontWeight: '700', marginTop: 16 },
-  subtitle: { color: theme.muted, fontSize: 14, marginTop: 4, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  logo: { width: 108, height: 108, borderRadius: radius.lg },
+  title: { color: theme.ink, fontSize: 26, fontFamily: fontFamily.display, marginTop: spacing.md },
+  subtitle: { color: theme.text, fontSize: 14, marginTop: spacing.xs, textAlign: 'center', fontFamily: fontFamily.body },
   card: {
     width: '100%',
     maxWidth: 380,
     backgroundColor: theme.surface,
     borderColor: theme.border,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 20,
-    marginTop: 24,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginTop: spacing.lg,
   },
-  label: { color: theme.muted, fontSize: 12, marginBottom: 4, marginTop: 12 },
+  label: { color: theme.text, fontSize: 12, marginBottom: spacing.xs, marginTop: spacing.md, fontFamily: fontFamily.bodyBold },
   input: {
-    backgroundColor: theme.bg,
+    backgroundColor: theme.surface,
     borderColor: theme.border,
     borderWidth: 1,
-    borderRadius: 8,
-    color: theme.text,
+    borderRadius: radius.md,
+    color: theme.textStrong,
     fontSize: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    fontFamily: fontFamily.body,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 4,
   },
-  button: { marginTop: 20 },
-  loader: { marginTop: 24 },
-  error: { color: theme.danger, marginTop: 12, fontSize: 13 },
-  hint: { color: theme.info, fontSize: 12, marginTop: 16, textAlign: 'center' },
-  footer: { color: theme.muted, fontSize: 11, marginTop: 28 },
+  button: { marginTop: spacing.lg },
+  error: { color: theme.danger, marginTop: spacing.md, fontSize: 13, fontFamily: fontFamily.body },
+  hint: { color: theme.primary, fontSize: 12, marginTop: spacing.md, textAlign: 'center', fontFamily: fontFamily.bodyBold },
+  footer: { color: theme.muted, fontSize: 11, marginTop: spacing.xl - 4, fontFamily: fontFamily.body },
 });

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api, Order, Recommendation } from '../api';
+import AuraButton from '../components/AuraButton';
 import type { ScreenProps } from '../navigation';
-import { theme } from '../theme';
+import { fontFamily, radius, spacing, theme } from '../theme';
 
 type Props = ScreenProps<'CareChain'>;
 
@@ -74,7 +75,7 @@ export default function CareChainScreen({ route }: Props) {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.sectionTitle}>Recomendação explicada</Text>
 
-      {busy && recommendation === null && <ActivityIndicator color={theme.accent} />}
+      {busy && recommendation === null && <ActivityIndicator color={theme.primary} />}
       {error !== null && <Text style={styles.error}>{error}</Text>}
 
       {recommendation !== null && (
@@ -91,7 +92,7 @@ export default function CareChainScreen({ route }: Props) {
 
           {recommendation.status === 'recommended' ? (
             <View style={styles.button}>
-              <Button title="Aprovar e pedir" color={theme.accent} onPress={approve} disabled={busy} />
+              <AuraButton title="Aprovar e pedir" onPress={approve} disabled={busy} />
             </View>
           ) : (
             <Text style={styles.approved}>Aprovado pela cuidadora ✓</Text>
@@ -127,7 +128,7 @@ export default function CareChainScreen({ route }: Props) {
 
           {order.stage !== 'returned' && (
             <View style={styles.button}>
-              <Button title="Avançar estágio" color={theme.info} onPress={() => advance(order)} disabled={busy} />
+              <AuraButton title="Avançar estágio" onPress={() => advance(order)} disabled={busy} variant="secondary" />
             </View>
           )}
         </View>
@@ -138,31 +139,31 @@ export default function CareChainScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  content: { padding: 20, paddingBottom: 48 },
-  sectionTitle: { color: theme.textStrong, fontSize: 15, fontWeight: '700', marginTop: 8, marginBottom: 10 },
+  content: { padding: spacing.md + 4, paddingBottom: spacing.xxl },
+  sectionTitle: { color: theme.ink, fontSize: 15, fontFamily: fontFamily.displaySemibold, marginTop: spacing.sm, marginBottom: spacing.sm + 2 },
   card: {
     backgroundColor: theme.surface,
     borderColor: theme.border,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md - 2,
   },
-  product: { color: theme.textStrong, fontSize: 16, fontWeight: '700' },
-  reason: { color: theme.text, fontSize: 13, marginTop: 6 },
-  label: { color: theme.muted, fontSize: 11, textTransform: 'uppercase', marginTop: 14, marginBottom: 4 },
-  factor: { color: theme.muted, fontSize: 12, lineHeight: 18 },
-  weight: { color: theme.info },
-  button: { marginTop: 16 },
-  approved: { color: theme.success, fontSize: 13, fontWeight: '600', marginTop: 16 },
-  timeline: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 12 },
-  step: { paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6, backgroundColor: theme.surfaceAlt },
-  stepDone: { backgroundColor: 'rgba(88,166,255,0.16)' },
+  product: { color: theme.ink, fontSize: 16, fontFamily: fontFamily.bodyBold },
+  reason: { color: theme.text, fontSize: 13, marginTop: spacing.xs + 2, fontFamily: fontFamily.body },
+  label: { color: theme.muted, fontSize: 11, textTransform: 'uppercase', marginTop: spacing.md, marginBottom: spacing.xs, fontFamily: fontFamily.bodyBold },
+  factor: { color: theme.muted, fontSize: 12, lineHeight: 18, fontFamily: fontFamily.body },
+  weight: { color: theme.primary, fontFamily: fontFamily.bodyBold },
+  button: { marginTop: spacing.md },
+  approved: { color: theme.success, fontSize: 13, fontFamily: fontFamily.bodyBold, marginTop: spacing.md },
+  timeline: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs + 2, marginVertical: spacing.sm + 4 },
+  step: { paddingHorizontal: spacing.sm, paddingVertical: 5, borderRadius: radius.sm, backgroundColor: theme.surfaceAlt },
+  stepDone: { backgroundColor: `${theme.primary}22` },
   stepCurrent: { borderWidth: 1, borderColor: theme.accent },
-  stepText: { color: theme.muted, fontSize: 11 },
-  stepTextDone: { color: theme.textStrong },
-  sla: { color: theme.success, fontSize: 12 },
-  slaBad: { color: theme.danger, fontSize: 12, fontWeight: '700' },
-  muted: { color: theme.muted, fontSize: 13 },
-  error: { color: theme.danger, fontSize: 13, marginBottom: 12 },
+  stepText: { color: theme.muted, fontSize: 11, fontFamily: fontFamily.body },
+  stepTextDone: { color: theme.ink, fontFamily: fontFamily.bodyBold },
+  sla: { color: theme.success, fontSize: 12, fontFamily: fontFamily.bodyBold },
+  slaBad: { color: theme.danger, fontSize: 12, fontFamily: fontFamily.bodyBold },
+  muted: { color: theme.muted, fontSize: 13, fontFamily: fontFamily.body },
+  error: { color: theme.danger, fontSize: 13, marginBottom: spacing.md, fontFamily: fontFamily.body },
 });

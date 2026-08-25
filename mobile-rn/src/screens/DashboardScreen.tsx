@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Button,
   Image,
   RefreshControl,
   ScrollView,
@@ -11,8 +10,9 @@ import {
   View,
 } from 'react-native';
 import { api, Home, Score } from '../api';
+import AuraButton from '../components/AuraButton';
 import type { ScreenProps } from '../navigation';
-import { levelColor, theme } from '../theme';
+import { fontFamily, levelColor, radius, spacing, theme } from '../theme';
 
 type Props = ScreenProps<'Dashboard'>;
 
@@ -78,7 +78,7 @@ export default function DashboardScreen({ navigation }: Props) {
   if (loading && scores.length === 0) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={theme.accent} size="large" />
+        <ActivityIndicator color={theme.primary} size="large" />
         <Text style={styles.muted}>Carregando o dia da Maria…</Text>
       </View>
     );
@@ -88,7 +88,7 @@ export default function DashboardScreen({ navigation }: Props) {
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={theme.accent} />}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={theme.primary} />}
     >
       <View style={styles.header}>
         <Image source={require('../../assets/aura-logo.png')} style={styles.avatar} />
@@ -103,7 +103,7 @@ export default function DashboardScreen({ navigation }: Props) {
       <Text style={styles.sectionTitle}>Risco por dimensão</Text>
 
       {scores.length === 0 && (
-        <Text style={styles.muted}>Sem escore calculado. Toque em “Recalcular escore”.</Text>
+        <Text style={styles.muted}>Sem escore calculado. Toque em "Recalcular escore".</Text>
       )}
 
       {scores.map((score) => (
@@ -137,6 +137,7 @@ export default function DashboardScreen({ navigation }: Props) {
           {score.level !== 'low' && (
             <TouchableOpacity
               style={styles.link}
+              accessibilityRole="button"
               onPress={() => navigation.navigate('CareChain', { homeId: home!.id, scoreId: score.scoreId })}
             >
               <Text style={styles.linkText}>Ver recomendação da Care-Chain →</Text>
@@ -146,9 +147,9 @@ export default function DashboardScreen({ navigation }: Props) {
       ))}
 
       <View style={styles.actions}>
-        <Button title="Recalcular escore" color={theme.accent} onPress={recompute} />
+        <AuraButton title="Recalcular escore" onPress={recompute} />
         <View style={styles.spacer} />
-        <Button title="Registrar quase-queda" color={theme.info} onPress={registerNearFall} />
+        <AuraButton title="Registrar quase-queda" onPress={registerNearFall} variant="outline" />
       </View>
 
       <Text style={styles.disclaimer}>
@@ -160,35 +161,35 @@ export default function DashboardScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
-  content: { padding: 20, paddingBottom: 48 },
-  center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
-  avatar: { width: 52, height: 52, borderRadius: 14 },
+  content: { padding: spacing.md + 4, paddingBottom: spacing.xxl },
+  center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg - 4 },
+  avatar: { width: 52, height: 52, borderRadius: radius.lg },
   headerText: { flex: 1 },
-  title: { color: theme.textStrong, fontSize: 20, fontWeight: '700' },
-  muted: { color: theme.muted, fontSize: 13 },
-  sectionTitle: { color: theme.textStrong, fontSize: 15, fontWeight: '700', marginBottom: 10 },
+  title: { color: theme.ink, fontSize: 20, fontFamily: fontFamily.displaySemibold },
+  muted: { color: theme.muted, fontSize: 13, fontFamily: fontFamily.body },
+  sectionTitle: { color: theme.ink, fontSize: 15, fontFamily: fontFamily.displaySemibold, marginBottom: spacing.sm + 2 },
   card: {
     backgroundColor: theme.surface,
     borderColor: theme.border,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.sm + 4,
   },
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { color: theme.textStrong, fontSize: 16, fontWeight: '600' },
-  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-  bar: { height: 6, borderRadius: 999, backgroundColor: theme.surfaceAlt, marginVertical: 10, overflow: 'hidden' },
+  cardTitle: { color: theme.ink, fontSize: 16, fontFamily: fontFamily.bodyBold },
+  badge: { paddingHorizontal: spacing.sm + 2, paddingVertical: 3, borderRadius: 999 },
+  badgeText: { fontSize: 11, fontFamily: fontFamily.bodyBold },
+  bar: { height: 6, borderRadius: 999, backgroundColor: theme.surfaceAlt, marginVertical: spacing.sm + 2, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 999 },
-  explanation: { color: theme.text, fontSize: 13, marginBottom: 8 },
-  factor: { color: theme.muted, fontSize: 12, lineHeight: 18 },
-  weight: { color: theme.info },
-  link: { marginTop: 12 },
-  linkText: { color: theme.accent, fontSize: 13, fontWeight: '600' },
-  actions: { marginTop: 12 },
-  spacer: { height: 10 },
-  error: { color: theme.danger, fontSize: 13, marginBottom: 12 },
-  disclaimer: { color: theme.muted, fontSize: 11, marginTop: 24, lineHeight: 16 },
+  explanation: { color: theme.text, fontSize: 13, marginBottom: spacing.sm, fontFamily: fontFamily.body },
+  factor: { color: theme.muted, fontSize: 12, lineHeight: 18, fontFamily: fontFamily.body },
+  weight: { color: theme.primary, fontFamily: fontFamily.bodyBold },
+  link: { marginTop: spacing.md, minHeight: 44, justifyContent: 'center' },
+  linkText: { color: theme.primary, fontSize: 13, fontFamily: fontFamily.bodyBold },
+  actions: { marginTop: spacing.sm },
+  spacer: { height: spacing.sm + 2 },
+  error: { color: theme.danger, fontSize: 13, marginBottom: spacing.md, fontFamily: fontFamily.body },
+  disclaimer: { color: theme.muted, fontSize: 11, marginTop: spacing.lg, lineHeight: 16, fontFamily: fontFamily.body },
 });
