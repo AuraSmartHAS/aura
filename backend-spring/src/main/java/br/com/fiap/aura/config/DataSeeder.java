@@ -2,6 +2,7 @@ package br.com.fiap.aura.config;
 
 import br.com.fiap.aura.domain.DeliveryOrder;
 import br.com.fiap.aura.domain.Home;
+import br.com.fiap.aura.domain.HomeMember;
 import br.com.fiap.aura.domain.Medication;
 import br.com.fiap.aura.domain.Product;
 import br.com.fiap.aura.domain.Recommendation;
@@ -9,6 +10,7 @@ import br.com.fiap.aura.domain.Score;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.StockNode;
 import br.com.fiap.aura.domain.UserAccount;
+import br.com.fiap.aura.domain.enums.HomeMemberRole;
 import br.com.fiap.aura.domain.enums.OrderStage;
 import br.com.fiap.aura.domain.enums.RiskLevel;
 import br.com.fiap.aura.domain.enums.Role;
@@ -16,6 +18,7 @@ import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.repository.ConsentRepository;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.HomeMemberRepository;
 import br.com.fiap.aura.repository.HomeRepository;
 import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.ProductRepository;
@@ -46,6 +49,8 @@ import org.springframework.stereotype.Component;
  * um admin e a casa da Maria já com risco de queda no banheiro — mais três semanas de
  * histórico (sinais, vitais de wearable e escores explicados) e uma carteira de pedidos
  * em estágios diferentes, para a Torre de Controle ter KPIs de verdade.
+ * A casa nasce com os dois vínculos que o produto pressupõe (a Ana como dona, a Maria como
+ * paciente), porque o app é da Maria e sem vínculo ela não entra na própria casa.
  * Só roda com {@code aura.seed.enabled=true} (perfil dev).
  */
 @Component
@@ -64,6 +69,7 @@ public class DataSeeder implements CommandLineRunner {
     private final UserAccountRepository users;
     private final ConsentRepository consents;
     private final HomeRepository homes;
+    private final HomeMemberRepository members;
     private final SignalRepository signals;
     private final MedicationRepository medications;
     private final ScoreRepository scores;
@@ -74,8 +80,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PasswordEncoder encoder;
 
     public DataSeeder(ProductRepository products, StockNodeRepository nodes, UserAccountRepository users,
-                      ConsentRepository consents, HomeRepository homes, SignalRepository signals,
-                      MedicationRepository medications, ScoreRepository scores,
+                      ConsentRepository consents, HomeRepository homes, HomeMemberRepository members,
+                      SignalRepository signals, MedicationRepository medications, ScoreRepository scores,
                       RecommendationRepository recommendations, DeliveryOrderRepository orders,
                       GeoService geo, AuraProperties props, PasswordEncoder encoder) {
         this.products = products;
@@ -83,6 +89,7 @@ public class DataSeeder implements CommandLineRunner {
         this.users = users;
         this.consents = consents;
         this.homes = homes;
+        this.members = members;
         this.signals = signals;
         this.medications = medications;
         this.scores = scores;
@@ -117,11 +124,19 @@ public class DataSeeder implements CommandLineRunner {
         users.save(UserAccount.builder()
                 .email("admin@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
                 .role(Role.ADMIN).name("Torre de Controle").build());
-        users.save(UserAccount.builder()
+        UserAccount maria = users.save(UserAccount.builder()
                 .email("maria@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
                 .role(Role.PACIENTE).name("Maria (paciente)").build());
 
-        consents.save(Consent.builder().userId(ana.getId()).version("2026-06").build());
+        // DECISÃO (C0) — o consentimento da Maria fica registrado no seed, e o gate do RN-001 não
+        // ganha exceção para o papel PACIENTE. Isentar por papel seria pior: qualquer conta criada
+        // como "paciente" passaria a gravar dado de saúde sem aceite nenhum, e o titular do dado é
+        // justamente ela. O seed representa uma casa já onboardada — a Ana aceitou no cadastro, a
+        // Maria aceitou na visita de instalação —, então o aceite dela é um fato do cenário, não um
+        // atalho: paciente que se cadastrar pela API continua levando 422 CONSENT_REQUIRED.
+        consents.saveAll(List.of(
+                Consent.builder().userId(ana.getId()).version("2026-06").build(),
+                Consent.builder().userId(maria.getId()).version("2026-06").build()));
 
         Map<String, Object> checklist = new LinkedHashMap<>();
         checklist.put("grab_bar_bathroom", false);   // falta a barra → fator de risco
@@ -136,6 +151,14 @@ public class DataSeeder implements CommandLineRunner {
                 .address("Av. Paulista, Bela Vista, São Paulo, SP")
                 .lat(-23.561).lng(-46.656).safetyChecklist(checklist)
                 .build());
+
+        // A casa é da Ana — é ela quem contrata e aprova a compra —, mas quem mora nela é a Maria.
+        // O vínculo é o que dá acesso à paciente: sem ele, o app dela leva 403 na própria casa.
+        members.saveAll(List.of(
+                HomeMember.builder().homeId(casa.getId()).userId(ana.getId())
+                        .role(HomeMemberRole.DONO).build(),
+                HomeMember.builder().homeId(casa.getId()).userId(maria.getId())
+                        .role(HomeMemberRole.PACIENTE).build()));
 
         // remédios da Maria: horários em "HH:mm", nunca texto livre (é o que o app lê)
         Medication levodopa = medications.save(medicacao(casa, "Levodopa + Carbidopa", "250/25mg",
@@ -157,7 +180,8 @@ public class DataSeeder implements CommandLineRunner {
         seedScoreTrend(casa.getId(), now);
         seedOrderPipeline(casa, now);
 
-        log.info("Seed pronto — login de demonstração: ana@aura.com / {} (casa {})", DEMO_PASSWORD, casa.getId());
+        log.info("Seed pronto — login de demonstração: ana@aura.com (dona) e maria@aura.com (paciente), "
+                + "senha {} (casa {})", DEMO_PASSWORD, casa.getId());
     }
 
     /**

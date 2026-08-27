@@ -18,7 +18,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Casa monitorada. O isolamento por usuário (RN-017) usa {@code ownerUserId}. */
+/**
+ * Casa monitorada. O isolamento por usuário (RN-017) usa {@code ownerUserId} <b>mais</b> os
+ * vínculos de {@link HomeMember}: o dono entra pela coluna, a paciente e os demais cuidadores
+ * entram pela tabela. Um só {@code ownerUserId} deixava a Maria de fora da própria casa.
+ */
 @Entity
 @Table(name = "homes")
 @Getter

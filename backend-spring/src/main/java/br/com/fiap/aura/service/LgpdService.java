@@ -3,6 +3,7 @@ package br.com.fiap.aura.service;
 import br.com.fiap.aura.domain.Home;
 import br.com.fiap.aura.repository.ConsentRepository;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.HomeMemberRepository;
 import br.com.fiap.aura.repository.HomeRepository;
 import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
@@ -28,6 +29,7 @@ public class LgpdService {
     private static final Logger log = LoggerFactory.getLogger(LgpdService.class);
 
     private final HomeRepository homes;
+    private final HomeMemberRepository members;
     private final SignalRepository signals;
     private final ScoreRepository scores;
     private final RecommendationRepository recommendations;
@@ -37,11 +39,12 @@ public class LgpdService {
     private final UserAccountRepository users;
     private final HomeService homeService;
 
-    public LgpdService(HomeRepository homes, SignalRepository signals, ScoreRepository scores,
-                       RecommendationRepository recommendations, DeliveryOrderRepository orders,
-                       MedicationRepository medications, ConsentRepository consents,
-                       UserAccountRepository users, HomeService homeService) {
+    public LgpdService(HomeRepository homes, HomeMemberRepository members, SignalRepository signals,
+                       ScoreRepository scores, RecommendationRepository recommendations,
+                       DeliveryOrderRepository orders, MedicationRepository medications,
+                       ConsentRepository consents, UserAccountRepository users, HomeService homeService) {
         this.homes = homes;
+        this.members = members;
         this.signals = signals;
         this.scores = scores;
         this.recommendations = recommendations;
@@ -67,12 +70,16 @@ public class LgpdService {
         List<Home> owned = homes.findByOwnerUserIdOrderByCreatedAtDesc(principal.userId());
         owned.forEach(home -> purgeHome(home.getId()));
         homes.deleteAll(owned);
+        // o titular também é membro de casas que não são dele (a paciente, por exemplo):
+        // o vínculo vai junto, senão sobra uma linha apontando para uma conta que não existe mais
+        members.deleteByUserId(principal.userId());
         consents.deleteByUserId(principal.userId());
         users.deleteById(principal.userId());
         log.info("Conta {} excluída a pedido do titular ({} casas)", principal.userId(), owned.size());
     }
 
     private void purgeHome(UUID homeId) {
+        members.deleteByHomeId(homeId);
         orders.deleteByHomeId(homeId);
         recommendations.deleteByHomeId(homeId);
         scores.deleteByHomeId(homeId);
