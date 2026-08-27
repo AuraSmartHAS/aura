@@ -5,7 +5,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/async_state_views.dart';
 import '../../../../shared/widgets/explainable_recommendation_card.dart';
+import '../approval_copy.dart';
 import '../bloc/carechain_bloc.dart';
+import 'approval_blocks.dart';
+import 'approval_confirmation_sheet.dart';
 
 class CareChainBody extends StatelessWidget {
   const CareChainBody({super.key});
@@ -58,6 +61,8 @@ class _RecommendationView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reco = state.recommendation!;
+    final bloc = context.read<CareChainBloc>();
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.md,
@@ -70,19 +75,50 @@ class _RecommendationView extends StatelessWidget {
         const SizedBox(height: AppDimensions.md),
         ExplainableRecommendationCard(
           productName: reco.productName,
-          price: reco.price,
+          priceLabel: ApprovalCopy.priceLabel(reco),
           reason: reco.reason,
           factors: reco.factors,
+          factorLabels: reco.factorLabels,
           weights: reco.weights,
           normRef: reco.normRef,
           level: reco.level,
           isApproving: state.isApproving,
-          onApprove: () => context
-              .read<CareChainBloc>()
-              .add(ApproveRecommendationEvent(reco.recommendationId)),
+          canApprove: state.canApprove,
+          approveBlockedReason:
+              state.canApprove ? null : ApprovalCopy.approveBlockedWithoutPrice,
+          moneySlot: RecommendationPriceBlock(
+            recommendation: reco,
+            onRetry: state.canApprove
+                ? null
+                : () => bloc.add(const LoadRecommendationEvent()),
+          ),
+          installationSlot: InstallationNotice(
+            recommendation: reco,
+            patientName: state.patientName,
+          ),
+          onApprove: () => _confirmAndApprove(context, state),
         ),
       ],
     );
+  }
+
+  /// Um toque não compra nada: a folha de confirmação é a última parada antes
+  /// de o pedido nascer (RN-022).
+  Future<void> _confirmAndApprove(
+    BuildContext context,
+    CareChainState state,
+  ) async {
+    final bloc = context.read<CareChainBloc>();
+    final reco = state.recommendation!;
+    final confirmed = await ApprovalConfirmationSheet.show(
+      context,
+      recommendation: reco,
+      patientName: state.patientName,
+      address: state.address,
+    );
+    if (confirmed) {
+      bloc.add(ApproveRecommendationEvent(reco.recommendationId));
+    }
   }
 }
 

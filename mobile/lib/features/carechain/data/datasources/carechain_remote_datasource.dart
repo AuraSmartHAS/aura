@@ -9,6 +9,7 @@ abstract class CareChainRemoteDataSource {
     String homeId, {
     String? scoreId,
   });
+  Future<List<dynamic>> listRecommendations(String homeId);
   Future<Map<String, dynamic>> approve(String recId);
 }
 
@@ -43,6 +44,12 @@ class CareChainRemoteDataSourceImpl implements CareChainRemoteDataSource {
       if (scoreId != null) 'scoreId': scoreId,
     });
     return res.data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<List<dynamic>> listRecommendations(String homeId) async {
+    final res = await _dio.get('/homes/$homeId/recommendations');
+    return res.data as List<dynamic>;
   }
 
   @override

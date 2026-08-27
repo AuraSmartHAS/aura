@@ -14,40 +14,69 @@ import 'severity_chip.dart';
 /// so 100% of recommendations display the "why" (UI-10, RN guardrail). The
 /// approve button is the single door to an order (RN-022) and reads as a green
 /// "confirm/commit" action. A severity-colored spine makes risk drive the card.
+///
+/// Correção C5: o dinheiro é da tela que usa o card, não do card. Ele recebe o
+/// valor já formatado ([priceLabel]) e dois espaços — [moneySlot] logo abaixo
+/// do produto e [installationSlot] acima do botão — para que a conta e a visita
+/// do técnico apareçam antes da decisão, e nunca depois dela.
 class ExplainableRecommendationCard extends StatelessWidget {
   const ExplainableRecommendationCard({
     super.key,
     required this.productName,
-    required this.price,
+    required this.priceLabel,
     required this.reason,
     required this.factors,
     required this.weights,
     required this.normRef,
     required this.level,
+    this.factorLabels = const [],
+    this.moneySlot,
+    this.installationSlot,
     this.stage,
     this.onApprove,
     this.isApproving = false,
+    this.canApprove = true,
+    this.approveBlockedReason,
   });
 
   final String productName;
-  final double? price;
+
+  /// Valor já formatado em reais. Nulo só quando o preço não carregou — e aí
+  /// [canApprove] tem de ser falso.
+  final String? priceLabel;
+
   final String reason;
+
+  /// Códigos dos fatores (fallback de exibição).
   final List<String> factors;
+
+  /// Os mesmos fatores em português, na mesma ordem. Quando vem preenchido é
+  /// ele que a tela mostra: `near_fall_reported` não é texto de interface.
+  final List<String> factorLabels;
+
   final List<double> weights;
   final String normRef;
   final SeverityLevel level;
+
+  /// Conta do pedido (total e composição), logo abaixo do nome do produto.
+  final Widget? moneySlot;
+
+  /// Bloco da instalação, imediatamente antes do botão de aprovar.
+  final Widget? installationSlot;
 
   /// Non-null once the recommendation became an order.
   final OrderStage? stage;
   final VoidCallback? onApprove;
   final bool isApproving;
 
+  /// Falso bloqueia a aprovação e exibe [approveBlockedReason] sob o botão.
+  final bool canApprove;
+  final String? approveBlockedReason;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final accent = severityColor(level);
-    final priceLabel =
-        price != null ? 'R\$ ${price!.toStringAsFixed(2)}' : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: AppDimensions.sm),
@@ -79,14 +108,20 @@ class ExplainableRecommendationCard extends StatelessWidget {
                     const Spacer(),
                     if (priceLabel != null)
                       Text(
-                        priceLabel,
-                        style:
-                            text.titleMedium?.copyWith(color: AppColors.primary),
+                        priceLabel!,
+                        style: text.titleMedium
+                            ?.copyWith(color: AppColors.primary),
                       ),
                   ],
                 ),
                 const SizedBox(height: AppDimensions.sm),
                 Text(productName, style: text.titleLarge),
+
+                if (moneySlot != null) ...[
+                  const SizedBox(height: AppDimensions.md),
+                  moneySlot!,
+                ],
+
                 const SizedBox(height: AppDimensions.md),
 
                 // The "why" — always visible.
@@ -100,10 +135,10 @@ class ExplainableRecommendationCard extends StatelessWidget {
                   const SizedBox(height: AppDimensions.xs),
                   for (var i = 0; i < factors.length; i++)
                     FactorBar(
-                      label: _humanize(factors[i]),
+                      label: _label(i),
                       weight: i < weights.length ? weights[i] : 0,
                       level: level,
-                      icon: _factorIcon(factors[i]),
+                      icon: _factorIcon(_label(i)),
                     ),
                 ],
 
@@ -112,28 +147,20 @@ class ExplainableRecommendationCard extends StatelessWidget {
                   OrderStageTracker(stage: stage!),
                 ],
 
+                if (installationSlot != null && stage == null) ...[
+                  const SizedBox(height: AppDimensions.md),
+                  installationSlot!,
+                ],
+
                 if (onApprove != null && stage == null) ...[
                   const SizedBox(height: AppDimensions.md),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: isApproving ? null : onApprove,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.confirm,
-                      ),
-                      icon: isApproving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.check_rounded),
-                      label:
-                          Text(isApproving ? 'Enviando…' : 'Aprovar e pedir'),
-                    ),
+                  _ApproveButton(
+                    onApprove: onApprove!,
+                    isApproving: isApproving,
+                    canApprove: canApprove,
+                    blockedReason: approveBlockedReason,
+                    productName: productName,
+                    priceLabel: priceLabel,
                   ),
                 ],
               ],
@@ -144,7 +171,12 @@ class ExplainableRecommendationCard extends StatelessWidget {
     );
   }
 
-  String _humanize(String factor) => factor.replaceAll('_', ' ');
+  /// Rótulo em português quando o servidor mandou; o código, sem underscore,
+  /// só como último recurso.
+  String _label(int i) =>
+      i < factorLabels.length && factorLabels[i].trim().isNotEmpty
+          ? factorLabels[i]
+          : factors[i].replaceAll('_', ' ');
 
   IconData _factorIcon(String factor) {
     final s = factor.toLowerCase();
@@ -158,12 +190,105 @@ class ExplainableRecommendationCard extends StatelessWidget {
     if (s.contains('luz') || s.contains('ilumin')) {
       return Icons.lightbulb_outline;
     }
-    if (s.contains('escada') || s.contains('degrau')) return Icons.stairs_outlined;
-    if (s.contains('mobil') || s.contains('marcha')) return Icons.directions_walk;
+    if (s.contains('escada') || s.contains('degrau')) {
+      return Icons.stairs_outlined;
+    }
+    if (s.contains('mobil') || s.contains('marcha')) {
+      return Icons.directions_walk;
+    }
     if (s.contains('sono')) return Icons.bedtime_outlined;
-    if (s.contains('cogni') || s.contains('memor')) return Icons.psychology_outlined;
+    if (s.contains('cogni') || s.contains('memor')) {
+      return Icons.psychology_outlined;
+    }
     if (s.contains('banh')) return Icons.bathtub_outlined;
     return Icons.insights_outlined;
+  }
+}
+
+/// O botão que gasta o dinheiro de alguém.
+///
+/// Sem preço carregado ele fica desabilitado **com a explicação visível logo
+/// abaixo** — o comportamento que a correção C5 troca é o antigo, em que o card
+/// escondia o preço e mantinha o botão ativo (CR-5).
+class _ApproveButton extends StatelessWidget {
+  const _ApproveButton({
+    required this.onApprove,
+    required this.isApproving,
+    required this.canApprove,
+    required this.blockedReason,
+    required this.productName,
+    required this.priceLabel,
+  });
+
+  final VoidCallback onApprove;
+  final bool isApproving;
+  final bool canApprove;
+  final String? blockedReason;
+  final String productName;
+  final String? priceLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final enabled = canApprove && !isApproving;
+    final semanticsLabel = enabled
+        ? 'Aprovar e pedir $productName'
+            '${priceLabel == null ? '' : ', total $priceLabel'}'
+        : 'Aprovar e pedir, indisponível. '
+            '${blockedReason ?? 'Aguarde um instante.'}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Semantics(
+          button: true,
+          enabled: enabled,
+          label: semanticsLabel,
+          child: SizedBox(
+            width: double.infinity,
+            child: ExcludeSemantics(
+              child: FilledButton.icon(
+                onPressed: enabled ? onApprove : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.confirm,
+                  minimumSize: const Size(0, AppDimensions.minTouchTarget),
+                ),
+                icon: isApproving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Icon(canApprove
+                        ? Icons.check_rounded
+                        : Icons.lock_outline_rounded),
+                label: Text(isApproving ? 'Enviando…' : 'Aprovar e pedir'),
+              ),
+            ),
+          ),
+        ),
+        if (!canApprove && blockedReason != null) ...[
+          const SizedBox(height: AppDimensions.sm),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.info_outline,
+                  size: 18, color: AppColors.textSecondary),
+              const SizedBox(width: AppDimensions.sm),
+              Expanded(
+                child: Text(
+                  blockedReason!,
+                  style: text.bodySmall?.copyWith(color: AppColors.error),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
   }
 }
 

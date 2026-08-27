@@ -1,12 +1,14 @@
 import 'package:get_it/get_it.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/session/auth_session.dart';
+import '../../home_setup/domain/usecases/get_home_usecase.dart';
 import '../../wellbeing360/domain/usecases/recompute_score_usecase.dart';
 import '../data/datasources/carechain_remote_datasource.dart';
 import '../data/repositories/carechain_repository_impl.dart';
 import '../domain/repositories/carechain_repository.dart';
 import '../domain/usecases/approve_recommendation_usecase.dart';
 import '../domain/usecases/create_recommendation_usecase.dart';
+import '../domain/usecases/find_pending_recommendation_usecase.dart';
 import '../presentation/bloc/carechain_bloc.dart';
 
 void setupCareChainModule(GetIt sl) {
@@ -21,6 +23,9 @@ void setupCareChainModule(GetIt sl) {
   sl.registerFactory<CreateRecommendationUseCase>(
     () => CreateRecommendationUseCase(sl<CareChainRepository>()),
   );
+  sl.registerFactory<FindPendingRecommendationUseCase>(
+    () => FindPendingRecommendationUseCase(sl<CareChainRepository>()),
+  );
   sl.registerFactory<ApproveRecommendationUseCase>(
     () => ApproveRecommendationUseCase(sl<CareChainRepository>()),
   );
@@ -29,7 +34,9 @@ void setupCareChainModule(GetIt sl) {
     () => CareChainBloc(
       recomputeScoreUseCase: sl<RecomputeScoreUseCase>(),
       createRecommendationUseCase: sl<CreateRecommendationUseCase>(),
+      findPendingRecommendationUseCase: sl<FindPendingRecommendationUseCase>(),
       approveRecommendationUseCase: sl<ApproveRecommendationUseCase>(),
+      getHomeUseCase: sl<GetHomeUseCase>(),
       session: sl<AuthSession>(),
     ),
   );
