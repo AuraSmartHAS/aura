@@ -544,13 +544,13 @@ de superfície operacional do servidor, renderizada sem depender de nenhum clien
 <h3>3.9 Testes</h3>
 
 <p>
-São <strong>61 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
+São <strong>76 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
 módulos — e todos executados nesta entrega:
 </p>
 
 <table>
   <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
-  <tr><td>Back-end (JUnit + MockMvc)</td><td>18</td><td><code>./mvnw test</code></td>
+  <tr><td>Back-end (JUnit + MockMvc)</td><td>23</td><td><code>./mvnw test</code></td>
       <td>motor de escore, guardrail, o percurso completo da API, o ciclo de vida
           da medicação e o isolamento entre pacientes</td></tr>
   <tr><td>Painel Angular (Jasmine/Karma)</td><td>17</td><td><code>npm test</code></td>
@@ -559,7 +559,7 @@ módulos — e todos executados nesta entrega:
       <td>fluxo ponta a ponta no navegador, contra a API real</td></tr>
   <tr><td>App React Native (Jest)</td><td>7</td><td><code>npm test</code></td>
       <td>contrato do cliente da API, Bearer e envelope de erro</td></tr>
-  <tr><td>App Flutter (flutter_test)</td><td>13</td><td><code>flutter test</code></td>
+  <tr><td>App Flutter (flutter_test)</td><td>23</td><td><code>flutter test</code></td>
       <td>validadores dos formulários e layout do detalhe do pedido</td></tr>
 </table>
 

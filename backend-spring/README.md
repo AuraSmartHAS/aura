@@ -42,7 +42,7 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ./mvnw test
 ```
 
-18 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
+23 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
 o percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
 recomendação → aprovação → pedido entregue — e o ciclo de vida da medicação,
 incluindo a confirmação de dose que vira sinal de adesão. Mais isolamento entre
