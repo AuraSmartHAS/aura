@@ -3,11 +3,13 @@ package br.com.fiap.aura.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.fiap.aura.config.AuraProperties;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.RiskLevel;
 import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.web.error.ApiException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -26,8 +28,20 @@ class ScoringServiceTest {
     @Autowired
     private GuardrailService guardrails;
 
+    @Autowired
+    private AuraProperties props;
+
     private Signal signal(SignalType type, String event) {
         return Signal.builder().type(type).source(SignalSource.VOICE).value(Map.of("event", event)).build();
+    }
+
+    private AuraProperties.Factor factor(String name, String label) {
+        return new AuraProperties.Factor(name, label, 0.5, AuraProperties.FactorKind.CHECKLIST_ABSENT,
+                null, null, "chave_qualquer");
+    }
+
+    private AuraProperties.Dimension dimension(AuraProperties.Factor... factors) {
+        return new AuraProperties.Dimension("NBR 9050", "fall_bathroom", List.of(factors));
     }
 
     @Test
@@ -42,7 +56,9 @@ class ScoringServiceTest {
         assertThat(result.factors())
                 .containsExactly("near_fall_reported", "no_grab_bar", "anti_slip_floor");
         assertThat(result.weights()).containsExactly(0.4, 0.3, 0.2);
-        assertThat(result.explanation()).contains("NBR 9050", "ALTO");
+        // a explicação ganhou os fatores em português sem perder a norma nem o nível
+        assertThat(result.explanation()).contains("NBR 9050", "ALTO",
+                "quase-queda relatada", "ausência de barra de apoio");
         assertThat(result.riskTag()).isEqualTo("fall_bathroom");
     }
 
@@ -88,5 +104,50 @@ class ScoringServiceTest {
 
         assertThat(guardrails.assertNonPrescriptive("Barra de apoio reduz risco de queda (NBR 9050)."))
                 .isNotNull();
+    }
+
+    @Test
+    @DisplayName("fator sem 'label' no YAML reprova o build, não a tela")
+    void factorWithoutLabelFailsTheBuild() {
+        Map<String, AuraProperties.Dimension> semRotulo =
+                Map.of("mobility", dimension(factor("fator_novo", null)));
+
+        assertThatThrownBy(() -> ScoringService.labelIndex(semRotulo, guardrails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContainingAll("fator_novo", "label");
+
+        assertThatThrownBy(() -> ScoringService.labelIndex(
+                Map.of("mobility", dimension(factor("fator_vazio", "   "))), guardrails))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("nomes de fator são únicos entre dimensões — é o que sustenta o mapa global de rótulos")
+    void factorNamesAreUniqueAcrossDimensions() {
+        // a recomendação guarda só o scoreId: se um nome sumisse do mapa, a tela traduziria errado
+        int total = props.scoring().dimensions().values().stream().mapToInt(d -> d.factors().size()).sum();
+        assertThat(scoring.factorLabels()).hasSize(total);
+
+        Map<String, AuraProperties.Dimension> colisao = new LinkedHashMap<>();
+        colisao.put("mobility", dimension(factor("no_grab_bar", "ausência de barra de apoio")));
+        colisao.put("sleep", dimension(factor("no_grab_bar", "outra coisa qualquer")));
+
+        assertThatThrownBy(() -> ScoringService.labelIndex(colisao, guardrails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContainingAll("no_grab_bar", "repetido entre dimensões");
+    }
+
+    @Test
+    @DisplayName("todo rótulo do YAML passa no guardrail — a frase da recomendação é composta com eles")
+    void everyLabelPassesTheGuardrail() {
+        assertThat(scoring.factorLabels()).isNotEmpty();
+        scoring.factorLabels().forEach((name, label) ->
+                assertThat(guardrails.assertNonPrescriptive(label)).as(name).isEqualTo(label));
+
+        // rótulo prescritivo derruba o boot, em vez de virar 422 no POST /recommendations em produção
+        assertThatThrownBy(() -> ScoringService.labelIndex(
+                Map.of("mobility", dimension(factor("dose_extra", "tomar o remédio antes do banho"))), guardrails))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("guardrail");
     }
 }

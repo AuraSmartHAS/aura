@@ -42,6 +42,9 @@ aura:
   carechain:
     delivery-sla-hours: 24
     install-sla-hours: 72
+    # Instalação cobrada à parte: a tela soma item + instalação antes de a cuidadora aprovar.
+    installation-included: false
+    installation-price: 149.90
   cors:
     allowed-origins: "*"
 

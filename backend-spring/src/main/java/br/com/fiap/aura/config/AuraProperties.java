@@ -1,6 +1,7 @@
 package br.com.fiap.aura.config;
 
 import br.com.fiap.aura.domain.enums.SignalType;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -32,7 +33,13 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
     public record Factor(String name, String label, double weight, FactorKind kind,
                          SignalType signalType, String event, String checklistKey) { }
 
-    public record Carechain(int deliverySlaHours, int installSlaHours) { }
+    /**
+     * Política comercial da Care-Chain. A instalação vive aqui, e não no {@code Product},
+     * porque o catálogo ainda não tem preço de instalação por SKU — e a cuidadora precisa
+     * saber quanto vai pagar antes de aprovar, não depois.
+     */
+    public record Carechain(int deliverySlaHours, int installSlaHours,
+                            boolean installationIncluded, BigDecimal installationPrice) { }
 
     public record Cors(String allowedOrigins) { }
 

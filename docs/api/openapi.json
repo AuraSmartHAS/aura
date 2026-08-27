@@ -96,27 +96,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -172,6 +151,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -231,27 +231,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -307,6 +286,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -378,27 +378,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -454,6 +433,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -493,27 +493,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -569,6 +548,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -637,27 +637,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -713,6 +692,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -781,27 +781,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -857,6 +836,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -915,27 +915,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -991,6 +970,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1051,27 +1051,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1127,6 +1106,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1187,27 +1187,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1263,6 +1242,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1344,27 +1344,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1420,6 +1399,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1481,27 +1481,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1557,6 +1536,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1597,27 +1597,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1673,6 +1652,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1755,27 +1755,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1831,6 +1810,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1891,27 +1891,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -1967,6 +1946,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2016,27 +2016,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2092,6 +2071,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2145,27 +2145,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2221,6 +2200,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2279,27 +2279,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2355,6 +2334,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2439,27 +2439,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2515,6 +2494,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2605,27 +2605,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2681,6 +2660,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2761,27 +2761,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -2837,6 +2816,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3045,27 +3045,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3121,6 +3100,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3235,27 +3235,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3311,6 +3290,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3340,27 +3340,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3416,6 +3395,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3456,27 +3456,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3532,6 +3511,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3570,27 +3570,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3646,6 +3625,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3744,27 +3744,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3820,6 +3799,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3863,27 +3863,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -3939,6 +3918,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3982,27 +3982,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4058,6 +4037,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4101,27 +4101,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4177,6 +4156,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4220,27 +4220,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4296,6 +4275,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4381,27 +4381,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4457,6 +4436,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4486,27 +4486,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4562,6 +4541,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4594,27 +4594,6 @@
                             }
                         }
                     },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
                     "403": {
                         "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
                         "content": {
@@ -4670,6 +4649,27 @@
                                             "error": {
                                                 "code": "UNAUTHORIZED",
                                                 "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4969,9 +4969,23 @@
                             "format": "double"
                         }
                     },
+                    "factorLabels": {
+                        "type": "array",
+                        "description": "Os mesmos fatores em portugu\u00eas, na mesma ordem \u2014 a tela n\u00e3o traduz c\u00f3digo",
+                        "example": [
+                            "quase-queda relatada",
+                            "aus\u00eancia de barra de apoio",
+                            "aus\u00eancia de piso anti-derrapante"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "description": "Os mesmos fatores em portugu\u00eas, na mesma ordem \u2014 a tela n\u00e3o traduz c\u00f3digo",
+                            "example": "[\"quase-queda relatada\",\"aus\u00eancia de barra de apoio\",\"aus\u00eancia de piso anti-derrapante\"]"
+                        }
+                    },
                     "explanation": {
                         "type": "string",
-                        "example": "Norma NBR 9050 \u2192 risco ALTO."
+                        "example": "Norma NBR 9050 \u2192 risco ALTO. Fatores: quase-queda relatada, aus\u00eancia de barra de apoio."
                     },
                     "configVersion": {
                         "type": "string",
@@ -4979,7 +4993,7 @@
                         "example": "2026-06-14"
                     }
                 },
-                "description": "Escore explic\u00e1vel de uma dimens\u00e3o. `factors` e `weights` s\u00e3o listas PARALELAS:\no peso na posi\u00e7\u00e3o i corresponde ao fator na posi\u00e7\u00e3o i, e a soma dos pesos acionados\n\u00e9 o `score`. `explanation` \u00e9 a mesma informa\u00e7\u00e3o em linguagem natural, pronta para a tela.\nFaixas: < 0,4 low \u00b7 < 0,7 medium \u00b7 >= 0,7 high."
+                "description": "Escore explic\u00e1vel de uma dimens\u00e3o. `factors`, `weights` e `factorLabels` s\u00e3o listas PARALELAS:\no peso e o r\u00f3tulo na posi\u00e7\u00e3o i correspondem ao fator na posi\u00e7\u00e3o i, e a soma dos pesos acionados\n\u00e9 o `score`. `explanation` \u00e9 a mesma informa\u00e7\u00e3o em linguagem natural, pronta para a tela.\nFaixas: < 0,4 low \u00b7 < 0,7 medium \u00b7 >= 0,7 high."
             },
             "CreateRecommendationRequest": {
                 "required": [
@@ -5028,9 +5042,44 @@
                             "type": "number",
                             "format": "double"
                         }
+                    },
+                    "factorLabels": {
+                        "type": "array",
+                        "example": [
+                            "quase-queda relatada",
+                            "aus\u00eancia de barra de apoio"
+                        ],
+                        "items": {
+                            "type": "string",
+                            "example": "[\"quase-queda relatada\",\"aus\u00eancia de barra de apoio\"]"
+                        }
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "Pre\u00e7o do item",
+                        "example": 129.9
+                    },
+                    "installable": {
+                        "type": "boolean",
+                        "description": "O item \u00e9 instalado por t\u00e9cnico",
+                        "example": true
+                    },
+                    "installationIncluded": {
+                        "type": "boolean",
+                        "description": "Instala\u00e7\u00e3o j\u00e1 inclusa no pre\u00e7o do item",
+                        "example": false
+                    },
+                    "installationPrice": {
+                        "type": "number",
+                        "description": "Quanto se paga a mais pela instala\u00e7\u00e3o; 0 quando inclusa",
+                        "example": 149.9
+                    },
+                    "normRef": {
+                        "type": "string",
+                        "example": "NBR 9050"
                     }
                 },
-                "description": "Recomenda\u00e7\u00e3o explicada. `reason` \u00e9 o texto que a cuidadora l\u00ea antes de aprovar e passa\npelo guardrail de n\u00e3o-prescri\u00e7\u00e3o. Enquanto `status` for `recommended`, nenhum pedido existe:\ns\u00f3 a aprova\u00e7\u00e3o humana cria o pedido (RN-022)."
+                "description": "Recomenda\u00e7\u00e3o explicada. `reason` \u00e9 o texto que a cuidadora l\u00ea antes de aprovar e passa\npelo guardrail de n\u00e3o-prescri\u00e7\u00e3o. Enquanto `status` for `recommended`, nenhum pedido existe:\ns\u00f3 a aprova\u00e7\u00e3o humana cria o pedido (RN-022).\n`factorLabels` traz os mesmos `factors` em portugu\u00eas, na MESMA ordem e com o mesmo tamanho \u2014\nnenhuma tela precisa traduzir c\u00f3digo. Pre\u00e7o e instala\u00e7\u00e3o v\u00eam na pr\u00f3pria recomenda\u00e7\u00e3o para\nque ningu\u00e9m aprove sem saber o total; s\u00e3o opcionais e v\u00eam nulos quando o SKU saiu do cat\u00e1logo\nou quando o item n\u00e3o \u00e9 instal\u00e1vel."
             },
             "ApproveResponse": {
                 "type": "object",

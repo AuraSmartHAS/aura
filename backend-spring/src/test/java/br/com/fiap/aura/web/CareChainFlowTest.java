@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +50,23 @@ class CareChainFlowTest {
 
     private JsonNode body(MvcResult res) throws Exception {
         return json.readTree(res.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    /** Cuidadora consentida com uma casa da Maria — o ponto de partida de quase todo caso. */
+    private String homeOf(String auth) throws Exception {
+        mvc.perform(post("/api/v1/consent").header("Authorization", auth)).andExpect(status().isCreated());
+        return body(mvc.perform(post("/api/v1/homes").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100","label":"Casa da Maria"}"""))
+                .andExpect(status().isCreated())
+                .andReturn()).get("homeId").asText();
+    }
+
+    private List<String> texts(JsonNode array) {
+        List<String> out = new ArrayList<>();
+        array.forEach(node -> out.add(node.asText()));
+        return out;
     }
 
     @Test
@@ -189,6 +208,88 @@ class CareChainFlowTest {
         assertThat(destination.get(0).asDouble()).isEqualTo(home.get("lng").asDouble());
         assertThat(destination.get(1).asDouble()).isEqualTo(home.get("lat").asDouble());
         assertThat(coordinates.get(0).get(0).asDouble()).isNotEqualTo(home.get("lng").asDouble());
+    }
+
+    @Test
+    @DisplayName("a recomendação chega com preço, instalação, norma e os fatores em português (C1)")
+    void recommendationCarriesPriceInstallationAndLabels() throws Exception {
+        String auth = "Bearer " + signup("contrato@aura.com");
+        String homeId = homeOf(auth);
+
+        mvc.perform(put("/api/v1/homes/{id}/checklist", homeId).header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"items":{"grab_bar_bathroom":false,"anti_slip_floor":true}}"""))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/v1/signals").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","type":"mobility","source":"voice",
+                                 "value":{"event":"near_fall"}}""".formatted(homeId)))
+                .andExpect(status().isCreated());
+
+        JsonNode score = body(mvc.perform(post("/api/v1/scores/recompute").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","dimension":"mobility"}""".formatted(homeId)))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        assertThat(texts(score.get("factorLabels")))
+                .containsExactly("quase-queda relatada", "ausência de barra de apoio");
+
+        JsonNode rec = body(mvc.perform(post("/api/v1/recommendations").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s","scoreId":"%s"}"""
+                                .formatted(homeId, score.get("scoreId").asText())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.price").value(129.90))
+                .andExpect(jsonPath("$.installable").value(true))
+                .andExpect(jsonPath("$.installationIncluded").value(false))
+                .andExpect(jsonPath("$.installationPrice").value(149.90))
+                .andExpect(jsonPath("$.normRef").value("NBR 9050"))
+                .andReturn());
+
+        // listas paralelas: um rótulo por fator, na mesma ordem — nenhuma tela traduz código
+        assertThat(rec.get("factorLabels").size()).isEqualTo(rec.get("factors").size());
+        assertThat(texts(rec.get("factorLabels")))
+                .containsExactly("quase-queda relatada", "ausência de barra de apoio");
+        assertThat(rec.get("reason").asText())
+                .isEqualTo("Recomendamos Kit 2 Barras de Apoio 60cm porque houve quase-queda relatada "
+                        + "e ausência de barra de apoio (NBR 9050).");
+
+        // a listagem da casa devolve o mesmo contrato do POST — a tela não precisa de segunda fonte
+        mvc.perform(get("/api/v1/homes/{id}/recommendations", homeId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].price").value(129.90))
+                .andExpect(jsonPath("$[0].installationPrice").value(149.90))
+                .andExpect(jsonPath("$[0].factorLabels[0]").value("quase-queda relatada"));
+    }
+
+    @Test
+    @DisplayName("sem scoreId a recomendação continua coerente e a frase degrada sem fator solto (C1)")
+    void recommendationWithoutScoreDegrades() throws Exception {
+        String auth = "Bearer " + signup("semescore@aura.com");
+        String homeId = homeOf(auth);
+
+        JsonNode rec = body(mvc.perform(post("/api/v1/recommendations").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s"}""".formatted(homeId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.factors.length()").value(0))
+                .andExpect(jsonPath("$.factorLabels.length()").value(0))
+                .andExpect(jsonPath("$.price").value(129.90))
+                .andExpect(jsonPath("$.installable").value(true))
+                .andExpect(jsonPath("$.normRef").value("NBR 9050"))
+                .andReturn());
+
+        // sem fator não há o que compor: sobra a frase curta inteira, nunca um "porque houve ." solto
+        assertThat(rec.get("reason").asText())
+                .isEqualTo("Kit 2 Barras de Apoio 60cm reduz risco de queda/acidente (NBR 9050).")
+                .doesNotContain("porque houve");
     }
 
     @Test

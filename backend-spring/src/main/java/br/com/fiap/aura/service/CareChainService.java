@@ -16,6 +16,8 @@ import br.com.fiap.aura.repository.StockNodeRepository;
 import br.com.fiap.aura.security.AuthPrincipal;
 import br.com.fiap.aura.web.dto.CareChainDtos;
 import br.com.fiap.aura.web.error.ApiException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -88,17 +90,56 @@ public class CareChainService {
                 .orElseThrow(() -> ApiException.unprocessable("NO_PRODUCT",
                         "Sem produto no catálogo para o risco '" + tag + "'."));
 
-        String reason = guardrails.assertNonPrescriptive(
-                "%s reduz risco de queda/acidente (%s).".formatted(product.getName(),
-                        product.getNormRef() == null ? "NBR 9050" : product.getNormRef()));
+        String reason = guardrails.assertNonPrescriptive(reason(product, scoring.labelsOf(factors)));
 
         Recommendation rec = recommendations.save(Recommendation.builder()
                 .homeId(req.homeId()).scoreId(req.scoreId()).sku(product.getSku())
                 .reason(reason).status("recommended").factors(factors).weights(weights)
                 .build());
 
-        return new CareChainDtos.RecommendationResponse(rec.getId(), product.getSku(), product.getName(),
-                reason, rec.getStatus(), factors, weights);
+        return toResponse(rec, product);
+    }
+
+    /**
+     * Sem escore não há fatores, e a frase composta não tem do que ser composta: cai na
+     * versão curta em vez de sair com um "porque houve ." no meio.
+     */
+    private String reason(Product product, List<String> labels) {
+        String norm = product.getNormRef() == null ? "NBR 9050" : product.getNormRef();
+        return labels.isEmpty()
+                ? "%s reduz risco de queda/acidente (%s).".formatted(product.getName(), norm)
+                : "Recomendamos %s porque houve %s (%s).".formatted(product.getName(), enumerate(labels), norm);
+    }
+
+    /** "a", "a e b", "a, b e c" — o que uma pessoa lê, não o que uma lista imprime. */
+    private static String enumerate(List<String> parts) {
+        if (parts.size() == 1) {
+            return parts.get(0);
+        }
+        return String.join(", ", parts.subList(0, parts.size() - 1)) + " e " + parts.get(parts.size() - 1);
+    }
+
+    /**
+     * Preço, instalação e norma viajam com a recomendação para que nenhuma tela precise de uma
+     * segunda chamada ao catálogo que pode falhar — e ninguém aprove sem ver o total.
+     * SKU fora do catálogo devolve os campos nulos; item não instalável não tem custo de instalação.
+     */
+    private CareChainDtos.RecommendationResponse toResponse(Recommendation rec, Product product) {
+        boolean installable = product != null && product.isInstallable();
+        boolean included = props.carechain().installationIncluded();
+        return new CareChainDtos.RecommendationResponse(rec.getId(), rec.getSku(),
+                product == null ? rec.getSku() : product.getName(), rec.getReason(), rec.getStatus(),
+                rec.getFactors(), rec.getWeights(), scoring.labelsOf(rec.getFactors()),
+                product == null ? null : product.getPrice(),
+                product == null ? null : installable,
+                installable ? included : null,
+                installable ? money(included ? BigDecimal.ZERO : props.carechain().installationPrice()) : null,
+                product == null ? null : product.getNormRef());
+    }
+
+    /** Duas casas como o preço do catálogo: os dois valores são somados na mesma linha da tela. */
+    private static BigDecimal money(BigDecimal value) {
+        return value == null ? null : value.setScale(2, RoundingMode.HALF_UP);
     }
 
     @Transactional(readOnly = true)
@@ -106,8 +147,7 @@ public class CareChainService {
         homeService.requireAccess(principal, homeId);
         Map<String, Product> bySku = productIndex();
         return recommendations.findByHomeIdOrderByCreatedAtDesc(homeId).stream()
-                .map(r -> new CareChainDtos.RecommendationResponse(r.getId(), r.getSku(),
-                        nameOf(bySku, r.getSku()), r.getReason(), r.getStatus(), r.getFactors(), r.getWeights()))
+                .map(r -> toResponse(r, bySku.get(r.getSku())))
                 .toList();
     }
 
@@ -152,9 +192,7 @@ public class CareChainService {
             throw ApiException.conflict("Recomendação já aprovada não pode ser rejeitada.");
         }
         rec.setStatus("rejected");
-        return new CareChainDtos.RecommendationResponse(rec.getId(), rec.getSku(),
-                nameOf(productIndex(), rec.getSku()), rec.getReason(), rec.getStatus(),
-                rec.getFactors(), rec.getWeights());
+        return toResponse(rec, productIndex().get(rec.getSku()));
     }
 
     @Transactional

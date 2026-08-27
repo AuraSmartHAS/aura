@@ -69,7 +69,7 @@ public class ScoreService {
     @Transactional(readOnly = true)
     public List<ScoreDtos.ScoreResponse> history(AuthPrincipal principal, UUID homeId) {
         homeService.requireAccess(principal, homeId);
-        return scores.findByHomeIdOrderByExplainedAtDesc(homeId).stream().map(ScoreService::toResponse).toList();
+        return scores.findByHomeIdOrderByExplainedAtDesc(homeId).stream().map(this::toResponse).toList();
     }
 
     /** Último escore de cada dimensão — o que o painel 360 mostra. */
@@ -81,12 +81,13 @@ public class ScoreService {
                         java.util.LinkedHashMap::new))
                 .values().stream()
                 .sorted(Comparator.comparingDouble(Score::getScore).reversed())
-                .map(ScoreService::toResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
-    static ScoreDtos.ScoreResponse toResponse(Score s) {
+    private ScoreDtos.ScoreResponse toResponse(Score s) {
         return new ScoreDtos.ScoreResponse(s.getId(), s.getDimension(), s.getLevel(), s.getScore(),
-                s.getFactors(), s.getWeights(), s.getExplanation(), s.getConfigVersion());
+                s.getFactors(), s.getWeights(), engine.labelsOf(s.getFactors()),
+                s.getExplanation(), s.getConfigVersion());
     }
 }

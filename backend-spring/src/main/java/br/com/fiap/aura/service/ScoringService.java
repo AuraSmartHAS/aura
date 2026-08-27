@@ -5,6 +5,8 @@ import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.RiskLevel;
 import br.com.fiap.aura.web.error.ApiException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,10 +23,12 @@ public class ScoringService {
 
     private final AuraProperties props;
     private final GuardrailService guardrails;
+    private final Map<String, String> factorLabels;
 
     public ScoringService(AuraProperties props, GuardrailService guardrails) {
         this.props = props;
         this.guardrails = guardrails;
+        this.factorLabels = labelIndex(props.scoring().dimensions(), guardrails);
     }
 
     public record Result(String dimension, double score, RiskLevel level, List<String> factors,
@@ -55,7 +59,11 @@ public class ScoringService {
 
         double score = Math.min(1.0, Math.round(total * 1000d) / 1000d);
         RiskLevel level = level(score);
+        // A norma e o nível abrem a frase e não saem dela: é o contrato que a tela e o teste leem.
         String explanation = "Norma %s → risco %s.".formatted(cfg.norm(), levelWord(level));
+        if (!firedNames.isEmpty()) {
+            explanation += " Fatores: %s.".formatted(String.join(", ", labelsOf(firedNames)));
+        }
 
         guardrails.assertNonPrescriptive(explanation);
         return new Result(dimension, score, level, firedNames, firedWeights, explanation,
@@ -99,5 +107,50 @@ public class ScoringService {
     public Map<String, String> riskTagsByDimension() {
         return props.scoring().dimensions().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().riskTag()));
+    }
+
+    /** Rótulos na MESMA ordem dos nomes; nome sem rótulo cai no próprio nome, para não sumir da tela. */
+    public List<String> labelsOf(List<String> factorNames) {
+        return factorNames == null ? List.of()
+                : factorNames.stream().map(name -> factorLabels.getOrDefault(name, name)).toList();
+    }
+
+    public Map<String, String> factorLabels() {
+        return factorLabels;
+    }
+
+    /**
+     * Rótulo em português de cada fator, indexado pelo nome. O mapa é GLOBAL porque a
+     * recomendação guarda só o {@code scoreId}, nunca a dimensão — então só funciona
+     * enquanto os nomes forem únicos entre dimensões. Por isso as três falhas abaixo
+     * derrubam o boot, e não a tela:
+     * fator sem {@code label}; nome repetido (traduziria errado em silêncio);
+     * rótulo prescritivo (a frase da recomendação é composta com ele, e um "tomar" no
+     * YAML viraria 422 no {@code POST /recommendations} na cara da cuidadora).
+     */
+    static Map<String, String> labelIndex(Map<String, AuraProperties.Dimension> dimensions,
+                                          GuardrailService guardrails) {
+        Map<String, String> index = new LinkedHashMap<>();
+        dimensions.forEach((dimension, cfg) -> {
+            for (AuraProperties.Factor factor : cfg.factors()) {
+                if (factor.label() == null || factor.label().isBlank()) {
+                    throw new IllegalStateException("Fator '%s' (dimensão %s) está sem 'label' em scoring-weights.yml."
+                            .formatted(factor.name(), dimension));
+                }
+                try {
+                    guardrails.assertNonPrescriptive(factor.label());
+                } catch (ApiException e) {
+                    throw new IllegalStateException(
+                            "Rótulo do fator '%s' não passa no guardrail de não-prescrição: \"%s\"."
+                                    .formatted(factor.name(), factor.label()), e);
+                }
+                if (index.put(factor.name(), factor.label()) != null) {
+                    throw new IllegalStateException(
+                            "Fator '%s' repetido entre dimensões: o rótulo é global e traduziria errado."
+                                    .formatted(factor.name()));
+                }
+            }
+        });
+        return Collections.unmodifiableMap(index);
     }
 }
