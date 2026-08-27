@@ -12,7 +12,7 @@
 | 1:40–2:40 | **Swagger ao vivo** (`localhost:8080/swagger-ui.html`) | **Parte 2**: mostrar os grupos de rotas, autenticar com o botão *Authorize*, executar `POST /scores/recompute` e **ler a resposta na tela**: `level: high`, `score: 0.9`, os três fatores e seus pesos. Frisar: o escore é explicável e os pesos vivem em YAML versionado. Mostrar rapidamente a página de status (Thymeleaf) em `localhost:8080/`. |
 | 2:40–3:30 | **Painel Angular** (`localhost:4200`) | **Parte 3**: login, tela da casa — desmarcar “Barra de apoio no banheiro”, salvar, **Recalcular escore** e ver o risco subir com os fatores. Gerar recomendação, aprovar e avançar o pedido na linha do tempo. Ir em Torre de Controle e mostrar os KPIs saindo dos pedidos reais + o CRUD do catálogo. |
 | 3:30–4:20 | **App React Native** (`localhost:8081`, janela estreita) | Login, painel da cuidadora com o mesmo risco, abrir a Care-Chain, aprovar e ver o pedido andando. Dizer: mesma API, nenhuma rota criada para o app novo. |
-| 4:20–4:45 | Terminal | `./mvnw test` — 10 testes verdes (fluxo ponta a ponta, isolamento entre pacientes, RBAC, guardrail de não-prescrição). |
+| 4:20–4:45 | Terminal | `./mvnw test` — **11** testes verdes (fluxo ponta a ponta, isolamento entre pacientes, RBAC, guardrail de não-prescrição). Diga **11**: é o que a documentação afirma e o que o terminal mostra. |
 | 4:45–5:00 | Slide 9 e 10 | Impacto (prevenir a queda, decisão sempre humana), próximos passos e agradecimento. |
 
 ## Frases-âncora

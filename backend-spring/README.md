@@ -42,10 +42,14 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ./mvnw test
 ```
 
-10 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição) e o
+11 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição) e o
 percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
 recomendação → aprovação → pedido entregue, mais isolamento entre pacientes (403),
 RBAC da Torre de Controle e validação de payload.
+
+> Requer **JDK 21**. Se `./mvnw` reclamar de "Unable to locate a Java Runtime" no
+> macOS, instale com `brew install openjdk@21` e exporte antes de rodar:
+> `export JAVA_HOME=/opt/homebrew/opt/openjdk@21 && export PATH="$JAVA_HOME/bin:$PATH"`
 
 ## 📘 Documentação da API
 
