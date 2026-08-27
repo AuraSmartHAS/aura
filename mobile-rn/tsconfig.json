@@ -1,6 +1,9 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    // Sem os tipos do jest aqui, `tsc --noEmit` reprova os arquivos de teste
+    // (describe/it/jest não existem para o compilador) e o CI nasce vermelho.
+    "types": ["jest", "expo"]
   }
 }
