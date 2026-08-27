@@ -42,36 +42,45 @@ public class OpenApiErrors {
             "500", new String[] {"Falha inesperada — a mensagem interna fica no log do servidor",
                                  "INTERNAL_ERROR", "Erro interno."});
 
+    /** Consentimento LGPD (RN-001) — mesma resposta em toda rota que grava dado de saúde. */
+    private static final String[] CONSENT = {"Consentimento LGPD não aceito (RN-001)",
+            "CONSENT_REQUIRED", "Aceite a Política de Privacidade antes de registrar dados de saúde."};
+
     /** Erros de negócio: só aparecem nas rotas que realmente podem devolvê-los. */
-    private static final Map<String, Map<String, String[]>> BY_PATH = Map.of(
-            "/api/v1/homes", Map.of("422", new String[] {"Consentimento LGPD não aceito (RN-001)",
-                    "CONSENT_REQUIRED", "Aceite a Política de Privacidade antes de registrar dados de saúde."}),
-            "/api/v1/signals", Map.of("422", new String[] {"Consentimento LGPD não aceito (RN-001)",
-                    "CONSENT_REQUIRED", "Aceite a Política de Privacidade antes de registrar dados de saúde."}),
-            "/api/v1/scores/recompute", Map.of(
+    private static final Map<String, Map<String, String[]>> BY_PATH = Map.ofEntries(
+            Map.entry("/api/v1/homes", Map.of("422", CONSENT)),
+            Map.entry("/api/v1/signals", Map.of("422", CONSENT)),
+            Map.entry("/api/v1/homes/{homeId}/medications", Map.of(
+                    "400", new String[] {"Horário fora do formato \"HH:mm\"",
+                            "VALIDATION_ERROR", "Corpo da requisição inválido."},
+                    "422", CONSENT)),
+            Map.entry("/api/v1/medications/{medId}", Map.of(
+                    "400", new String[] {"Horário fora do formato \"HH:mm\"",
+                            "VALIDATION_ERROR", "Corpo da requisição inválido."})),
+            Map.entry("/api/v1/medications/{medId}/confirm", Map.of("422", CONSENT)),
+            Map.entry("/api/v1/scores/recompute", Map.of(
                     "400", new String[] {"Dimensão fora da configuração do escore",
                             "UNKNOWN_DIMENSION", "Dimensão desconhecida: telepatia"},
-                    "422", new String[] {"Consentimento LGPD não aceito (RN-001)",
-                            "CONSENT_REQUIRED", "Aceite a Política de Privacidade antes de registrar dados de saúde."}),
-            "/api/v1/recommendations", Map.of("422", new String[] {
+                    "422", CONSENT)),
+            Map.entry("/api/v1/recommendations", Map.of("422", new String[] {
                     "Escore não pertence à casa, sem produto para o risco, ou consentimento ausente",
-                    "NO_PRODUCT", "Sem produto no catálogo para o risco 'fall_bathroom'."}),
-            "/api/v1/recommendations/{recommendationId}/approve", Map.of(
+                    "NO_PRODUCT", "Sem produto no catálogo para o risco 'fall_bathroom'."})),
+            Map.entry("/api/v1/recommendations/{recommendationId}/approve", Map.of(
                     "409", new String[] {"Recomendação já aprovada", "CONFLICT", "Recomendação já aprovada."},
                     "422", new String[] {"Recomendação rejeitada não vira pedido (RN-022)",
-                            "APPROVAL_REQUIRED", "Recomendação rejeitada não vira pedido."}),
-            "/api/v1/orders/{orderId}/advance", Map.of("409", new String[] {
-                    "Pedido em estágio terminal", "CONFLICT", "Pedido em estágio terminal."}),
-            "/api/v1/auth/login", Map.of("401", new String[] {"Credenciais incorretas",
-                    "INVALID_CREDENTIALS", "E-mail ou senha incorretos."}),
-            "/api/v1/auth/refresh", Map.of("401", new String[] {"Refresh token inválido ou de tipo errado",
-                    "UNAUTHORIZED", "Token inválido."}),
-            "/api/v1/auth/signup", Map.of(
+                            "APPROVAL_REQUIRED", "Recomendação rejeitada não vira pedido."})),
+            Map.entry("/api/v1/orders/{orderId}/advance", Map.of("409", new String[] {
+                    "Pedido em estágio terminal", "CONFLICT", "Pedido em estágio terminal."})),
+            Map.entry("/api/v1/auth/login", Map.of("401", new String[] {"Credenciais incorretas",
+                    "INVALID_CREDENTIALS", "E-mail ou senha incorretos."})),
+            Map.entry("/api/v1/auth/refresh", Map.of("401", new String[] {"Refresh token inválido ou de tipo errado",
+                    "UNAUTHORIZED", "Token inválido."})),
+            Map.entry("/api/v1/auth/signup", Map.of(
                     "400", new String[] {"Payload inválido — details traz o campo e o motivo",
                             "VALIDATION_ERROR", "Corpo da requisição inválido."},
-                    "409", new String[] {"E-mail já cadastrado", "CONFLICT", "E-mail já cadastrado."}),
-            "/api/v1/catalog/{sku}", Map.of("409", new String[] {
-                    "SKU já existe", "CONFLICT", "Já existe produto com o SKU LM-1566953614."}));
+                    "409", new String[] {"E-mail já cadastrado", "CONFLICT", "E-mail já cadastrado."})),
+            Map.entry("/api/v1/catalog/{sku}", Map.of("409", new String[] {
+                    "SKU já existe", "CONFLICT", "Já existe produto com o SKU LM-1566953614."})));
 
     @Bean
     public OpenApiCustomizer errorResponsesCustomizer() {

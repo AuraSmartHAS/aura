@@ -4,6 +4,7 @@ import br.com.fiap.aura.domain.Home;
 import br.com.fiap.aura.repository.ConsentRepository;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
 import br.com.fiap.aura.repository.HomeRepository;
+import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.ScoreRepository;
 import br.com.fiap.aura.repository.SignalRepository;
@@ -31,18 +32,21 @@ public class LgpdService {
     private final ScoreRepository scores;
     private final RecommendationRepository recommendations;
     private final DeliveryOrderRepository orders;
+    private final MedicationRepository medications;
     private final ConsentRepository consents;
     private final UserAccountRepository users;
     private final HomeService homeService;
 
     public LgpdService(HomeRepository homes, SignalRepository signals, ScoreRepository scores,
                        RecommendationRepository recommendations, DeliveryOrderRepository orders,
-                       ConsentRepository consents, UserAccountRepository users, HomeService homeService) {
+                       MedicationRepository medications, ConsentRepository consents,
+                       UserAccountRepository users, HomeService homeService) {
         this.homes = homes;
         this.signals = signals;
         this.scores = scores;
         this.recommendations = recommendations;
         this.orders = orders;
+        this.medications = medications;
         this.consents = consents;
         this.users = users;
         this.homeService = homeService;
@@ -73,5 +77,6 @@ public class LgpdService {
         recommendations.deleteByHomeId(homeId);
         scores.deleteByHomeId(homeId);
         signals.deleteByHomeId(homeId);
+        medications.deleteByHomeId(homeId);
     }
 }
