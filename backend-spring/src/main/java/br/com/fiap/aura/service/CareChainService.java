@@ -185,14 +185,36 @@ public class CareChainService {
 
     @Transactional(readOnly = true)
     public CareChainDtos.OrderDetailResponse detail(AuthPrincipal principal, UUID orderId) {
-        DeliveryOrder order = requireOrder(principal, orderId);
+        DeliveryOrder order = orders.findById(orderId).orElseThrow(() -> ApiException.notFound("Pedido"));
+        Home home = homeService.requireAccess(principal, order.getHomeId());
+
         return new CareChainDtos.OrderDetailResponse(order.getId(), order.getStage(), order.getSku(),
                 nameOf(productIndex(), order.getSku()),
                 new CareChainDtos.SlaResponse(order.getSlaDueAt(), order.isSlaBreached(),
                         order.getDeliveredAt(), order.getInstalledAt()),
-                new CareChainDtos.DeliveryResponse(order.getNodeName(), order.getEtaDelivery(),
-                        order.getDistanceM(), order.getStage().value()),
+                delivery(order, home),
                 order.getCreatedAt());
+    }
+
+    /** Entrega com a rota e a duração simuladas do {@link GeoService} — ambas nulas sem coordenadas. */
+    private CareChainDtos.DeliveryResponse delivery(DeliveryOrder order, Home home) {
+        StockNode node = originNode(order, home);
+        GeoService.SimulatedRoute route = node == null ? null
+                : geo.simulateRoute(node.getLat(), node.getLng(), home.getLat(), home.getLng()).orElse(null);
+
+        return new CareChainDtos.DeliveryResponse(order.getNodeName(), order.getEtaDelivery(),
+                order.getDistanceM(), order.getStage().value(),
+                route == null ? null : route.durationS(),
+                route == null ? null : new CareChainDtos.RouteResponse("LineString", route.coordinates()));
+    }
+
+    /** Nó que despachou o pedido: o nome gravado na aprovação; sem ele, o mais próximo hoje. */
+    private StockNode originNode(DeliveryOrder order, Home home) {
+        List<StockNode> all = nodes.findAll();
+        return all.stream()
+                .filter(n -> n.getName() != null && n.getName().equals(order.getNodeName()))
+                .findFirst()
+                .orElseGet(() -> geo.nearestNode(all, home.getLat(), home.getLng()).orElse(null));
     }
 
     @Transactional(readOnly = true)

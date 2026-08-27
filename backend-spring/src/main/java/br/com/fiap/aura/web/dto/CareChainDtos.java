@@ -31,7 +31,17 @@ public final class CareChainDtos {
 
     public record SlaResponse(Instant dueAt, boolean breached, Instant deliveredAt, Instant installedAt) { }
 
-    public record DeliveryResponse(String nodeName, Instant eta, Integer distanceM, String status) { }
+    @Schema(description = "Polilinha da entrega em GeoJSON `LineString` — cada par vem na ordem [lng, lat].")
+    public record RouteResponse(
+            @Schema(example = "LineString") String type,
+            @Schema(example = "[[-46.64, -23.55], [-46.6462, -23.5527]]") List<List<Double>> coordinates) { }
+
+    @Schema(description = """
+            Entrega despachada do nó logístico mais próximo. `route` e `durationS` são opcionais e
+            simulados (ver GeoService): vêm nulos quando a casa não tem coordenadas, e nesse caso o
+            cliente cai no estado vazio do mapa sem quebrar.""")
+    public record DeliveryResponse(String nodeName, Instant eta, Integer distanceM, String status,
+                                   Integer durationS, RouteResponse route) { }
 
     @Schema(description = "Pedido da cadeia de segurança, com SLA e dados da entrega roteada ao nó mais próximo.")
     public record OrderDetailResponse(UUID orderId, OrderStage stage, String sku, String productName,

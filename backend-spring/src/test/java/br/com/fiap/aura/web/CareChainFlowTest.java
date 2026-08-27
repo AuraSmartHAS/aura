@@ -142,6 +142,56 @@ class CareChainFlowTest {
     }
 
     @Test
+    @DisplayName("o pedido devolve a rota da entrega em GeoJSON LineString e a duração estimada (G3)")
+    void deliveryRouteAndDuration() throws Exception {
+        String auth = "Bearer " + signup("mapa@aura.com");
+        mvc.perform(post("/api/v1/consent").header("Authorization", auth)).andExpect(status().isCreated());
+
+        JsonNode home = body(mvc.perform(post("/api/v1/homes").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"patientName":"Maria S.","cep":"01310100","label":"Casa da Maria"}"""))
+                .andExpect(status().isCreated())
+                .andReturn());
+
+        String recId = body(mvc.perform(post("/api/v1/recommendations").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s"}""".formatted(home.get("homeId").asText())))
+                .andExpect(status().isCreated())
+                .andReturn()).get("recommendationId").asText();
+
+        String orderId = body(mvc.perform(post("/api/v1/recommendations/{id}/approve", recId)
+                        .header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andReturn()).get("orderId").asText();
+
+        JsonNode delivery = body(mvc.perform(get("/api/v1/orders/{id}", orderId).header("Authorization", auth))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.delivery.route.type").value("LineString"))
+                        .andReturn())
+                .get("delivery");
+
+        assertThat(delivery.get("durationS").asInt()).isPositive();
+
+        JsonNode coordinates = delivery.get("route").get("coordinates");
+        assertThat(coordinates.size()).isBetween(5, 8);
+
+        // GeoJSON é [lng, lat]: em São Paulo a longitude fica na casa dos -46 e a latitude na dos -23
+        for (JsonNode point : coordinates) {
+            assertThat(point.size()).isEqualTo(2);
+            assertThat(point.get(0).asDouble()).isBetween(-47.0, -46.0);
+            assertThat(point.get(1).asDouble()).isBetween(-24.0, -23.0);
+        }
+
+        // o cliente lê o primeiro ponto como o nó logístico e o último como a casa
+        JsonNode destination = coordinates.get(coordinates.size() - 1);
+        assertThat(destination.get(0).asDouble()).isEqualTo(home.get("lng").asDouble());
+        assertThat(destination.get(1).asDouble()).isEqualTo(home.get("lat").asDouble());
+        assertThat(coordinates.get(0).get(0).asDouble()).isNotEqualTo(home.get("lng").asDouble());
+    }
+
+    @Test
     @DisplayName("casa de outra cuidadora responde 403, não 404 (RN-017)")
     void isolationBetweenPatients() throws Exception {
         String owner = "Bearer " + signup("dona@aura.com");

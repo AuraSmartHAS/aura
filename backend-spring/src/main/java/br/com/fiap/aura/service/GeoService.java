@@ -1,6 +1,7 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.domain.StockNode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,12 @@ public class GeoService {
 
     private static final Logger log = LoggerFactory.getLogger(GeoService.class);
     private static final double EARTH_RADIUS_M = 6_371_000;
+
+    /** Velocidade média urbana usada para estimar a duração da entrega (25 km/h em m/s). */
+    private static final double AVG_URBAN_SPEED_MS = 25_000 / 3_600d;
+    private static final int ROUTE_POINTS = 7;
+    private static final double ROUTE_BULGE = 0.09;
+    private static final double ROUTE_WIGGLE = 0.02;
 
     private final RestClient viaCep = RestClient.builder()
             .baseUrl("https://viacep.com.br/ws")
@@ -53,6 +60,46 @@ public class GeoService {
         double a = Math.pow(Math.sin(dLat / 2), 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.pow(Math.sin(dLng / 2), 2);
         return EARTH_RADIUS_M * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    /** Polilinha do nó até a casa (pares [lng, lat], ordem do GeoJSON) e duração estimada em segundos. */
+    public record SimulatedRoute(List<List<Double>> coordinates, int durationS) { }
+
+    /**
+     * Rota e duração da entrega são SIMULADAS para a demonstração — não há integração com
+     * serviço de roteamento nem malha viária aqui. Premissas, explícitas de propósito:
+     * a polilinha é a reta nó→casa deslocada por um arco suave com leve serpenteado (só para
+     * o mapa não desenhar um traço artificial), e a duração é a distância em linha reta
+     * dividida por 25 km/h, média de trânsito urbano. É determinística: a mesma casa e o
+     * mesmo nó devolvem sempre a mesma rota. Sem coordenadas, devolve vazio — e o cliente
+     * degrada para o estado vazio do mapa.
+     */
+    public Optional<SimulatedRoute> simulateRoute(Double fromLat, Double fromLng, Double toLat, Double toLng) {
+        if (fromLat == null || fromLng == null || toLat == null || toLng == null) {
+            return Optional.empty();
+        }
+        double deltaLat = toLat - fromLat;
+        double deltaLng = toLng - fromLng;
+        double span = Math.hypot(deltaLat, deltaLng);
+        // perpendicular unitária ao trecho: é nela que os vértices do meio são deslocados
+        double perpLat = span == 0 ? 0 : -deltaLng / span;
+        double perpLng = span == 0 ? 0 : deltaLat / span;
+
+        List<List<Double>> coordinates = new ArrayList<>(ROUTE_POINTS);
+        for (int i = 0; i < ROUTE_POINTS; i++) {
+            double t = (double) i / (ROUTE_POINTS - 1);
+            // os dois senos zeram nas pontas: a rota começa no nó e termina na casa, exatamente
+            double offset = span * (ROUTE_BULGE * Math.sin(Math.PI * t) + ROUTE_WIGGLE * Math.sin(3 * Math.PI * t));
+            coordinates.add(List.of(round6(fromLng + deltaLng * t + perpLng * offset),
+                    round6(fromLat + deltaLat * t + perpLat * offset)));
+        }
+
+        long durationS = Math.round(haversineMeters(fromLat, fromLng, toLat, toLng) / AVG_URBAN_SPEED_MS);
+        return Optional.of(new SimulatedRoute(coordinates, (int) Math.max(durationS, 1)));
+    }
+
+    private double round6(double value) {
+        return Math.round(value * 1_000_000d) / 1_000_000d;
     }
 
     /** Nó mais próximo da casa; sem coordenadas, o primeiro cadastrado. */
