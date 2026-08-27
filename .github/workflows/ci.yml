@@ -1,11 +1,17 @@
 # CI do monorepo AURA — roda só o que mudou, em paralelo. Nenhum segredo necessário.
 #
 # Escopo desta primeira versão (deliberado): os quatro projetos rodam os testes que
-# JÁ existem — 11 no Spring, 17+6 no painel, 13 no Flutter, 7 no app RN = 54, o mesmo
-# número que a documentação da Fase 5 afirma. Os gates mais duros do plano
-# (lint de design system, verificação de contrato openapi ↔ types.gen.ts, e2e do
-# painel) entram quando os scripts existirem — ver "PRÓXIMOS PASSOS" no fim do arquivo.
+# JÁ existem. Os gates mais duros do plano (lint de design system, verificação de
+# contrato openapi ↔ types.gen.ts, e2e do painel) entram quando os scripts existirem
+# — ver "PRÓXIMOS PASSOS" no fim do arquivo.
 # Regra da casa: CI que nasce vermelho é CI que todo mundo aprende a ignorar.
+#
+# TUDO AQUI FOI EXECUTADO LOCALMENTE ANTES DE ENTRAR (27/08/2026), para o workflow
+# não nascer vermelho por surpresa:
+#   backend-spring  ./mvnw test ................ verde
+#   mobile-rn       tsc --noEmit + 7 testes .... verde (o tsc estava quebrado; corrigido)
+#   web-admin       build de produção + 17 ..... verde
+#   mobile          analyze + 13 testes ........ verde ("No issues found!")
 name: CI
 
 on:
@@ -135,13 +141,10 @@ jobs:
       - name: Prepara o .env a partir do exemplo
         run: cp .env.example .env
       - run: flutter pub get
-      # analysis_options.yaml tem flutter_lints ^4 + regras extras e NUNCA rodou em
-      # CI — a primeira run pode vir com avisos acumulados. Fica tolerante só para
-      # não bloquear a entrega da Fase 5; a combinação é abrir um PR dedicado a
-      # "deixar o analyze verde" e REMOVER este continue-on-error até 15/09/2026.
-      # Aviso ignorado por tempo indeterminado é aviso que não existe.
-      - name: Análise estática (tolerante — remover até 15/09)
-        continue-on-error: true
+      # Rodado localmente em 27/08 com Flutter 3.47.1: "No issues found!".
+      # Justamente por isso entra bloqueante — não há dívida a tolerar aqui, e
+      # gate tolerante em código que já está limpo só ensina o time a ignorar CI.
+      - name: Análise estática
         run: flutter analyze
       - run: flutter test
 
