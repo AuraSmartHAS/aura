@@ -1,0 +1,181 @@
+# CI do monorepo AURA — roda só o que mudou, em paralelo. Nenhum segredo necessário.
+#
+# Escopo desta primeira versão (deliberado): os quatro projetos rodam os testes que
+# JÁ existem — 11 no Spring, 17+6 no painel, 13 no Flutter, 7 no app RN = 54, o mesmo
+# número que a documentação da Fase 5 afirma. Os gates mais duros do plano
+# (lint de design system, verificação de contrato openapi ↔ types.gen.ts, e2e do
+# painel) entram quando os scripts existirem — ver "PRÓXIMOS PASSOS" no fim do arquivo.
+# Regra da casa: CI que nasce vermelho é CI que todo mundo aprende a ignorar.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, fase5, rn-total]
+
+# PR novo cancela a run antiga do mesmo branch — economiza minutos do plano free.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ── Descobre o que mudou. Todos os outros jobs dependem daqui. ────────────────
+  # Usamos dorny/paths-filter em vez do `paths:` nativo porque o nativo é um só
+  # por arquivo: filtrar por projeto exigiria 4 workflows e 4 branch protections.
+  mudou:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filtro.outputs.backend }}
+      rn: ${{ steps.filtro.outputs.rn }}
+      admin: ${{ steps.filtro.outputs.admin }}
+      flutter: ${{ steps.filtro.outputs.flutter }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filtro
+        with:
+          filters: |
+            backend:
+              - 'backend-spring/**'
+              - '.github/workflows/ci.yml'
+            rn:
+              - 'mobile-rn/**'
+              - '.github/workflows/ci.yml'
+            admin:
+              - 'web-admin/**'
+              - '.github/workflows/ci.yml'
+            flutter:
+              - 'mobile/**'
+              - '.github/workflows/ci.yml'
+
+  # ── Spring: 11 testes em H2 (perfil dev), sem Postgres, sem Docker. ──────────
+  backend-spring:
+    needs: mudou
+    if: needs.mudou.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21' # pom.xml: <java.version>21</java.version>
+          cache: maven
+      # O wrapper é distributionType=only-script: baixa o Maven na primeira run.
+      - name: Testes
+        working-directory: backend-spring
+        run: ./mvnw -B -ntp test
+
+  # ── App React Native: destino da migração. Tipos primeiro, testes depois. ────
+  mobile-rn:
+    needs: mudou
+    if: needs.mudou.outputs.rn == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile-rn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Expo SDK 57 / RN 0.86
+          cache: npm
+          cache-dependency-path: mobile-rn/package-lock.json
+      # npm ci (não install): instala exatamente o lock. É o que revela dependência
+      # instalada na máquina de alguém e nunca declarada no package.json.
+      - run: npm ci
+      - name: Tipos (TypeScript strict)
+        run: npm run typecheck
+      - name: Testes
+        run: npm test -- --ci --maxWorkers=2
+
+  # ── Painel Angular: build de produção pega erro de template que o teste não vê.
+  web-admin:
+    needs: mudou
+    if: needs.mudou.outputs.admin == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web-admin/package-lock.json
+      - run: npm ci
+      - run: npx ng build --configuration production
+      # Chrome já vem no runner ubuntu-latest. Sem --no-watch o Karma trava para sempre.
+      - name: Testes unitários (headless)
+        run: npx ng test --no-watch --no-progress --browsers=ChromeHeadless
+
+  # ── Flutter: é o app que sobe ao palco até o RN atingir paridade. ────────────
+  mobile:
+    needs: mudou
+    if: needs.mudou.outputs.flutter == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      # O pubspec declara `.env` como asset e o .gitignore o esconde: sem esta
+      # linha, build e teste falham por asset faltando em clone limpo.
+      - name: Prepara o .env a partir do exemplo
+        run: cp .env.example .env
+      - run: flutter pub get
+      # analysis_options.yaml tem flutter_lints ^4 + regras extras e NUNCA rodou em
+      # CI — a primeira run pode vir com avisos acumulados. Fica tolerante só para
+      # não bloquear a entrega da Fase 5; a combinação é abrir um PR dedicado a
+      # "deixar o analyze verde" e REMOVER este continue-on-error até 15/09/2026.
+      # Aviso ignorado por tempo indeterminado é aviso que não existe.
+      - name: Análise estática (tolerante — remover até 15/09)
+        continue-on-error: true
+        run: flutter analyze
+      - run: flutter test
+
+  # ── Agregador: é este que a branch protection exige. ─────────────────────────
+  # Sem ele, um job que não rodou (porque o filtro não pegou) aparece como
+  # pendente para sempre e a proteção de branch nunca libera o merge.
+  ci:
+    if: always()
+    needs: [backend-spring, mobile-rn, web-admin, mobile]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resultado
+        run: |
+          echo "backend-spring: ${{ needs.backend-spring.result }}"
+          echo "mobile-rn:      ${{ needs.mobile-rn.result }}"
+          echo "web-admin:      ${{ needs.web-admin.result }}"
+          echo "mobile:         ${{ needs.mobile.result }}"
+          # 'skipped' é sucesso: significa que aquele projeto não foi tocado no PR.
+          for r in "${{ needs.backend-spring.result }}" "${{ needs.mobile-rn.result }}" \
+                   "${{ needs.web-admin.result }}" "${{ needs.mobile.result }}"; do
+            if [ "$r" = "failure" ] || [ "$r" = "cancelled" ]; then
+              echo "::error::Pelo menos um projeto falhou."
+              exit 1
+            fi
+          done
+          echo "Tudo verde (ou não tocado)."
+
+# ── PRÓXIMOS PASSOS (não improvisar: cada um tem o desenho pronto no plano) ────
+# 1. Lint do design system — nenhum hex fora de core/theme, nenhum import cruzado
+#    entre features, fontSize com piso, nada de fetch em tela.
+#    Config de ESLint pronta em "PLANO RN TOTAL/10-QUALIDADE-TESTES-E-CI.md" §4.
+#    Hoje NÃO existe ESLint em nenhum lugar do monorepo — por isso ficou fora daqui.
+# 2. Job de contrato (duas pernas): docs/api/openapi.json vs o Spring vivo, e
+#    types.gen.ts vs openapi.json. Desenho em §5 do mesmo documento. Entra quando
+#    a geração de tipos existir no mobile-rn.
+# 3. e2e do painel (Playwright, 6 testes): sobe 2 servidores e depende de JAVA_HOME;
+#    é caro para rodar em todo PR. Sugestão do plano: agendado ou por label.
