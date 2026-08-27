@@ -30,6 +30,9 @@ class ConversationRepositoryImpl implements ConversationRepository {
       _sessionDataSource.transcriptStream;
 
   @override
+  Stream<String> get errorStream => _sessionDataSource.errorStream;
+
+  @override
   Future<Result<String>> fetchToken() async {
     try {
       final result = await _remoteDataSource.fetchToken();
@@ -75,6 +78,19 @@ class ConversationRepositoryImpl implements ConversationRepository {
       return result;
     } catch (e) {
       debugPrint("[ASDFGHJKL] set mic muted - $e");
+      return Failure(
+        AppFailure.unexpected(message: e.toString()),
+      );
+    }
+  }
+
+  @override
+  Future<Result<void>> sendTextMessage(String text) async {
+    try {
+      final result = await _sessionDataSource.sendText(text);
+      return result;
+    } catch (e) {
+      debugPrint("[ASDFGHJKL] send text message - $e");
       return Failure(
         AppFailure.unexpected(message: e.toString()),
       );

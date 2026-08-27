@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
@@ -7,6 +8,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/big_mic_button.dart';
 import '../../../../shared/widgets/keyboard_fallback_bar.dart';
 import '../bloc/home_bloc.dart';
+import 'text_fallback_panel.dart';
 
 class HomeBody extends StatelessWidget {
   const HomeBody({super.key});
@@ -37,81 +39,160 @@ class HomeBody extends StatelessWidget {
           }
 
           return SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimensions.lg,
-                    AppDimensions.lg,
-                    AppDimensions.lg,
-                    AppDimensions.sm,
-                  ),
-                  child: Text(
-                    'Olá, ${state.userName}',
-                    // Patient surface: large warm greeting (>=32sp).
-                    style: Theme.of(context).textTheme.displayLarge,
-                  ),
-                ),
-                Expanded(child: _Transcript(state: state)),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppDimensions.lg,
-                    AppDimensions.md,
-                    AppDimensions.lg,
-                    AppDimensions.lg,
-                  ),
-                  child: Column(
-                    children: [
-                      if (state.errorMessage != null)
-                        Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: AppDimensions.md),
-                          child: Text(
-                            state.errorMessage!,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(color: AppColors.error),
-                          ),
-                        ),
-                      // Hero: the giant accessible mic button stays centered.
-                      BigMicButton(
-                        state: _toMicState(state.voiceState),
-                        onTap: () => context
-                            .read<HomeBloc>()
-                            .add(const HomeMicTappedEvent()),
+            child: LayoutBuilder(
+              builder: (context, constraints) => Column(
+                children: [
+                  _GreetingRow(userName: state.userName),
+                  Expanded(child: _Transcript(state: state)),
+                  // O rodapé cresce muito (microfone, aviso, chips, campo de
+                  // texto) e ainda pode crescer de novo com a fonte do sistema
+                  // aumentada. Teto + rolagem própria: nada some da tela nem
+                  // estoura o layout em aparelho pequeno.
+                  ConstrainedBox(
+                    constraints:
+                        BoxConstraints(maxHeight: constraints.maxHeight * 0.7),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppDimensions.lg,
+                        AppDimensions.md,
+                        AppDimensions.lg,
+                        AppDimensions.lg,
                       ),
-                      const SizedBox(height: AppDimensions.sm),
-                      Text(
-                        _micStateText(state.voiceState),
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(color: AppColors.textPrimary),
-                      ),
-                      const SizedBox(height: AppDimensions.md),
-                      // RN-008 / UI-02: keyboard fallback always available — a
-                      // distinct "prefiro digitar" affordance, not a copy of
-                      // the mic. Wiring preserved (dispatches HomeMicTapped).
-                      KeyboardFallbackBar(
-                        actions: [
-                          FallbackAction(
-                            label: 'Prefiro digitar',
-                            icon: Icons.keyboard_outlined,
-                            onTap: () => context
-                                .read<HomeBloc>()
-                                .add(const HomeMicTappedEvent()),
-                          ),
-                        ],
-                      ),
-                    ],
+                      child: _BottomPanel(state: state),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+/// Saudação da Maria com o espaço do SOS reservado à direita.
+class _GreetingRow extends StatelessWidget {
+  const _GreetingRow({required this.userName});
+
+  final String? userName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppDimensions.lg,
+        AppDimensions.lg,
+        AppDimensions.lg,
+        AppDimensions.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Olá, $userName',
+              // Patient surface: large warm greeting (>=32sp).
+              style: Theme.of(context).textTheme.displayLarge,
+            ),
+          ),
+          // C3 (SOS): o botão de emergência entra aqui, ancorado no topo. Com o
+          // teclado aberto quem encolhe é o rodapé, então o SOS neste ponto
+          // nunca fica coberto nem empurrado para fora da tela.
+          const SizedBox.square(dimension: AppDimensions.sosButtonSize),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rodapé da conversa: erro, aviso e — conforme a escolha da Maria — o
+/// microfone ou o caminho escrito.
+class _BottomPanel extends StatelessWidget {
+  const _BottomPanel({required this.state});
+
+  final HomeState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<HomeBloc>();
+    void send(String message) => bloc.add(HomeTextSubmittedEvent(message));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (state.errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.md),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                state.errorMessage!,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: AppColors.error),
+              ),
+            ),
+          ),
+        if (state.notice != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppDimensions.md),
+            child: _NoticeBanner(
+              message: state.notice!,
+              noticeId: state.noticeId,
+            ),
+          ),
+        if (state.isTextMode)
+          TextFallbackPanel(
+            intentsHighlighted: state.intentsHighlighted,
+            onSend: send,
+            onRepeat: () => bloc.add(const HomeRepeatLastReplyEvent()),
+            onVoice: () => bloc.add(const HomeVoiceModeRequestedEvent()),
+          )
+        else ...[
+          // Hero: the giant accessible mic button stays centered.
+          Center(
+            child: BigMicButton(
+              state: _toMicState(state.voiceState),
+              onTap: () => bloc.add(const HomeMicTappedEvent()),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.sm),
+          Text(
+            _micStateText(state),
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(color: AppColors.textPrimary),
+          ),
+          if (state.intentsHighlighted) ...[
+            const SizedBox(height: AppDimensions.md),
+            IntentChipsRow(onIntent: send, highlighted: true),
+          ],
+          const SizedBox(height: AppDimensions.md),
+          // RN-008 / UI-02 / C4: o fallback é um caminho de verdade — "Prefiro
+          // digitar" abre o campo de texto, nunca liga o microfone (R-10).
+          KeyboardFallbackBar(
+            actions: [
+              FallbackAction(
+                label: 'Prefiro digitar',
+                icon: Icons.keyboard_outlined,
+                onTap: () => bloc.add(const HomeTextModeRequestedEvent()),
+              ),
+              // Só aparece quando existe fala para repetir — no começo da
+              // conversa seria um botão que não faz nada.
+              if (state.lastAuraReply != null)
+                FallbackAction(
+                  label: 'Ouvir de novo',
+                  icon: Icons.replay,
+                  onTap: () => bloc.add(const HomeRepeatLastReplyEvent()),
+                ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
@@ -130,8 +211,11 @@ class HomeBody extends StatelessWidget {
     }
   }
 
-  String _micStateText(VoiceUIState state) {
-    switch (state) {
+  String _micStateText(HomeState state) {
+    if (state.isMuted && state.isSessionLive) {
+      return 'Microfone desligado. Toque para falar.';
+    }
+    switch (state.voiceState) {
       case VoiceUIState.idle:
         return 'Toque para começar';
       case VoiceUIState.connecting:
@@ -146,27 +230,119 @@ class HomeBody extends StatelessWidget {
   }
 }
 
-class _Transcript extends StatelessWidget {
+/// Aviso calmo da Aura ("Não te ouvi bem", a última fala repetida). Cada aviso
+/// novo é anunciado ao leitor de tela — é o que faz "Ouvir de novo" servir a
+/// quem não enxerga o balão.
+class _NoticeBanner extends StatefulWidget {
+  const _NoticeBanner({required this.message, required this.noticeId});
+
+  final String message;
+  final int noticeId;
+
+  @override
+  State<_NoticeBanner> createState() => _NoticeBannerState();
+}
+
+class _NoticeBannerState extends State<_NoticeBanner> {
+  @override
+  void initState() {
+    super.initState();
+    _announce();
+  }
+
+  @override
+  void didUpdateWidget(_NoticeBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.noticeId != oldWidget.noticeId) {
+      _announce();
+    }
+  }
+
+  void _announce() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      SemanticsService.sendAnnouncement(
+        View.of(context),
+        widget.message,
+        Directionality.of(context),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        padding: const EdgeInsets.all(AppDimensions.md),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        ),
+        child: Text(
+          widget.message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Transcript da conversa. Rola sozinho até a última mensagem: sem isso, o que
+/// a Maria acabou de dizer (ou escrever) some abaixo da dobra.
+class _Transcript extends StatefulWidget {
   const _Transcript({required this.state});
 
   final HomeState state;
 
   @override
+  State<_Transcript> createState() => _TranscriptState();
+}
+
+class _TranscriptState extends State<_Transcript> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void didUpdateWidget(_Transcript oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.transcript.length != oldWidget.state.transcript.length) {
+      _scrollToLatest();
+    }
+  }
+
+  void _scrollToLatest() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (state.transcript.isEmpty) {
+    if (widget.state.transcript.isEmpty) {
       return const _EmptyTranscript();
     }
 
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(
         AppDimensions.lg,
         AppDimensions.sm,
         AppDimensions.lg,
         AppDimensions.md,
       ),
-      itemCount: state.transcript.length,
+      itemCount: widget.state.transcript.length,
       itemBuilder: (context, index) {
-        final message = state.transcript[index];
+        final message = widget.state.transcript[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: AppDimensions.md),
           child: _ChatBubble(text: message.text, isUser: message.isUser),
@@ -185,30 +361,42 @@ class _EmptyTranscript extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // AURA's identity mark — a calm, friendly presence.
-            const _AuraAvatar(),
-            const SizedBox(height: AppDimensions.lg),
-            Text(
-              'Olá, vamos conversar?',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displaySmall
-                  ?.copyWith(color: AppColors.textPrimary),
+    // Centraliza quando cabe e rola quando não cabe — com o teclado aberto (ou
+    // a fonte do sistema aumentada) esta área encolhe bastante.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.xl,
+                vertical: AppDimensions.md,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // AURA's identity mark — a calm, friendly presence.
+                  const _AuraAvatar(),
+                  const SizedBox(height: AppDimensions.lg),
+                  Text(
+                    'Olá, vamos conversar?',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.displaySmall
+                        ?.copyWith(color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: AppDimensions.sm),
+                  Text(
+                    'Sou a Aura. Fale comigo pelo microfone ou toque em '
+                    '"Prefiro digitar" — do jeito que for mais fácil para você.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppDimensions.sm),
-            Text(
-              'Sou a Aura. Toque no microfone e fale comigo — '
-              'estou aqui para te ouvir, com calma.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge
-                  ?.copyWith(color: AppColors.textSecondary),
-            ),
-          ],
+          ),
         ),
       ),
     );

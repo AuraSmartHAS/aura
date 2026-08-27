@@ -21,6 +21,15 @@ class AppDimensions {
   /// Minimum touch target (WCAG 2.5.5).
   static const double minTouchTarget = 48;
 
+  /// Comfortable target for the patient surface — used by the non-vocal
+  /// fallback (campo de texto e chips de intenção, correção C4), where tremor
+  /// makes the 48dp minimum too tight.
+  static const double comfortableTouchTarget = 56;
+
+  /// Footprint reserved for the persistent SOS button (correção C3). Kept as a
+  /// token so the anchor stays honest while the button itself does not exist.
+  static const double sosButtonSize = 64;
+
   /// Patient voice mic button (spec 06: microfone ≥160dp).
   static const double bigMicSize = 160;
 

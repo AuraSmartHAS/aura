@@ -8,8 +8,14 @@ abstract class ConversationRepository {
   Stream<bool> get isMutedStream;
   Stream<List<TranscriptMessageEntity>> get transcriptStream;
 
+  /// Erros que a sessão de voz reporta por callback em vez de lançar.
+  Stream<String> get errorStream;
+
   Future<Result<String>> fetchToken();
   Future<Result<void>> startConversation(String token);
   Future<Result<void>> stopConversation();
   Future<Result<void>> setMicMuted(bool muted);
+
+  /// Envia uma mensagem escrita para a mesma sessão de conversa (correção C4).
+  Future<Result<void>> sendTextMessage(String text);
 }

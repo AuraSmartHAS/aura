@@ -54,3 +54,44 @@ class HomeModeChangedEvent extends HomeEvent {
   @override
   List<Object?> get props => [mode];
 }
+
+/// "Prefiro digitar": abre o caminho não-vocal. Conecta a sessão com o
+/// microfone mudo — nunca liga o microfone (regressão R-10).
+class HomeTextModeRequestedEvent extends HomeEvent {
+  const HomeTextModeRequestedEvent();
+}
+
+/// "Prefiro falar": volta ao microfone sem derrubar a conversa.
+class HomeVoiceModeRequestedEvent extends HomeEvent {
+  const HomeVoiceModeRequestedEvent();
+}
+
+/// Texto escrito ou chip de intenção tocado — os dois viram a mesma mensagem.
+class HomeTextSubmittedEvent extends HomeEvent {
+  final String text;
+
+  const HomeTextSubmittedEvent(this.text);
+
+  @override
+  List<Object?> get props => [text];
+}
+
+/// "Ouvir de novo": repete a última fala da Aura.
+class HomeRepeatLastReplyEvent extends HomeEvent {
+  const HomeRepeatLastReplyEvent();
+}
+
+/// Erro vindo do callback `onError` da sessão de voz.
+class HomeErrorReceivedEvent extends HomeEvent {
+  final String message;
+
+  const HomeErrorReceivedEvent(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+/// Passou o tempo de espera sem resposta da Maria.
+class HomeSilenceDetectedEvent extends HomeEvent {
+  const HomeSilenceDetectedEvent();
+}
