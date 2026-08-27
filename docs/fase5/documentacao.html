@@ -127,8 +127,8 @@ em Python/FastAPI.
   <strong>O ponto de encontro é o contrato.</strong> O painel Angular e o app React Native
   consomem a API Spring Boot desta fase; o app Flutter fala o mesmo contrato <code>/api/v1</code> e
   passa a consumi-la apontando <code>BACKEND_BASE_URL</code> para a porta 8080, sem alteração de
-  código — enquanto a migração das rotas restantes não termina (estratégia de transição no fim da seção 2), ele segue apontado
-  para o serviço da Fase 4. Foi essa decisão de contrato único que permitiu trocar de stack no
+  código — e é para lá que ele aponta por padrão desde esta fase, com o serviço da Fase 4 mantido
+  apenas como referência histórica. Foi essa decisão de contrato único que permitiu trocar de stack no
   mobile e de linguagem no backend sem reescrever o produto: o que define o AURA são as regras
   (escore explicável, gate LGPD, aprovação humana), não a tecnologia de cada superfície.
 </div>
@@ -371,7 +371,7 @@ produção.
 <h3>3.4 API REST</h3>
 
 <p>
-São <strong>32 operações REST distribuídas em 26 rotas</strong> sob <code>/api/v1</code> — o número
+São <strong>37 operações REST distribuídas em 29 rotas</strong> sob <code>/api/v1</code> — o número
 pode ser conferido no próprio <code>/v3/api-docs</code> da aplicação rodando. A tabela abaixo
 agrupa as operações por recurso.
 </p>
@@ -504,7 +504,7 @@ pedidos da casa é literalmente vazia — e isso é verificado por teste automat
 <p>
 A API é documentada com <strong>springdoc-openapi</strong>, gerada a partir do próprio código —
 não há documento paralelo que possa envelhecer. O Swagger UI (<code>/swagger-ui.html</code>)
-lista as 32 operações agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado:
+lista as 37 operações agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado:
 dá para autenticar com o botão <em>Authorize</em> e executar o fluxo inteiro pelo navegador.
 </p>
 
