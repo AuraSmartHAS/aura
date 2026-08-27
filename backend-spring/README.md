@@ -42,10 +42,11 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ./mvnw test
 ```
 
-11 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição) e o
-percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
-recomendação → aprovação → pedido entregue, mais isolamento entre pacientes (403),
-RBAC da Torre de Controle e validação de payload.
+18 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
+o percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
+recomendação → aprovação → pedido entregue — e o ciclo de vida da medicação,
+incluindo a confirmação de dose que vira sinal de adesão. Mais isolamento entre
+pacientes (403), RBAC da Torre de Controle e validação de payload.
 
 > Requer **JDK 21**. Se `./mvnw` reclamar de "Unable to locate a Java Runtime" no
 > macOS, instale com `brew install openjdk@21` e exporte antes de rodar:
@@ -82,7 +83,10 @@ npx @redocly/cli build-docs ../docs/api/openapi.json -o ../docs/api/aura-api.htm
 | `POST` `PUT` `DELETE` | `/api/v1/catalog/{sku}` | CRUD do catálogo — **admin** |
 | `POST` `GET` | `/api/v1/recommendations` · `/homes/{id}/recommendations` | recomendação explicada |
 | `POST` | `/api/v1/recommendations/{id}/approve` · `reject` | aprovação humana (RN-022) |
-| `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | cadeia logística e SLA |
+| `POST` `GET` | `/api/v1/homes/{id}/medications` | medicações do paciente |
+| `PUT` `DELETE` | `/api/v1/medications/{id}` | edita e remove |
+| `POST` | `/api/v1/medications/{id}/confirm` | confirma a dose → grava sinal de adesão |
+| `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | cadeia logística, rota da entrega e SLA |
 | `GET` | `/api/v1/ops/kpis` | Torre de Controle — **admin** |
 | `GET` | `/api/v1/health` · `/` | saúde do serviço · página Thymeleaf |
 

@@ -544,14 +544,15 @@ de superfície operacional do servidor, renderizada sem depender de nenhum clien
 <h3>3.9 Testes</h3>
 
 <p>
-São <strong>54 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
+São <strong>61 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
 módulos — e todos executados nesta entrega:
 </p>
 
 <table>
   <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
-  <tr><td>Back-end (JUnit + MockMvc)</td><td>11</td><td><code>./mvnw test</code></td>
-      <td>motor de escore, guardrail e o percurso completo da API</td></tr>
+  <tr><td>Back-end (JUnit + MockMvc)</td><td>18</td><td><code>./mvnw test</code></td>
+      <td>motor de escore, guardrail, o percurso completo da API, o ciclo de vida
+          da medicação e o isolamento entre pacientes</td></tr>
   <tr><td>Painel Angular (Jasmine/Karma)</td><td>17</td><td><code>npm test</code></td>
       <td>cliente HTTP, sessão, interceptor JWT e tradução de erro</td></tr>
   <tr><td>Painel Angular (Playwright)</td><td>6</td><td><code>npm run e2e</code></td>
