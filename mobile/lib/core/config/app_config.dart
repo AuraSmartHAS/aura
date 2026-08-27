@@ -14,9 +14,12 @@ class AppConfig {
           ? dotenv.get(key).trim()
           : fallback;
 
-  /// Root of the aura-server backend (e.g. `http://localhost:8000`).
+  /// Raiz da API do AURA. O padrão é a API Spring Boot desta fase, na porta 8080
+  /// (`backend-spring`). O fallback antigo apontava para `:8000`, do serviço
+  /// Python da Fase 4, que está parado desde 14/06 — quem clonava o repositório
+  /// sem `.env` subia o app contra um backend inexistente.
   static String get backendBaseUrl =>
-      _get('BACKEND_BASE_URL', fallback: 'http://localhost:8000');
+      _get('BACKEND_BASE_URL', fallback: 'http://localhost:8080');
 
   /// Full REST prefix consumed by the dio client.
   static String get apiBaseUrl => '$backendBaseUrl/api/v1';
