@@ -64,8 +64,13 @@ Para regerar o contrato e a página offline depois de mudar a API:
 
 ```bash
 curl -s http://localhost:8080/v3/api-docs | python3 -m json.tool > ../docs/api/openapi.json
-npx @redocly/cli build-docs ../docs/api/openapi.json -o ../docs/api/aura-api.html
+python3 ../docs/api/gerar_doc.py ../docs/api/openapi.json ../docs/api/aura-api.html
 ```
+
+> ⚠️ **Não use `npx @redocly/cli build-docs` para gerar o `aura-api.html`.** Ele
+> produz uma página que baixa o renderizador de `cdn.redocly.com`: aberta sem
+> internet, fica em branco — e esse arquivo vai dentro do ZIP da entrega, que
+> precisa funcionar localmente. O `gerar_doc.py` gera HTML autocontido.
 
 ## 🗺️ Rotas
 
