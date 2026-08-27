@@ -11,6 +11,7 @@ import 'package:aura/features/home/domain/usecases/start_conversation_usecase.da
 import 'package:aura/features/home/domain/usecases/stop_conversation_usecase.dart';
 import 'package:aura/features/home/domain/usecases/toggle_mute_usecase.dart';
 import 'package:aura/features/home/presentation/bloc/home_bloc.dart';
+import 'package:aura/features/home/presentation/home_error_copy.dart';
 import 'package:aura/features/home/presentation/widgets/home_body.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -105,8 +106,10 @@ void main() {
     repository.emitError('Failed to send message');
     await _settle(tester);
 
+    // A frase vem do dicionário (C6), não de um literal repetido aqui: mudar a
+    // cópia num lugar só continua sendo verdade neste teste.
     expect(
-      find.text('Não consegui enviar sua mensagem. Tente de novo.'),
+      find.text(HomeErrorCopy.of(HomeErrorCode.sendFailed)),
       findsOneWidget,
     );
   });

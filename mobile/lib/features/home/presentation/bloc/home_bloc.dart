@@ -10,6 +10,7 @@ import '../../domain/usecases/send_text_message_usecase.dart';
 import '../../domain/usecases/start_conversation_usecase.dart';
 import '../../domain/usecases/stop_conversation_usecase.dart';
 import '../../domain/usecases/toggle_mute_usecase.dart';
+import '../home_error_copy.dart';
 import 'package:aura/core/errors/result.dart';
 
 part 'home_event.dart';
@@ -43,6 +44,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   ConversationMode _currentMode = ConversationMode.listening;
   String? _conversationToken;
+
+  /// Por que a conversa não está pronta. Guardado no início e usado só quando a
+  /// Maria tenta falar: sem internet ao abrir o app, a frase é "sem internet" —
+  /// não a genérica.
+  HomeErrorCode _tokenErrorCode = HomeErrorCode.tokenUnavailable;
 
   HomeBloc({
     required FetchConversationTokenUseCase fetchTokenUseCase,
@@ -81,6 +87,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final tokenResult = await _fetchTokenUseCase();
     if (tokenResult is Success<String>) {
       _conversationToken = tokenResult.data;
+    } else if (tokenResult is Failure<String>) {
+      // A tela abre calma mesmo assim: falha aqui não é erro dela, e banner
+      // vermelho na abertura é o que faz uma idosa achar que quebrou. A frase
+      // espera o primeiro toque no microfone.
+      _tokenErrorCode = HomeErrorCopy.codeFor(
+        '${tokenResult.failure}',
+        fallback: HomeErrorCode.tokenUnavailable,
+      );
     }
 
     emit(state.copyWith(isLoading: false, userName: 'Maria'));
@@ -115,8 +129,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (_conversationToken == null) {
         emit(state.copyWith(
           voiceState: VoiceUIState.error,
-          errorMessage: 'Não consegui falar com a Aura agora. '
-              'Tente de novo em um instante.',
+          errorMessage: HomeErrorCopy.of(_tokenErrorCode),
         ));
         return;
       }
@@ -129,7 +142,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (result is Failure<void>) {
         emit(state.copyWith(
           voiceState: VoiceUIState.error,
-          errorMessage: 'Não consegui começar a conversa. Toque para tentar de novo.',
+          errorMessage: HomeErrorCopy.fromFailure(
+            result.failure,
+            fallback: HomeErrorCode.startFailed,
+          ),
         ));
       }
     } else if (state.isMuted) {
@@ -149,7 +165,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     final voiceState = _mapStatusToVoiceState(event.status, event.mode);
-    emit(state.copyWith(voiceState: voiceState));
+    final backOnTheAir = voiceState == VoiceUIState.listening ||
+        voiceState == VoiceUIState.speaking;
+
+    // AL-2: o aviso vermelho sai sozinho quando a conversa volta a funcionar.
+    // Ninguém deve precisar descobrir como dispensar um erro que já passou.
+    if (backOnTheAir && state.errorMessage != null) {
+      emit(_withNotice(HomeErrorCopy.recovered)
+          .copyWith(voiceState: voiceState, clearError: true));
+    } else {
+      emit(state.copyWith(voiceState: voiceState));
+    }
     _syncSilenceWatch();
   }
 
@@ -163,12 +189,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       _unansweredTurns = 0;
     }
 
+    final auraAnswered = last != null && !last.isUser;
+
     emit(state.copyWith(
       transcript: event.transcript,
       intentsHighlighted: userAnswered ? false : null,
       // O aviso ("Não te ouvi bem", a fala repetida) sai da tela quando a Aura
       // responde de novo — não quando a Maria manda a mensagem.
-      clearNotice: last != null && !last.isUser,
+      clearNotice: auraAnswered,
+      // Resposta nova da Aura é prova de que voltou a funcionar: o erro velho
+      // vai junto, mesmo que a sessão não tenha trocado de estado.
+      clearError: auraAnswered,
     ));
     _syncSilenceWatch();
   }
@@ -236,7 +267,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final result = await _sendTextMessageUseCase(text);
     if (result is Failure<void>) {
       emit(state.copyWith(
-        errorMessage: 'Não consegui enviar sua mensagem. Tente de novo.',
+        errorMessage: HomeErrorCopy.fromFailure(
+          result.failure,
+          fallback: HomeErrorCode.sendFailed,
+        ),
       ));
       return;
     }
@@ -265,7 +299,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeErrorReceivedEvent event,
     Emitter<HomeState> emit,
   ) async {
-    emit(state.copyWith(errorMessage: _errorInPtBr(event.message)));
+    emit(state.copyWith(errorMessage: HomeErrorCopy.fromRaw(event.message)));
   }
 
   Future<void> _onSilenceDetected(
@@ -301,10 +335,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     if (_conversationToken == null) {
-      emit(state.copyWith(
-        errorMessage: 'Não consegui falar com a Aura agora. '
-            'Tente de novo em um instante.',
-      ));
+      emit(state.copyWith(errorMessage: HomeErrorCopy.of(_tokenErrorCode)));
       return false;
     }
 
@@ -313,7 +344,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     if (result is Failure<void>) {
       emit(state.copyWith(
         voiceState: VoiceUIState.error,
-        errorMessage: 'Não consegui começar a conversa. Tente de novo.',
+        errorMessage: HomeErrorCopy.fromFailure(
+          result.failure,
+          fallback: HomeErrorCode.startFailed,
+        ),
       ));
       return false;
     }
@@ -378,21 +412,4 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     _errorSubscription?.cancel();
     return super.close();
   }
-}
-
-/// Dicionário mínimo dos erros que a sessão de voz reporta em inglês pelo
-/// `onError`. O dicionário completo é a correção C6; aqui entra só o que o
-/// caminho escrito pode encontrar.
-String _errorInPtBr(String rawMessage) {
-  final message = rawMessage.toLowerCase();
-  if (message.contains('send message') || message.contains('user message')) {
-    return 'Não consegui enviar sua mensagem. Tente de novo.';
-  }
-  if (message.contains('mic')) {
-    return 'Não consegui usar o microfone. Você pode escrever para mim.';
-  }
-  if (message.contains('session') || message.contains('connect')) {
-    return 'A conversa caiu. Toque no microfone para começar de novo.';
-  }
-  return 'Alguma coisa não funcionou aqui. Tente de novo em um instante.';
 }
