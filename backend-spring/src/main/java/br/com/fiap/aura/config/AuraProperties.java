@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * {@code scoring-weights.yml} — versionados e auditáveis, nunca "mágicos" no código.
  */
 @ConfigurationProperties(prefix = "aura")
-public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors cors, Seed seed) {
+public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors cors, Seed seed, Push push) {
 
     public record Jwt(String secret, long accessTtlMinutes, long refreshTtlDays) { }
 
@@ -44,4 +44,14 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
     public record Cors(String allowedOrigins) { }
 
     public record Seed(boolean enabled) { }
+
+    /**
+     * Credencial do Firebase para o push (C2). Nunca versionada: vem de variável de ambiente,
+     * como caminho da conta de serviço ({@code credentialsPath}) ou como o JSON inteiro
+     * ({@code credentialsJson}) — o segundo existe para plataformas que só oferecem variável.
+     *
+     * <p>Vazio nos dois é o estado normal do CI e do desenvolvimento: sem credencial o transporte
+     * real não é registrado e o envio se declara {@code simulated}. Ver {@link FirebaseConfig}.
+     */
+    public record Push(String credentialsPath, String credentialsJson) { }
 }

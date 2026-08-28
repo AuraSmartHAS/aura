@@ -42,11 +42,12 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ./mvnw test
 ```
 
-23 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
+37 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
 o percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
 recomendação → aprovação → pedido entregue — e o ciclo de vida da medicação,
 incluindo a confirmação de dose que vira sinal de adesão. Mais isolamento entre
-pacientes (403), RBAC da Torre de Controle e validação de payload.
+pacientes (403), RBAC da Torre de Controle, validação de payload e o push do C2
+(SDK dublado, corpo sem fator clínico e o modo simulado sem credencial).
 
 > Requer **JDK 21**. Se `./mvnw` reclamar de "Unable to locate a Java Runtime" no
 > macOS, instale com `brew install openjdk@21` e exporte antes de rodar:
@@ -92,6 +93,8 @@ python3 ../docs/api/gerar_doc.py ../docs/api/openapi.json ../docs/api/aura-api.h
 | `PUT` `DELETE` | `/api/v1/medications/{id}` | edita e remove |
 | `POST` | `/api/v1/medications/{id}/confirm` | confirma a dose → grava sinal de adesão |
 | `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | cadeia logística, rota da entrega e SLA |
+| `POST` | `/api/v1/notifications/register-token` | registra o aparelho que recebe o push |
+| `POST` | `/api/v1/notifications/test` | dispara o aviso e devolve `messageId`, `latencyMs` e `simulated` |
 | `GET` | `/api/v1/ops/kpis` | Torre de Controle — **admin** |
 | `GET` | `/api/v1/health` · `/` | saúde do serviço · página Thymeleaf |
 
@@ -128,4 +131,32 @@ sustenta a promessa de explicabilidade.
 Códigos: `VALIDATION_ERROR` · `UNAUTHORIZED` · `TOKEN_EXPIRED` · `INVALID_CREDENTIALS` ·
 `FORBIDDEN` · `NOT_FOUND` · `CONFLICT` · `CONSENT_REQUIRED` · `APPROVAL_REQUIRED` ·
 `PRESCRIPTION_BLOCKED` · `SCORE_HOME_MISMATCH` · `NO_PRODUCT` · `UNKNOWN_DIMENSION` ·
-`INTERNAL_ERROR`.
+`PUSH_TOKEN_MISSING` · `PUSH_FAILED` · `INTERNAL_ERROR`.
+
+## 🔔 Push (C2)
+
+O disparo passa pelo Firebase Admin SDK, mas **a credencial nunca entra no repositório**: vem de
+`AURA_FIREBASE_CREDENTIALS` (caminho da conta de serviço) ou `AURA_FIREBASE_CREDENTIALS_JSON`
+(o JSON inteiro). Sem nenhuma das duas — que é como o CI e o desenvolvimento rodam — a API
+**não quebra**: responde `201 {"messageId":"simulado:…","latencyMs":N,"simulated":true}`.
+
+```bash
+curl -sX POST localhost:8080/api/v1/notifications/register-token \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"fcmToken":"token-do-aparelho"}'
+
+curl -sX POST localhost:8080/api/v1/notifications/test \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"homeId":"'"$HOME_ID"'","kind":"recommendation"}'
+```
+
+> ⚠️ **`simulated` não é detalhe de log — é contrato.** Quem consome precisa olhar o campo antes
+> de prometer entrega: um push simulado tratado como enviado é pior do que não ter push (é a
+> regra 1 do SOS/C3). E **nenhum corpo de aviso carrega fator clínico**: o texto é *"Nova
+> recomendação para a casa da Maria. Toque para ver."*, nunca o motivo — ele apareceria na tela
+> de bloqueio de quem pegasse o celular.
+
+**Limitação declarada:** `UserAccount.fcmToken` é uma coluna, um aparelho, sobrescrita a cada
+login, e o destinatário é sempre o dono da casa. Na demonstração, quem dispara e quem recebe
+podem ser a mesma pessoa. Multi-dispositivo e escalonamento para os demais cuidadores da casa
+são tabela nova e escopo do C3.

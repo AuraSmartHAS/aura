@@ -80,7 +80,11 @@ public class OpenApiErrors {
                             "VALIDATION_ERROR", "Corpo da requisição inválido."},
                     "409", new String[] {"E-mail já cadastrado", "CONFLICT", "E-mail já cadastrado."})),
             Map.entry("/api/v1/catalog/{sku}", Map.of("409", new String[] {
-                    "SKU já existe", "CONFLICT", "Já existe produto com o SKU LM-1566953614."})));
+                    "SKU já existe", "CONFLICT", "Já existe produto com o SKU LM-1566953614."})),
+            Map.entry("/api/v1/notifications/test", Map.of("422", new String[] {
+                    "Nenhum aparelho registrado para o destinatário, ou o Firebase recusou o aviso",
+                    "PUSH_TOKEN_MISSING", "Nenhum aparelho registrado para receber o aviso. "
+                            + "Faça login no app ou chame POST /api/v1/notifications/register-token antes."})));
 
     @Bean
     public OpenApiCustomizer errorResponsesCustomizer() {

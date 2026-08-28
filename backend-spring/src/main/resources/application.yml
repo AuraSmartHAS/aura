@@ -47,6 +47,12 @@ aura:
     installation-price: 149.90
   cors:
     allowed-origins: "*"
+  push:
+    # Credencial do Firebase — só o NOME da variável mora aqui; o segredo nunca entra no repositório.
+    # Uma das duas basta: caminho do arquivo da conta de serviço ou o JSON inteiro.
+    # Vazias nas duas (o padrão do CI e do desenvolvimento) = push simulado, sem derrubar nada.
+    credentials-path: ${AURA_FIREBASE_CREDENTIALS:}
+    credentials-json: ${AURA_FIREBASE_CREDENTIALS_JSON:}
 
 ---
 spring:

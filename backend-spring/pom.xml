@@ -21,6 +21,9 @@
     <java.version>21</java.version>
     <jjwt.version>0.12.6</jjwt.version>
     <springdoc.version>2.6.0</springdoc.version>
+    <firebase-admin.version>9.4.3</firebase-admin.version>
+    <!-- Casada com o google-http-client que o firebase-admin 9.4.3 resolve (1.45.3). -->
+    <google-http-client.version>1.45.3</google-http-client.version>
   </properties>
 
   <dependencies>
@@ -49,6 +52,36 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>${springdoc.version}</version>
+    </dependency>
+
+    <!--
+      Push (C2). Nenhum BOM do Spring Boot gerencia o firebase-admin: a versão vai pinada à mão e
+      ela arrasta grpc, guava e protobuf. As exclusões tiram Firestore e Cloud Storage, que o FCM
+      não usa — sem elas entram ~90 jars a mais.
+      ⚠️ Restrição descoberta na marra: o google-http-client-jackson2 chegava por baixo do
+      Firestore, e o FirebaseOptions o carrega no construtor. Sem a linha explícita abaixo, o
+      caminho COM credencial estoura NoClassDefFoundError — e só em produção, porque sem credencial
+      o SDK nunca é instanciado. É o que o FirebaseConfigTest passou a cobrir.
+    -->
+    <dependency>
+      <groupId>com.google.firebase</groupId>
+      <artifactId>firebase-admin</artifactId>
+      <version>${firebase-admin.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-firestore</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.cloud</groupId>
+          <artifactId>google-cloud-storage</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.google.http-client</groupId>
+      <artifactId>google-http-client-jackson2</artifactId>
+      <version>${google-http-client.version}</version>
     </dependency>
 
     <dependency>
