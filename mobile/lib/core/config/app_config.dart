@@ -32,4 +32,15 @@ class AppConfig {
   static String get supabaseKey => _get('SUPABASE_KEY');
 
   static String get fcmVapidKey => _get('FCM_VAPID_KEY');
+
+  /// Telefone do contato principal da casa, para o caminho de ligação do SOS
+  /// (correção C3, regra 1). A API de emergência devolve o **nome** do contato,
+  /// nunca o telefone — o corpo é magro de propósito porque a rota é aberta.
+  /// Vazio aqui significa que a tela do SOS só oferece o 192.
+  static String get sosContactPhone => _get('SOS_CONTACT_PHONE');
+
+  /// Emergência pública. Botão que **a pessoa** toca, nunca discagem
+  /// automática (decisão D19).
+  static String get sosEmergencyPhone =>
+      _get('SOS_EMERGENCY_PHONE', fallback: '192');
 }

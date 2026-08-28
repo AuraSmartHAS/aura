@@ -24,6 +24,13 @@ enum HomeErrorCode {
 
   /// Nenhuma das anteriores. Ainda assim tem frase e tem saída.
   unknown,
+
+  /// O pedido de socorro não chegou ao servidor (C3). Categoria própria porque
+  /// a saída é outra: aqui não se espera, se liga.
+  sosUnreachable,
+
+  /// Pedido de socorro sem internet (C3).
+  sosOffline,
 }
 
 /// Textos de erro e de recuperação da tela da Maria, num lugar só.
@@ -58,6 +65,12 @@ class HomeErrorCopy {
     HomeErrorCode.unknown:
         'Alguma coisa não funcionou aqui. Toque de novo que eu tento outra '
             'vez.',
+    HomeErrorCode.sosUnreachable:
+        'Não consegui pedir ajuda pelo aplicativo agora. Toque no botão grande '
+            'para ligar.',
+    HomeErrorCode.sosOffline:
+        'Você está sem internet e eu não consegui avisar ninguém daqui. Toque '
+            'no botão grande para ligar.',
   };
 
   /// Aviso de volta ao normal (AL-2). O banner vermelho sumir sozinho não basta:
@@ -136,4 +149,19 @@ class HomeErrorCopy {
     HomeErrorCode fallback = HomeErrorCode.unknown,
   }) =>
       fromRaw('$failure', fallback: fallback);
+
+  /// Falha ao **pedir socorro** (C3).
+  ///
+  /// Não passa por [fromFailure] de propósito. No resto do app, "sem internet"
+  /// convida a esperar — "assim que a conexão voltar, eu te aviso". No socorro
+  /// esperar é o erro: as duas frases daqui apontam para a mesma saída, que é a
+  /// ligação, e nenhuma delas promete uma segunda tentativa que não existe.
+  static String forSos(Object? failure) {
+    final code = codeFor('$failure', fallback: HomeErrorCode.sosUnreachable);
+    return of(
+      code == HomeErrorCode.network
+          ? HomeErrorCode.sosOffline
+          : HomeErrorCode.sosUnreachable,
+    );
+  }
 }

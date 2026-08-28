@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,13 +7,19 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../features/sos/presentation/widgets/sos_button.dart';
 import '../../../../shared/widgets/big_mic_button.dart';
 import '../../../../shared/widgets/keyboard_fallback_bar.dart';
 import '../bloc/home_bloc.dart';
 import 'text_fallback_panel.dart';
 
 class HomeBody extends StatelessWidget {
-  const HomeBody({super.key});
+  const HomeBody({super.key, this.sosButton});
+
+  /// Botão de socorro alternativo. Em produção é sempre nulo — o padrão é o
+  /// [SosButton] real, que busca o bloc no injetor. O teste passa o seu para
+  /// poder contar quantas emergências um toque criou.
+  final Widget? sosButton;
 
   @override
   Widget build(BuildContext context) {
@@ -40,25 +48,46 @@ class HomeBody extends StatelessWidget {
 
           return SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) => Column(
+              builder: (context, screen) => Column(
                 children: [
-                  _GreetingRow(userName: state.userName),
-                  Expanded(child: _Transcript(state: state)),
-                  // O rodapé cresce muito (microfone, aviso, chips, campo de
-                  // texto) e ainda pode crescer de novo com a fonte do sistema
-                  // aumentada. Teto + rolagem própria: nada some da tela nem
-                  // estoura o layout em aparelho pequeno.
-                  ConstrainedBox(
-                    constraints:
-                        BoxConstraints(maxHeight: constraints.maxHeight * 0.7),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppDimensions.lg,
-                        AppDimensions.md,
-                        AppDimensions.lg,
-                        AppDimensions.lg,
+                  // A saudação e o SOS ficam fora da disputa por espaço: o
+                  // botão de socorro é a última coisa que pode encolher.
+                  _GreetingRow(
+                    userName: state.userName,
+                    sosButton: sosButton,
+                  ),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, rest) => Column(
+                        children: [
+                          Expanded(child: _Transcript(state: state)),
+                          // O rodapé cresce muito (microfone, aviso, chips,
+                          // campo de texto) e cresce de novo com a fonte do
+                          // sistema aumentada. Teto + rolagem própria: nada
+                          // some da tela nem estoura o layout.
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              // 70% da tela é o teto de sempre. O que sobrou
+                              // depois da saudação é o limite duro — sem ele,
+                              // o teclado aberto fazia a coluna estourar, que
+                              // é o bug que C3 e C4 criam juntas.
+                              maxHeight: math.min(
+                                screen.maxHeight * 0.7,
+                                rest.maxHeight,
+                              ),
+                            ),
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(
+                                AppDimensions.lg,
+                                AppDimensions.md,
+                                AppDimensions.lg,
+                                AppDimensions.lg,
+                              ),
+                              child: _BottomPanel(state: state),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: _BottomPanel(state: state),
                     ),
                   ),
                 ],
@@ -71,11 +100,14 @@ class HomeBody extends StatelessWidget {
   }
 }
 
-/// Saudação da Maria com o espaço do SOS reservado à direita.
+/// Saudação da Maria com o botão de socorro à direita.
 class _GreetingRow extends StatelessWidget {
-  const _GreetingRow({required this.userName});
+  const _GreetingRow({required this.userName, this.sosButton});
 
   final String? userName;
+
+  /// Substitui o botão real no teste, que precisa injetar o próprio bloc.
+  final Widget? sosButton;
 
   @override
   Widget build(BuildContext context) {
@@ -95,10 +127,10 @@ class _GreetingRow extends StatelessWidget {
               style: Theme.of(context).textTheme.displayLarge,
             ),
           ),
-          // C3 (SOS): o botão de emergência entra aqui, ancorado no topo. Com o
+          // C3 (SOS): o botão de emergência mora aqui, ancorado no topo. Com o
           // teclado aberto quem encolhe é o rodapé, então o SOS neste ponto
           // nunca fica coberto nem empurrado para fora da tela.
-          const SizedBox.square(dimension: AppDimensions.sosButtonSize),
+          sosButton ?? const SosButton(),
         ],
       ),
     );

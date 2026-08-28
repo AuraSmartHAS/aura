@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
+import '../../../../features/sos/presentation/widgets/sos_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../form_validators.dart';
 
@@ -63,8 +64,22 @@ class _LoginBodyState extends State<LoginBody> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Branded header (typographic lockup, no logo asset) ──
-                  const _AuraWordmark(
-                      tagline: 'Cuidado em casa, com calma e clareza.'),
+                  // C3, regra 3: o SOS não fica atrás de login. Se a sessão
+                  // expirou, o socorro não pode depender de uma senha que a
+                  // Maria não vai digitar no chão do banheiro — então o botão
+                  // vive aqui também, na primeira tela do app.
+                  const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _AuraWordmark(
+                          tagline: 'Cuidado em casa, com calma e clareza.',
+                        ),
+                      ),
+                      SizedBox(width: AppDimensions.md),
+                      SosButton(),
+                    ],
+                  ),
                   const SizedBox(height: AppDimensions.xxl),
                   Text('Entrar', style: textTheme.displaySmall),
                   const SizedBox(height: AppDimensions.xs),

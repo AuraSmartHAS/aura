@@ -15,6 +15,7 @@ import '../../features/home_setup/di/home_setup_module.dart';
 import '../../features/medications/di/medications_module.dart';
 import '../../features/orders/di/orders_module.dart';
 import '../../features/profile/di/profile_module.dart';
+import '../../features/sos/di/sos_module.dart';
 import '../../features/wearable/di/wearable_module.dart';
 import '../../features/wellbeing360/di/wellbeing360_module.dart';
 
@@ -26,6 +27,8 @@ void setupServiceLocator() {
 
   setupAuthModule(sl);
   setupConsentModule(sl);
+  // O SOS entra antes das telas: o botão existe na de abertura, sem sessão.
+  setupSosModule(sl);
   setupHomeModule(sl);
   setupHomeSetupModule(sl);
   setupWellbeing360Module(sl);
