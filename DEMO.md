@@ -73,7 +73,7 @@ Entre no app React Native com a mesma conta. O mesmo risco, a mesma recomendaç�
 ```bash
 cd backend-spring && ./mvnw test    # 50 testes verdes
 ```
-São 140 testes automatizados no projeto: 50 no backend, 17 no painel, 6 de ponta a ponta no navegador, 7 no app React Native e 60 no app Flutter.
+São 168 testes automatizados no projeto: 50 no backend, 17 no painel, 6 de ponta a ponta no navegador, 7 no app React Native e 88 no app Flutter.
 
 ---
 
