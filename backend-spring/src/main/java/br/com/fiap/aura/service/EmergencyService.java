@@ -719,7 +719,9 @@ public class EmergencyService {
             case WAITING_CANCEL -> "Estou avisando %s.".formatted(alvo);
             case DISPATCHED, ESCALATED -> e.getNotifiedCount() == 0
                     ? "Não consegui avisar %s. Toque no botão grande para ligar para ela.".formatted(alvo)
-                    : "Pronto. O aviso chegou no celular %s às %s. Fico aqui com você."
+                    // "Saiu", não "chegou": DISPATCHED confirma a entrega ao transporte,
+                    // não ao aparelho — a voz nunca afirma o que o sistema não sabe.
+                    : "Pronto. O aviso saiu para o celular %s às %s. Fico aqui com você."
                             .formatted(alvo.replaceFirst("^a ", "da "), horaDe(e.getDispatchedAt()));
             case ACKNOWLEDGED -> quemConfirmou == null
                     ? "Alguém viu e disse que está indo."
