@@ -50,6 +50,9 @@ export interface Score {
   level: Level;
   score: number;
   factors: string[];
+  /** Rótulos em português dos fatores, na mesma ordem de `factors`. Vêm da API
+   *  (a política de risco vive em YAML versionado) — a tela nunca traduz código. */
+  factorLabels?: string[];
   weights: number[];
   explanation: string;
 }
@@ -61,6 +64,8 @@ export interface Recommendation {
   reason: string;
   status: string;
   factors: string[];
+  /** Rótulos em português dos fatores, na mesma ordem de `factors`. */
+  factorLabels?: string[];
   weights: number[];
 }
 

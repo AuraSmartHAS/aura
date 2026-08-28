@@ -130,7 +130,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
           {score.factors.map((factor, index) => (
             <Text key={factor} style={styles.factor}>
-              • {factor} <Text style={styles.weight}>peso {score.weights[index]}</Text>
+              • {score.factorLabels?.[index] ?? factor} <Text style={styles.weight}>peso {score.weights[index]}</Text>
             </Text>
           ))}
 

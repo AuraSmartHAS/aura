@@ -86,7 +86,7 @@ export default function CareChainScreen({ route }: Props) {
           <Text style={styles.label}>Por que este item</Text>
           {recommendation.factors.map((factor, index) => (
             <Text key={factor} style={styles.factor}>
-              • {factor} <Text style={styles.weight}>peso {recommendation.weights[index]}</Text>
+              • {recommendation.factorLabels?.[index] ?? factor} <Text style={styles.weight}>peso {recommendation.weights[index]}</Text>
             </Text>
           ))}
 
