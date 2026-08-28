@@ -58,6 +58,10 @@
         {
             "name": "7. Notifica\u00e7\u00f5es",
             "description": "Push no celular de quem cuida \u2014 com modo simulado declarado"
+        },
+        {
+            "name": "8. SOS e crise",
+            "description": "Pedido de socorro com janela de cancelamento no servidor"
         }
     ],
     "paths": {
@@ -96,6 +100,27 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/MedicationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -155,27 +180,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -235,6 +239,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -290,27 +315,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -382,6 +386,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -437,27 +462,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -497,6 +501,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -552,27 +577,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -641,6 +645,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -696,27 +721,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -785,6 +789,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -840,27 +865,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -919,6 +923,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -974,27 +999,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1055,6 +1059,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1110,27 +1135,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1191,6 +1195,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1246,27 +1271,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1348,6 +1352,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1403,27 +1428,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1485,6 +1489,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1540,27 +1565,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1601,6 +1605,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1656,27 +1681,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1759,6 +1763,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1814,27 +1839,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -1896,6 +1900,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -1951,27 +1976,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2032,6 +2036,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2087,27 +2112,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2157,6 +2161,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2212,27 +2237,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2286,6 +2290,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2341,27 +2366,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2420,6 +2424,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2475,27 +2500,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2580,6 +2584,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2635,27 +2660,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2746,6 +2750,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -2801,27 +2826,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -2875,21 +2879,23 @@
                 }
             }
         },
-        "/api/v1/consent": {
+        "/api/v1/emergencies": {
             "post": {
                 "tags": [
-                    "1. Autentica\u00e7\u00e3o & LGPD"
+                    "8. SOS e crise"
                 ],
-                "summary": "Aceite da pol\u00edtica LGPD \u2014 gate obrigat\u00f3rio antes de qualquer dado de sa\u00fade",
-                "operationId": "consent",
+                "summary": "Registra o pedido de socorro e agenda o disparo do aviso no servidor",
+                "description": "**N\u00e3o exige autentica\u00e7\u00e3o** (C3, regra 3): a Maria precisa pedir ajuda com a\nsess\u00e3o expirada. A chave \u00e9 o `homeId` que o aparelho j\u00e1 guarda.\n\nResponde **na hora**, antes de qualquer push. O aviso sai em `dispatchAt`,\npor conta do **servidor** \u2014 o aparelho n\u00e3o precisa continuar vivo, o que \u00e9 o\nponto: cron\u00f4metro de cliente morre quando o telefone cai da m\u00e3o.\n\nAntes de prometer \"avisei a Ana\", olhe `canPromiseAlert`. Ele vem `false`\nquando o push \u00e9 simulado (`degradedReason: simulated_transport`), quando a\ncasa n\u00e3o tem aparelho registrado (`no_registered_device`) ou quando o disparo\nfoi contido pela mitiga\u00e7\u00e3o de abuso (`throttled`). Nos tr\u00eas casos a tela deve\noferecer **liga\u00e7\u00e3o telef\u00f4nica** em vez de anunciar entrega.\n\nToque repetido na mesma casa devolve a emerg\u00eancia j\u00e1 aberta com\n`deduplicated: true` \u2014 sem segunda linha e sem segundo aviso.\n",
+                "operationId": "trigger",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/ConsentRequest"
+                                "$ref": "#/components/schemas/TriggerRequest"
                             }
                         }
-                    }
+                    },
+                    "required": true
                 },
                 "responses": {
                     "201": {
@@ -2897,7 +2903,180 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ConsentResponse"
+                                    "$ref": "#/components/schemas/TriggerResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "O identificador da casa n\u00e3o corresponde a nenhuma casa",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "NOT_FOUND": {
+                                        "value": {
+                                            "error": {
+                                                "code": "NOT_FOUND",
+                                                "message": "Casa n\u00e3o encontrada(a).",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/v1/emergencies/{emergencyId}/cancel": {
+            "post": {
+                "tags": [
+                    "8. SOS e crise"
+                ],
+                "summary": "\"Foi engano\" \u2014 cancela dentro da janela e avisa quem precisa saber",
+                "description": "Dentro da janela, o aviso original **n\u00e3o sai**; ainda assim o segundo aviso\n(\"foi engano, a Maria cancelou\") \u00e9 enviado, porque quem cuida tem direito de\nsaber que o bot\u00e3o foi apertado.\n\nFora da janela, **nada \u00e9 desfeito**: `withinWindow: false`, `alertSent: true`,\no estado permanece `dispatched`/`escalated` e o hist\u00f3rico continua dizendo que\no aviso saiu. A retra\u00e7\u00e3o vai de todo modo \u2014 a Ana est\u00e1 na rua.\n",
+                "operationId": "cancel",
+                "parameters": [
+                    {
+                        "name": "emergencyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CancelResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Emerg\u00eancia inexistente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "NOT_FOUND": {
+                                        "value": {
+                                            "error": {
+                                                "code": "NOT_FOUND",
+                                                "message": "Emerg\u00eancia n\u00e3o encontrada(a).",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/api/v1/emergencies/{emergencyId}/ack": {
+            "post": {
+                "tags": [
+                    "8. SOS e crise"
+                ],
+                "summary": "\"Estou indo\" \u2014 fecha o loop e para o escalonamento",
+                "description": "\u00danica rota do fluxo que exige sess\u00e3o: a confirma\u00e7\u00e3o precisa de autor.\nExige acesso \u00e0 casa (dono, v\u00ednculo em `home_members` ou admin).\n\n\u00c9 isto que impede o escalonamento aos demais membros da casa. Sem esta\nchamada, o SOS \u00e9 s\u00f3 disparo \u2014 n\u00e3o h\u00e1 loop.\n",
+                "operationId": "acknowledge",
+                "parameters": [
+                    {
+                        "name": "emergencyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AckResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2965,6 +3144,62 @@
                             }
                         }
                     },
+                    "409": {
+                        "description": "Emerg\u00eancia j\u00e1 encerrada (cancelada ou contida)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "CONFLICT": {
+                                        "value": {
+                                            "error": {
+                                                "code": "CONFLICT",
+                                                "message": "Esta emerg\u00eancia j\u00e1 foi encerrada (cancelled) e n\u00e3o aceita confirma\u00e7\u00e3o.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/consent": {
+            "post": {
+                "tags": [
+                    "1. Autentica\u00e7\u00e3o & LGPD"
+                ],
+                "summary": "Aceite da pol\u00edtica LGPD \u2014 gate obrigat\u00f3rio antes de qualquer dado de sa\u00fade",
+                "operationId": "consent",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConsentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsentResponse"
+                                }
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
                         "content": {
@@ -2978,6 +3213,69 @@
                                             "error": {
                                                 "code": "INTERNAL_ERROR",
                                                 "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "UNAUTHORIZED": {
+                                        "value": {
+                                            "error": {
+                                                "code": "UNAUTHORIZED",
+                                                "message": "Autentica\u00e7\u00e3o necess\u00e1ria.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Recurso inexistente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "NOT_FOUND": {
+                                        "value": {
+                                            "error": {
+                                                "code": "NOT_FOUND",
+                                                "message": "Casa n\u00e3o encontrada(a).",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Papel sem permiss\u00e3o (RBAC) ou recurso de outro paciente (isolamento)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "FORBIDDEN": {
+                                        "value": {
+                                            "error": {
+                                                "code": "FORBIDDEN",
+                                                "message": "Acesso negado a este recurso.",
                                                 "details": null
                                             }
                                         }
@@ -3186,6 +3484,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3241,27 +3560,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3376,6 +3674,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3431,27 +3750,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3481,6 +3779,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3536,27 +3855,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3597,6 +3895,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3652,27 +3971,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3711,6 +4009,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3766,27 +4085,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -3885,6 +4183,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -3940,27 +4259,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4004,6 +4302,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4059,27 +4378,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4123,6 +4421,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4178,27 +4497,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4242,6 +4540,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4297,27 +4616,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4361,6 +4659,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4416,27 +4735,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4491,6 +4789,82 @@
                 "security": []
             }
         },
+        "/api/v1/emergencies/{emergencyId}": {
+            "get": {
+                "tags": [
+                    "8. SOS e crise"
+                ],
+                "summary": "Estado do aviso, para a tela de p\u00f3s-pedido",
+                "description": "Aberta, como o disparo \u2014 \u00e9 a mesma tela e a mesma sess\u00e3o inexistente. Por\nisso o corpo \u00e9 magro de prop\u00f3sito: **nenhum fator cl\u00ednico, nenhum endere\u00e7o,\nnenhum nome de paciente**. \u00c9 daqui que a tela l\u00ea os quatro estados falados.\n",
+                "operationId": "status",
+                "parameters": [
+                    {
+                        "name": "emergencyId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StatusResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Emerg\u00eancia inexistente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "NOT_FOUND": {
+                                        "value": {
+                                            "error": {
+                                                "code": "NOT_FOUND",
+                                                "message": "Emerg\u00eancia n\u00e3o encontrada(a).",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
         "/api/v1/catalog": {
             "get": {
                 "tags": [
@@ -4522,6 +4896,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4577,27 +4972,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4627,6 +5001,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4682,27 +5077,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -4735,6 +5109,27 @@
                             }
                         }
                     },
+                    "500": {
+                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiErrorResponse"
+                                },
+                                "examples": {
+                                    "INTERNAL_ERROR": {
+                                        "value": {
+                                            "error": {
+                                                "code": "INTERNAL_ERROR",
+                                                "message": "Erro interno.",
+                                                "details": null
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Token ausente, inv\u00e1lido ou expirado \u2014 ou credenciais incorretas no login",
                         "content": {
@@ -4790,27 +5185,6 @@
                                             "error": {
                                                 "code": "FORBIDDEN",
                                                 "message": "Acesso negado a este recurso.",
-                                                "details": null
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Falha inesperada \u2014 a mensagem interna fica no log do servidor",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ApiErrorResponse"
-                                },
-                                "examples": {
-                                    "INTERNAL_ERROR": {
-                                        "value": {
-                                            "error": {
-                                                "code": "INTERNAL_ERROR",
-                                                "message": "Erro interno.",
                                                 "details": null
                                             }
                                         }
@@ -5285,7 +5659,10 @@
                         "example": "recommendation",
                         "enum": [
                             "recommendation",
-                            "order"
+                            "order",
+                            "sos",
+                            "sos_cancelled",
+                            "sos_escalated"
                         ]
                     }
                 }
@@ -5423,6 +5800,199 @@
                     "active": {
                         "type": "boolean",
                         "default": true
+                    }
+                }
+            },
+            "TriggerRequest": {
+                "required": [
+                    "homeId"
+                ],
+                "type": "object",
+                "properties": {
+                    "homeId": {
+                        "type": "string",
+                        "description": "Casa que pede socorro; vem do pareamento do aparelho",
+                        "format": "uuid",
+                        "example": "a8e1f3bb-f32a-4eed-aa96-80d29095acc0"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "description": "Como o socorro foi pedido; ausente vale como \"touch\"",
+                        "example": "touch",
+                        "enum": [
+                            "touch",
+                            "voice"
+                        ]
+                    }
+                }
+            },
+            "TriggerResponse": {
+                "type": "object",
+                "properties": {
+                    "emergencyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "homeId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "waiting_cancel",
+                        "enum": [
+                            "waiting_cancel",
+                            "dispatched",
+                            "escalated",
+                            "acknowledged",
+                            "cancelled",
+                            "throttled"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dispatchAt": {
+                        "type": "string",
+                        "description": "Quando o servidor dispara o aviso, salvo cancelamento",
+                        "format": "date-time"
+                    },
+                    "cancelWindowSeconds": {
+                        "type": "integer",
+                        "format": "int32",
+                        "example": 5
+                    },
+                    "escalateAfterSeconds": {
+                        "type": "integer",
+                        "format": "int32",
+                        "example": 60
+                    },
+                    "transportReal": {
+                        "type": "boolean",
+                        "description": "Se existe transporte real de push neste servidor (regra 1)",
+                        "example": false
+                    },
+                    "simulated": {
+                        "type": "boolean",
+                        "description": "Espelho de transportReal para o mesmo contrato do C2: true = nada vai sair deste servidor",
+                        "example": true
+                    },
+                    "recipientCount": {
+                        "type": "integer",
+                        "description": "Aparelhos registrados que podem receber o aviso nesta casa",
+                        "format": "int32",
+                        "example": 1
+                    },
+                    "primaryContactName": {
+                        "type": "string",
+                        "description": "Primeiro nome do contato principal, para a fala do assistente",
+                        "example": "Ana"
+                    },
+                    "throttled": {
+                        "type": "boolean",
+                        "description": "Disparo contido pela mitiga\u00e7\u00e3o de abuso do acesso sem login",
+                        "example": false
+                    },
+                    "deduplicated": {
+                        "type": "boolean",
+                        "description": "Toque repetido: devolveu a emerg\u00eancia que j\u00e1 estava aberta, sem criar uma segunda nem disparar um segundo aviso",
+                        "example": false
+                    },
+                    "canPromiseAlert": {
+                        "type": "boolean",
+                        "description": "A \u00fanica pergunta que a tela precisa fazer antes de prometer \"avisei a Ana\"",
+                        "example": false
+                    },
+                    "degradedReason": {
+                        "type": "string",
+                        "description": "Motivo da degrada\u00e7\u00e3o: simulated_transport, no_registered_device ou throttled; nulo quando o aviso pode ser prometido",
+                        "example": "simulated_transport"
+                    },
+                    "spokenMessage": {
+                        "type": "string",
+                        "description": "Frase segura para o assistente falar neste estado. A tela pode trocar a reda\u00e7\u00e3o, nunca aumentar a promessa.",
+                        "example": "N\u00e3o consigo avisar a Ana daqui. Toque no bot\u00e3o grande para ligar para ela."
+                    }
+                }
+            },
+            "CancelResponse": {
+                "type": "object",
+                "properties": {
+                    "emergencyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "cancelled",
+                        "enum": [
+                            "waiting_cancel",
+                            "dispatched",
+                            "escalated",
+                            "acknowledged",
+                            "cancelled",
+                            "throttled"
+                        ]
+                    },
+                    "withinWindow": {
+                        "type": "boolean",
+                        "description": "true = chegou antes do disparador; false = o aviso j\u00e1 tinha sa\u00eddo",
+                        "example": true
+                    },
+                    "alertSent": {
+                        "type": "boolean",
+                        "description": "Se o aviso original saiu. Cancelar depois disso n\u00e3o o apaga.",
+                        "example": false
+                    },
+                    "retractionSent": {
+                        "type": "boolean",
+                        "description": "Se o segundo aviso (\"foi engano, a Maria cancelou\") saiu",
+                        "example": true
+                    },
+                    "simulated": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "spokenMessage": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AckResponse": {
+                "type": "object",
+                "properties": {
+                    "emergencyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "acknowledged",
+                        "enum": [
+                            "waiting_cancel",
+                            "dispatched",
+                            "escalated",
+                            "acknowledged",
+                            "cancelled",
+                            "throttled"
+                        ]
+                    },
+                    "acknowledgedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "acknowledgedByName": {
+                        "type": "string",
+                        "example": "Ana"
+                    },
+                    "escalationStopped": {
+                        "type": "boolean",
+                        "description": "Se esta confirma\u00e7\u00e3o impediu o escalonamento aos demais membros",
+                        "example": true
+                    },
+                    "spokenMessage": {
+                        "type": "string"
                     }
                 }
             },
@@ -5891,6 +6461,74 @@
                     "env": {
                         "type": "string",
                         "example": "dev"
+                    }
+                }
+            },
+            "StatusResponse": {
+                "type": "object",
+                "properties": {
+                    "emergencyId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "dispatched",
+                        "enum": [
+                            "waiting_cancel",
+                            "dispatched",
+                            "escalated",
+                            "acknowledged",
+                            "cancelled",
+                            "throttled"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dispatchAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dispatchedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "acknowledgedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "acknowledgedByName": {
+                        "type": "string",
+                        "example": "Ana"
+                    },
+                    "escalated": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "notifiedCount": {
+                        "type": "integer",
+                        "format": "int32",
+                        "example": 1
+                    },
+                    "transportReal": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "simulated": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "canPromiseAlert": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "degradedReason": {
+                        "type": "string"
+                    },
+                    "spokenMessage": {
+                        "type": "string"
                     }
                 }
             },

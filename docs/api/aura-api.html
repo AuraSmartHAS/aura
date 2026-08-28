@@ -63,12 +63,12 @@
 <body>
 <div class="topo">
   <h1>AURA Care-Chain API <span style="color:var(--muted);font-size:13px">v1.0.0</span></h1>
-  <p>38 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
+  <p>42 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
      contas de demonstração: <code>ana@aura.com</code> · <code>admin@aura.com</code> — senha <code>aura1234</code></p>
   <input class="busca" id="busca" type="search" placeholder="Filtrar por rota, método ou descrição…" autocomplete="off">
 </div>
 <div class="layout">
-  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">8</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a></nav>
+  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">8</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a></nav>
   <main>
     <section class="grupo" id="0-Meta">
       <h2>0. Meta</h2>
@@ -999,6 +999,108 @@
   &quot;simulated&quot;: false
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">PUSH_TOKEN_MISSING</code><span class="desc">Nenhum aparelho registrado para o destinatário, ou o Firebase recusou o aviso</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+    </section>
+    <section class="grupo" id="8-SOS-e-crise">
+      <h2>8. SOS e crise</h2>
+      
+      <article class="op" data-busca="post /api/v1/emergencies registra o pedido de socorro e agenda o disparo do aviso no servidor">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/emergencies</code>
+          <span class="selo publica">pública</span>
+        </header>
+        <p class="resumo">Registra o pedido de socorro e agenda o disparo do aviso no servidor</p>
+        
+        <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
+  &quot;homeId&quot;: &quot;a8e1f3bb-f32a-4eed-aa96-80d29095acc0&quot;,
+  &quot;channel&quot;: &quot;touch&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
+  &quot;emergencyId&quot;: &quot;string&quot;,
+  &quot;homeId&quot;: &quot;string&quot;,
+  &quot;state&quot;: &quot;waiting_cancel&quot;,
+  &quot;createdAt&quot;: &quot;string&quot;,
+  &quot;dispatchAt&quot;: &quot;string&quot;,
+  &quot;cancelWindowSeconds&quot;: 5,
+  &quot;escalateAfterSeconds&quot;: 60,
+  &quot;transportReal&quot;: false,
+  &quot;simulated&quot;: true,
+  &quot;recipientCount&quot;: 1,
+  &quot;primaryContactName&quot;: &quot;Ana&quot;,
+  &quot;throttled&quot;: false,
+  &quot;deduplicated&quot;: false,
+  &quot;canPromiseAlert&quot;: false,
+  &quot;degradedReason&quot;: &quot;simulated_transport&quot;,
+  &quot;spokenMessage&quot;: &quot;Não consigo avisar a Ana daqui. Toque no botão grande para ligar para ela.&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">O identificador da casa não corresponde a nenhuma casa</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="get /api/v1/emergencies/{emergencyid} estado do aviso, para a tela de pós-pedido">
+        <header>
+          <span class="metodo" style="background:#58a6ff22;color:#58a6ff;border-color:#58a6ff55">GET</span>
+          <code class="rota">/api/v1/emergencies/{emergencyId}</code>
+          <span class="selo publica">pública</span>
+        </header>
+        <p class="resumo">Estado do aviso, para a tela de pós-pedido</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>emergencyId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;emergencyId&quot;: &quot;string&quot;,
+  &quot;state&quot;: &quot;dispatched&quot;,
+  &quot;createdAt&quot;: &quot;string&quot;,
+  &quot;dispatchAt&quot;: &quot;string&quot;,
+  &quot;dispatchedAt&quot;: &quot;string&quot;,
+  &quot;acknowledgedAt&quot;: &quot;string&quot;,
+  &quot;acknowledgedByName&quot;: &quot;Ana&quot;,
+  &quot;escalated&quot;: false,
+  &quot;notifiedCount&quot;: 1,
+  &quot;transportReal&quot;: false,
+  &quot;simulated&quot;: true,
+  &quot;canPromiseAlert&quot;: false,
+  &quot;degradedReason&quot;: &quot;string&quot;,
+  &quot;spokenMessage&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Emergência inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="post /api/v1/emergencies/{emergencyid}/ack &quot;estou indo&quot; — fecha o loop e para o escalonamento">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/emergencies/{emergencyId}/ack</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">&quot;Estou indo&quot; — fecha o loop e para o escalonamento</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>emergencyId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;emergencyId&quot;: &quot;string&quot;,
+  &quot;state&quot;: &quot;acknowledged&quot;,
+  &quot;acknowledgedAt&quot;: &quot;string&quot;,
+  &quot;acknowledgedByName&quot;: &quot;Ana&quot;,
+  &quot;escalationStopped&quot;: true,
+  &quot;spokenMessage&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">Emergência já encerrada (cancelada ou contida)</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="post /api/v1/emergencies/{emergencyid}/cancel &quot;foi engano&quot; — cancela dentro da janela e avisa quem precisa saber">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/emergencies/{emergencyId}/cancel</code>
+          <span class="selo publica">pública</span>
+        </header>
+        <p class="resumo">&quot;Foi engano&quot; — cancela dentro da janela e avisa quem precisa saber</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>emergencyId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;emergencyId&quot;: &quot;string&quot;,
+  &quot;state&quot;: &quot;cancelled&quot;,
+  &quot;withinWindow&quot;: true,
+  &quot;alertSent&quot;: false,
+  &quot;retractionSent&quot;: true,
+  &quot;simulated&quot;: true,
+  &quot;spokenMessage&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Emergência inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
     </section><p class="vazio" id="vazio" hidden>Nenhuma rota encontrada.</p></main>
 </div>
