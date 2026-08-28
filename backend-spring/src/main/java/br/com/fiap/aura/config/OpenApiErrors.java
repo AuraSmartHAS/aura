@@ -27,9 +27,17 @@ public class OpenApiErrors {
     private static final String ERROR_REF = "#/components/schemas/ApiErrorResponse";
     private static final String JSON = "application/json";
 
-    /** Rotas abertas: não faz sentido documentar erro de autorização nelas. */
+    /**
+     * Rotas abertas: não faz sentido documentar erro de autorização nelas.
+     *
+     * <p>O SOS (C3) entra aqui em três das quatro rotas — o disparo, o cancelamento e a consulta de
+     * estado são acessíveis sem sessão de propósito (regra 3). {@code /ack} <b>não</b> entra: aquela
+     * exige autenticação e devolve 401/403 como qualquer outra.
+     */
     private static final Set<String> PUBLICAS = Set.of(
-            "/api/v1/health", "/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/auth/refresh");
+            "/api/v1/health", "/api/v1/auth/login", "/api/v1/auth/signup", "/api/v1/auth/refresh",
+            "/api/v1/emergencies", "/api/v1/emergencies/{emergencyId}",
+            "/api/v1/emergencies/{emergencyId}/cancel");
 
     /** Erros possíveis em praticamente qualquer rota autenticada. */
     private static final Map<String, String[]> COMMON = Map.of(
@@ -84,7 +92,23 @@ public class OpenApiErrors {
             Map.entry("/api/v1/notifications/test", Map.of("422", new String[] {
                     "Nenhum aparelho registrado para o destinatário, ou o Firebase recusou o aviso",
                     "PUSH_TOKEN_MISSING", "Nenhum aparelho registrado para receber o aviso. "
-                            + "Faça login no app ou chame POST /api/v1/notifications/register-token antes."})));
+                            + "Faça login no app ou chame POST /api/v1/notifications/register-token antes."})),
+            // SOS (C3): as três rotas abertas devolvem 404, e só 404 — nunca 422 por falta de
+            // aparelho e nunca 429 por disparo repetido. Contenção aqui é resposta 201 declarando
+            // que o aviso não pode ser prometido, porque negar um pedido de socorro com código de
+            // erro empurra a decisão para uma tela que pode não saber o que fazer com ela.
+            Map.entry("/api/v1/emergencies", Map.of("404", new String[] {
+                    "O identificador da casa não corresponde a nenhuma casa",
+                    "NOT_FOUND", "Casa não encontrada(a)."})),
+            Map.entry("/api/v1/emergencies/{emergencyId}", Map.of("404", new String[] {
+                    "Emergência inexistente", "NOT_FOUND", "Emergência não encontrada(a)."})),
+            Map.entry("/api/v1/emergencies/{emergencyId}/cancel", Map.of("404", new String[] {
+                    "Emergência inexistente", "NOT_FOUND", "Emergência não encontrada(a)."})),
+            Map.entry("/api/v1/emergencies/{emergencyId}/ack", Map.of(
+                    "404", new String[] {"Emergência inexistente",
+                            "NOT_FOUND", "Emergência não encontrada(a)."},
+                    "409", new String[] {"Emergência já encerrada (cancelada ou contida)",
+                            "CONFLICT", "Esta emergência já foi encerrada (cancelled) e não aceita confirmação."})));
 
     @Bean
     public OpenApiCustomizer errorResponsesCustomizer() {

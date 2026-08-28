@@ -11,7 +11,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * {@code scoring-weights.yml} — versionados e auditáveis, nunca "mágicos" no código.
  */
 @ConfigurationProperties(prefix = "aura")
-public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors cors, Seed seed, Push push) {
+public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors cors, Seed seed,
+                             Push push, Sos sos) {
 
     public record Jwt(String secret, long accessTtlMinutes, long refreshTtlDays) { }
 
@@ -54,4 +55,30 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
      * real não é registrado e o envio se declara {@code simulated}. Ver {@link FirebaseConfig}.
      */
     public record Push(String credentialsPath, String credentialsJson) { }
+
+    /**
+     * Fluxo de crise (C3). Os quatro números que definem o comportamento do SOS ficam aqui, e não
+     * no código, porque cada um é uma decisão de segurança do paciente que alguém vai querer
+     * revisar sem recompilar.
+     *
+     * @param cancelWindowSeconds     janela de cancelamento, contada <b>no servidor</b>. São 5, não
+     *                                10: quem acertou um alvo de 64dp já demonstrou intenção, e a
+     *                                assimetria de dano é brutal — falso positivo custa um
+     *                                telefonema, falso negativo custa uma pessoa no chão.
+     * @param escalateAfterSeconds    tempo sem confirmação humana antes de o aviso ir aos demais
+     *                                membros da casa.
+     * @param minIntervalSeconds      janela de deduplicação por casa. Um novo toque dentro dela, com
+     *                                emergência ainda aberta, devolve a mesma emergência em vez de
+     *                                criar outra — é ao mesmo tempo a contenção de abuso do acesso
+     *                                sem login e a correção do toque duplo acidental.
+     * @param maxPerHour              teto de emergências por casa por hora <b>para disparos sem
+     *                                sessão</b>. Acima dele o registro continua sendo gravado (e
+     *                                auditável), mas o push é contido. Ver o comentário do
+     *                                {@code EmergencyService} sobre o risco residual.
+     * @param sweepMillis             intervalo do varredor que recupera disparos e escalonamentos
+     *                                vencidos — a rede de segurança para o caso de a JVM ter
+     *                                reiniciado no meio da janela.
+     */
+    public record Sos(int cancelWindowSeconds, int escalateAfterSeconds,
+                      int minIntervalSeconds, int maxPerHour, long sweepMillis) { }
 }

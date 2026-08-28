@@ -1,6 +1,9 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.web.error.ApiException;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
@@ -29,8 +32,23 @@ public class FcmService {
     /** Prefixo do identificador do modo simulado: nenhum id do FCM se parece com isso. */
     private static final String SIMULATED_PREFIX = "simulado:";
 
-    /** O aviso pronto para sair. {@code data} é o payload do deep link (valores só de texto no FCM). */
-    public record PushMessage(String deviceToken, String title, String body, Map<String, String> data) { }
+    /**
+     * O aviso pronto para sair. {@code data} é o payload do deep link (valores só de texto no FCM).
+     *
+     * <p>{@code highPriority} é o que o SOS (C3) precisa e uma recomendação de compra não: no
+     * Android tira o aviso da fila do <i>doze mode</i>, no iOS pede
+     * {@code interruption-level: time-sensitive}, que é o que atravessa Foco e Não Perturbe. Às 3h
+     * da manhã, um aviso de queda dormindo na fila de economia de bateria é o mesmo que nenhum
+     * aviso. Não é o padrão de propósito: prioridade alta em tudo é como se perde a prioridade alta.
+     */
+    public record PushMessage(String deviceToken, String title, String body, Map<String, String> data,
+                              boolean highPriority) {
+
+        /** Aviso comum (recomendação, pedido): prioridade normal. */
+        public PushMessage(String deviceToken, String title, String body, Map<String, String> data) {
+            this(deviceToken, title, body, data, false);
+        }
+    }
 
     /** {@code simulated} responde uma pergunta só: o push saiu de verdade deste servidor? */
     public record PushResult(String messageId, long latencyMs, boolean simulated) { }
@@ -55,14 +73,17 @@ public class FcmService {
             return new PushResult(SIMULATED_PREFIX + UUID.randomUUID(), elapsedMs(inicio), true);
         }
         try {
-            String messageId = messaging.send(Message.builder()
+            Message.Builder builder = Message.builder()
                     .setToken(message.deviceToken())
                     .setNotification(Notification.builder()
                             .setTitle(message.title())
                             .setBody(message.body())
                             .build())
-                    .putAllData(message.data())
-                    .build());
+                    .putAllData(message.data());
+            if (message.highPriority()) {
+                aplicarPrioridadeAlta(builder);
+            }
+            String messageId = messaging.send(builder.build());
             long latencyMs = elapsedMs(inicio);
             log.info("Push enviado para o dispositivo {} em {} ms — messageId {}",
                     mask(message.deviceToken()), latencyMs, messageId);
@@ -74,6 +95,33 @@ public class FcmService {
                     "O Firebase não aceitou o aviso para este dispositivo. "
                             + "Registre o token novamente pelo app e tente de novo.");
         }
+    }
+
+    /**
+     * Prioridade máxima nas duas plataformas. São dois mecanismos distintos e nenhum dos dois é o
+     * padrão do SDK:
+     *
+     * <ul>
+     *   <li><b>Android</b>: {@code priority: high} acorda o app mesmo em <i>doze mode</i>.</li>
+     *   <li><b>iOS</b>: o cabeçalho {@code apns-priority: 10} entrega imediatamente, e
+     *       {@code interruption-level: time-sensitive} é o que faz o aviso atravessar Foco e Não
+     *       Perturbe. Sem o segundo, o primeiro entrega rápido para um celular que não apita.</li>
+     * </ul>
+     *
+     * <p>Não usamos {@code critical} no iOS: exige <i>entitlement</i> especial da Apple, que este
+     * projeto não tem — e prometer alerta crítico sem o entitlement é falhar em silêncio.
+     */
+    private static void aplicarPrioridadeAlta(Message.Builder builder) {
+        builder.setAndroidConfig(AndroidConfig.builder()
+                        .setPriority(AndroidConfig.Priority.HIGH)
+                        .build())
+                .setApnsConfig(ApnsConfig.builder()
+                        .putHeader("apns-priority", "10")
+                        .setAps(Aps.builder()
+                                .setSound("default")
+                                .putCustomData("interruption-level", "time-sensitive")
+                                .build())
+                        .build());
     }
 
     private static long elapsedMs(long inicioNanos) {

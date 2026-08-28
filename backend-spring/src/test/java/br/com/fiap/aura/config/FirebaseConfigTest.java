@@ -27,7 +27,7 @@ class FirebaseConfigTest {
 
     private AuraProperties props(String credentialsPath, String credentialsJson) {
         return new AuraProperties(null, null, null, null, null,
-                new AuraProperties.Push(credentialsPath, credentialsJson));
+                new AuraProperties.Push(credentialsPath, credentialsJson), null);
     }
 
     /** Conta de serviço sintética: chave RSA gerada aqui, porque o SDK a valida ao carregar. */

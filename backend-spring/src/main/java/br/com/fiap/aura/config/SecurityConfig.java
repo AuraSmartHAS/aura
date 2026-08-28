@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,7 +24,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * API stateless: nenhuma sessão no servidor, autorização derivada do JWT.
- * Rotas públicas: signup/login/refresh, health, página de status e Swagger.
+ * Rotas públicas: signup/login/refresh, health, página de status, Swagger — e o SOS.
  */
 @Configuration
 @EnableMethodSecurity
@@ -35,6 +36,23 @@ public class SecurityConfig {
         "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/h2-console/**",
         "/favicon.ico", "/css/**"
     };
+
+    /**
+     * O SOS não fica atrás de login (C3, regra 3). Sessão expirada não pode custar um socorro: a
+     * Maria não vai digitar senha no chão do banheiro.
+     *
+     * <p><b>Os padrões abaixo são deliberadamente estreitos, um por rota e com método fixo.</b>
+     * Abrir {@code /api/v1/emergencies/**} de uma vez seria mais curto e abriria o
+     * {@code /ack} junto — e o "estou indo" precisa de autor, senão a tela diz à Maria que alguém
+     * está indo sem que ninguém esteja. {@code *} casa um segmento só, então
+     * {@code GET /api/v1/emergencies/{id}} não alcança {@code .../{id}/ack}.
+     *
+     * <p>A mitigação de abuso do que fica aberto aqui é de aplicação, não de rede, e está
+     * documentada em {@code EmergencyService#contidoPorAbuso} — inclusive o risco residual.
+     */
+    private static final String SOS_TRIGGER = "/api/v1/emergencies";
+    private static final String SOS_CANCEL = "/api/v1/emergencies/*/cancel";
+    private static final String SOS_STATUS = "/api/v1/emergencies/*";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
@@ -48,6 +66,9 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(reg -> reg
                 .requestMatchers(PUBLIC).permitAll()
+                .requestMatchers(HttpMethod.POST, SOS_TRIGGER).permitAll()
+                .requestMatchers(HttpMethod.POST, SOS_CANCEL).permitAll()
+                .requestMatchers(HttpMethod.GET, SOS_STATUS).permitAll()
                 .requestMatchers("/api/v1/ops/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e

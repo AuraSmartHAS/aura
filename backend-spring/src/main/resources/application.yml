@@ -47,6 +47,19 @@ aura:
     installation-price: 149.90
   cors:
     allowed-origins: "*"
+  sos:
+    # Fluxo de crise (C3). A contagem de cancelamento mora AQUI, no servidor, nunca no aparelho:
+    # cronômetro de cliente morre quando o telefone cai da mão — que é exatamente o cenário.
+    cancel-window-seconds: 5
+    # Sem "estou indo" nesse tempo, o aviso vai para os demais membros da casa.
+    escalate-after-seconds: 60
+    # Contenção de abuso do endpoint aberto: toque repetido dentro dessa janela devolve a mesma
+    # emergência em vez de criar outra. Também é o que impede o toque duplo acidental de virar dois.
+    min-interval-seconds: 30
+    # Teto por casa/hora, só para disparo SEM sessão. Acima dele o registro é gravado e o push contido.
+    max-per-hour: 12
+    # Varredor de recuperação: pega disparo vencido que o agendamento em memória perdeu num restart.
+    sweep-millis: 1000
   push:
     # Credencial do Firebase — só o NOME da variável mora aqui; o segredo nunca entra no repositório.
     # Uma das duas basta: caminho do arquivo da conta de serviço ou o JSON inteiro.

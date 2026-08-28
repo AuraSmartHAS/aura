@@ -3,6 +3,7 @@ package br.com.fiap.aura.service;
 import br.com.fiap.aura.domain.Home;
 import br.com.fiap.aura.repository.ConsentRepository;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.EmergencyRepository;
 import br.com.fiap.aura.repository.HomeMemberRepository;
 import br.com.fiap.aura.repository.HomeRepository;
 import br.com.fiap.aura.repository.MedicationRepository;
@@ -30,6 +31,7 @@ public class LgpdService {
 
     private final HomeRepository homes;
     private final HomeMemberRepository members;
+    private final EmergencyRepository emergencies;
     private final SignalRepository signals;
     private final ScoreRepository scores;
     private final RecommendationRepository recommendations;
@@ -39,12 +41,14 @@ public class LgpdService {
     private final UserAccountRepository users;
     private final HomeService homeService;
 
-    public LgpdService(HomeRepository homes, HomeMemberRepository members, SignalRepository signals,
+    public LgpdService(HomeRepository homes, HomeMemberRepository members,
+                       EmergencyRepository emergencies, SignalRepository signals,
                        ScoreRepository scores, RecommendationRepository recommendations,
                        DeliveryOrderRepository orders, MedicationRepository medications,
                        ConsentRepository consents, UserAccountRepository users, HomeService homeService) {
         this.homes = homes;
         this.members = members;
+        this.emergencies = emergencies;
         this.signals = signals;
         this.scores = scores;
         this.recommendations = recommendations;
@@ -79,6 +83,9 @@ public class LgpdService {
     }
 
     private void purgeHome(UUID homeId) {
+        // as emergências vão primeiro: são o registro mais sensível da casa (quem pediu socorro,
+        // quando, e para onde o aviso apontou) e não podem sobreviver ao titular do dado
+        emergencies.deleteByHomeId(homeId);
         members.deleteByHomeId(homeId);
         orders.deleteByHomeId(homeId);
         recommendations.deleteByHomeId(homeId);
