@@ -43,12 +43,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   int _noticeSeq = 0;
 
   ConversationMode _currentMode = ConversationMode.listening;
-  String? _conversationToken;
 
-  /// Por que a conversa não está pronta. Guardado no início e usado só quando a
-  /// Maria tenta falar: sem internet ao abrir o app, a frase é "sem internet" —
-  /// não a genérica.
-  HomeErrorCode _tokenErrorCode = HomeErrorCode.tokenUnavailable;
+  /// Conversa subindo agora, quando há uma. Com Parkinson o toque no microfone
+  /// vem dobrado: sem isto, o segundo toque busca outro token e sobe uma segunda
+  /// sessão por cima da primeira.
+  Future<bool>? _pendingStart;
 
   HomeBloc({
     required FetchConversationTokenUseCase fetchTokenUseCase,
@@ -80,23 +79,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onInit(HomeInitEvent event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(isLoading: true));
-
     _setupStreamListeners();
 
-    final tokenResult = await _fetchTokenUseCase();
-    if (tokenResult is Success<String>) {
-      _conversationToken = tokenResult.data;
-    } else if (tokenResult is Failure<String>) {
-      // A tela abre calma mesmo assim: falha aqui não é erro dela, e banner
-      // vermelho na abertura é o que faz uma idosa achar que quebrou. A frase
-      // espera o primeiro toque no microfone.
-      _tokenErrorCode = HomeErrorCopy.codeFor(
-        '${tokenResult.failure}',
-        fallback: HomeErrorCode.tokenUnavailable,
-      );
-    }
-
+    // Abrir a tela não busca token nenhum (C7a): quem busca é cada início de
+    // conversa. A tela também abre calma — nada de banner vermelho antes de a
+    // Maria pedir alguma coisa.
     emit(state.copyWith(isLoading: false, userName: 'Maria'));
   }
 
@@ -124,30 +111,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onMicTapped(HomeMicTappedEvent event, Emitter<HomeState> emit) async {
+    // Toque repetido enquanto a conversa sobe não é pedido de parar nem de
+    // recomeçar — é o tremor. A tela já está dizendo "Conectando...".
+    if (_pendingStart != null) return;
+
     if (state.voiceState == VoiceUIState.idle ||
         state.voiceState == VoiceUIState.error) {
-      if (_conversationToken == null) {
-        emit(state.copyWith(
-          voiceState: VoiceUIState.error,
-          errorMessage: HomeErrorCopy.of(_tokenErrorCode),
-        ));
-        return;
-      }
       emit(state.copyWith(
         voiceState: VoiceUIState.connecting,
         isTextMode: false,
         clearError: true,
       ));
-      final result = await _startConversationUseCase(_conversationToken!);
-      if (result is Failure<void>) {
-        emit(state.copyWith(
-          voiceState: VoiceUIState.error,
-          errorMessage: HomeErrorCopy.fromFailure(
-            result.failure,
-            fallback: HomeErrorCode.startFailed,
-          ),
-        ));
-      }
+      await _startSession(emit);
     } else if (state.isMuted) {
       // Veio do modo texto: o microfone estava mudo de propósito. Tocar nele
       // devolve a voz sem derrubar a conversa que já está em pé.
@@ -334,13 +309,47 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return true;
     }
 
-    if (_conversationToken == null) {
-      emit(state.copyWith(errorMessage: HomeErrorCopy.of(_tokenErrorCode)));
-      return false;
-    }
+    // Se já existe conversa subindo (o toque dobrado, ou o microfone), esta
+    // espera aquela em vez de abrir uma segunda — assim o texto não se perde.
+    if (!await _startSession(emit)) return false;
 
-    emit(state.copyWith(voiceState: VoiceUIState.connecting));
-    final result = await _startConversationUseCase(_conversationToken!);
+    await _toggleMuteUseCase(true);
+    return true;
+  }
+
+  // ── Início de conversa ───────────────────────────────────────────
+
+  /// Sobe uma conversa nova — ou devolve a que já está subindo, para que dois
+  /// pedidos quase simultâneos não virem duas sessões.
+  Future<bool> _startSession(Emitter<HomeState> emit) async {
+    final pending = _pendingStart;
+    if (pending != null) return pending;
+
+    final start = _connectSession(emit);
+    _pendingStart = start;
+    try {
+      return await start;
+    } finally {
+      _pendingStart = null;
+    }
+  }
+
+  /// Conecta a sessão com um token **novo**.
+  ///
+  /// O token da conversa é de uso único e de vida curta: o da conversa anterior
+  /// não serve para a próxima. Buscá-lo uma vez, na abertura da tela, era o que
+  /// quebrava a segunda conversa da Maria sem sair da tela (C7a) — por isso ele
+  /// não mora em campo nenhum, só nesta chamada.
+  Future<bool> _connectSession(Emitter<HomeState> emit) async {
+    emit(state.copyWith(
+      voiceState: VoiceUIState.connecting,
+      clearError: true,
+    ));
+
+    final token = await _fetchFreshToken(emit);
+    if (token == null) return false;
+
+    final result = await _startConversationUseCase(token);
     if (result is Failure<void>) {
       emit(state.copyWith(
         voiceState: VoiceUIState.error,
@@ -351,9 +360,26 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ));
       return false;
     }
-
-    await _toggleMuteUseCase(true);
     return true;
+  }
+
+  /// Token desta conversa, ou `null` quando a busca falha — nesse caso a frase
+  /// já foi para a tela, vinda do dicionário (C6).
+  Future<String?> _fetchFreshToken(Emitter<HomeState> emit) async {
+    final result = await _fetchTokenUseCase();
+    switch (result) {
+      case Success<String>():
+        return result.data;
+      case Failure<String>():
+        emit(state.copyWith(
+          voiceState: VoiceUIState.error,
+          errorMessage: HomeErrorCopy.fromFailure(
+            result.failure,
+            fallback: HomeErrorCode.tokenUnavailable,
+          ),
+        ));
+        return null;
+    }
   }
 
   HomeState _withNotice(String message) {
