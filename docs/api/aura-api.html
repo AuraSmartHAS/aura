@@ -63,12 +63,12 @@
 <body>
 <div class="topo">
   <h1>AURA Care-Chain API <span style="color:var(--muted);font-size:13px">v1.0.0</span></h1>
-  <p>37 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
+  <p>38 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
      contas de demonstração: <code>ana@aura.com</code> · <code>admin@aura.com</code> — senha <code>aura1234</code></p>
   <input class="busca" id="busca" type="search" placeholder="Filtrar por rota, método ou descrição…" autocomplete="off">
 </div>
 <div class="layout">
-  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">8</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a></nav>
+  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">8</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a></nav>
   <main>
     <section class="grupo" id="0-Meta">
       <h2>0. Meta</h2>
@@ -976,6 +976,29 @@
   ]
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+    </section>
+    <section class="grupo" id="7-Notificações">
+      <h2>7. Notificações</h2>
+      
+      <article class="op" data-busca="post /api/v1/notifications/test dispara um aviso de teste para o dono da casa e devolve a latência medida">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/notifications/test</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Dispara um aviso de teste para o dono da casa e devolve a latência medida</p>
+        
+        <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
+  &quot;homeId&quot;: &quot;string&quot;,
+  &quot;kind&quot;: &quot;recommendation&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
+  &quot;messageId&quot;: &quot;projects/aura/messages/0:1724800000000000%3Ade3f&quot;,
+  &quot;latencyMs&quot;: 184,
+  &quot;simulated&quot;: false
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">PUSH_TOKEN_MISSING</code><span class="desc">Nenhum aparelho registrado para o destinatário, ou o Firebase recusou o aviso</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
     </section><p class="vazio" id="vazio" hidden>Nenhuma rota encontrada.</p></main>
 </div>

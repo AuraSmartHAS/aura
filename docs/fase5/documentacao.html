@@ -371,7 +371,7 @@ produção.
 <h3>3.4 API REST</h3>
 
 <p>
-São <strong>37 operações REST distribuídas em 29 rotas</strong> sob <code>/api/v1</code> — o número
+São <strong>38 operações REST distribuídas em 30 rotas</strong> sob <code>/api/v1</code> — o número
 pode ser conferido no próprio <code>/v3/api-docs</code> da aplicação rodando. A tabela abaixo
 agrupa as operações por recurso.
 </p>
@@ -504,7 +504,7 @@ pedidos da casa é literalmente vazia — e isso é verificado por teste automat
 <p>
 A API é documentada com <strong>springdoc-openapi</strong>, gerada a partir do próprio código —
 não há documento paralelo que possa envelhecer. O Swagger UI (<code>/swagger-ui.html</code>)
-lista as 37 operações agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado:
+lista as 38 operações agrupadas por contexto, com o esquema <em>bearerAuth</em> configurado:
 dá para autenticar com o botão <em>Authorize</em> e executar o fluxo inteiro pelo navegador.
 </p>
 
@@ -544,13 +544,13 @@ de superfície operacional do servidor, renderizada sem depender de nenhum clien
 <h3>3.9 Testes</h3>
 
 <p>
-São <strong>76 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
+São <strong>122 testes automatizados</strong> no projeto, todos verdes, distribuídos pelos quatro
 módulos — e todos executados nesta entrega:
 </p>
 
 <table>
   <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
-  <tr><td>Back-end (JUnit + MockMvc)</td><td>23</td><td><code>./mvnw test</code></td>
+  <tr><td>Back-end (JUnit + MockMvc)</td><td>37</td><td><code>./mvnw test</code></td>
       <td>motor de escore, guardrail, o percurso completo da API, o ciclo de vida
           da medicação e o isolamento entre pacientes</td></tr>
   <tr><td>Painel Angular (Jasmine/Karma)</td><td>17</td><td><code>npm test</code></td>
@@ -559,7 +559,7 @@ módulos — e todos executados nesta entrega:
       <td>fluxo ponta a ponta no navegador, contra a API real</td></tr>
   <tr><td>App React Native (Jest)</td><td>7</td><td><code>npm test</code></td>
       <td>contrato do cliente da API, Bearer e envelope de erro</td></tr>
-  <tr><td>App Flutter (flutter_test)</td><td>23</td><td><code>flutter test</code></td>
+  <tr><td>App Flutter (flutter_test)</td><td>55</td><td><code>flutter test</code></td>
       <td>validadores dos formulários e layout do detalhe do pedido</td></tr>
 </table>
 
