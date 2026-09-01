@@ -247,6 +247,13 @@ export class HomePageComponent implements OnInit {
     return this.scoreFactorLabels[factor] ?? this.humanize(factor);
   }
 
+  /** Prefere os rótulos que o servidor mandou; sem eles, cai no dicionário local do escore. */
+  recFactorLabels(rec: Recommendation): string[] {
+    return rec.factorLabels?.length > 0
+      ? rec.factorLabels
+      : rec.factors.map((factor) => this.describeScoreFactor(factor));
+  }
+
   /** Fallback para códigos ainda não mapeados: "near_fall" -> "Near fall". */
   private humanize(raw: string): string {
     const spaced = raw.replace(/_/g, ' ');

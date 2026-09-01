@@ -41,6 +41,14 @@ export interface Recommendation {
   status: 'recommended' | 'approved' | 'rejected';
   factors: string[];
   weights: number[];
+  /** Rótulos prontos em português — a tela não retraduz o que o servidor já explicou. */
+  factorLabels: string[];
+  /** Nulos quando o SKU saiu do catálogo: preço ausente nunca vira "R$ null". */
+  price: number | null;
+  installable: boolean | null;
+  installationIncluded: boolean | null;
+  installationPrice: number | null;
+  normRef: string | null;
 }
 
 export interface Order {

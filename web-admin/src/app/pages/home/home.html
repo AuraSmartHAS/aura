@@ -98,7 +98,7 @@
           <p class="explain">{{ rec.reason }}</p>
           <p class="small muted">
             Fatores:
-            <span *ngFor="let factor of rec.factors; let last = last">{{ factor }}{{ last ? '' : ' · ' }}</span>
+            <span *ngFor="let factor of recFactorLabels(rec); let last = last">{{ factor }}{{ last ? '' : ' · ' }}</span>
           </p>
           <button class="btn btn--primary btn--small" *ngIf="rec.status === 'recommended'"
                   (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
