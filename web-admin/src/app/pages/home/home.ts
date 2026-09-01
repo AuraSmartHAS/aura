@@ -6,12 +6,13 @@ import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
 import { RECOMMENDATION_STATUS_LABELS, STAGE_LABELS } from '../../core/labels';
 import { Home, Order, Recommendation, Score, Signal } from '../../core/models';
+import { OrderDeliveryComponent } from './order-delivery';
 
 /** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → entrega. */
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, OrderDeliveryComponent],
   templateUrl: './home.html',
 })
 export class HomePageComponent implements OnInit {
@@ -28,6 +29,9 @@ export class HomePageComponent implements OnInit {
   readonly busy = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
+
+  /** Pedido com o mapa da entrega aberto — um por vez, recolhido ao trocar de casa. */
+  readonly expandedOrderId = signal<string | null>(null);
 
   /** Chaves do checklist ligadas por [(ngModel)] nos checkboxes. */
   checklist: Record<string, boolean> = {
@@ -117,6 +121,7 @@ export class HomePageComponent implements OnInit {
 
   select(home: Home): void {
     this.selected.set(home);
+    this.expandedOrderId.set(null);
     this.checklist = { ...this.checklist, ...(home.safetyChecklist ?? {}) };
     this.refresh(home.id);
   }
@@ -218,6 +223,10 @@ export class HomePageComponent implements OnInit {
   /** Instalado e devolvido são finais: sem próximo estágio, sem botão que devolva por engano. */
   canAdvance(order: Order): boolean {
     return order.stage !== 'installed' && order.stage !== 'returned';
+  }
+
+  toggleDelivery(order: Order): void {
+    this.expandedOrderId.update((id) => (id === order.id ? null : order.id));
   }
 
   describeSignalType(signal: Signal): string {

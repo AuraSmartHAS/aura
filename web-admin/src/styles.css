@@ -322,3 +322,24 @@ td.low { color: var(--danger); font-weight: 700; }
   .grid--2 { grid-template-columns: 1fr; }
   .topbar { flex-wrap: wrap; gap: 12px; }
 }
+
+/* mapa da entrega (última milha) */
+.map { margin-top: 10px; }
+.map__svg {
+  display: block;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.map__route-halo { fill: none; stroke: var(--primary); stroke-opacity: 0.15; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+.map__route { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.map__node rect { fill: var(--primary); }
+.map__house circle { fill: var(--care-green); }
+.map__label { font-size: 12px; fill: var(--muted); text-anchor: middle; font-family: var(--font-body); }
+/* o poll move o ponto ~4 px por vez; a transição transforma o salto em deslizamento visível */
+.map__courier { transition: transform 800ms ease-in-out; }
+.map__courier-ring { fill: var(--accent); opacity: 0.25; }
+.map__courier-dot { fill: var(--accent); }
+.map__legend { margin: 6px 2px 0; color: var(--muted); }
+.map__arriving { color: var(--accent); font-weight: 700; }

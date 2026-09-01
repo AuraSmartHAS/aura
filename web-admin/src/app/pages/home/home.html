@@ -142,11 +142,21 @@
             </li>
           </ol>
 
-          <button class="btn btn--small" (click)="advance(order)"
-                  *ngIf="canAdvance(order)"
-                  [disabled]="busy() === 'advance-' + order.id">
-            Avançar estágio
-          </button>
+          <div class="actions">
+            <button class="btn btn--small" (click)="advance(order)"
+                    *ngIf="canAdvance(order)"
+                    [disabled]="busy() === 'advance-' + order.id">
+              Avançar estágio
+            </button>
+            <button class="btn btn--ghost btn--small" *ngIf="order.stage === 'in_route'"
+                    (click)="toggleDelivery(order)"
+                    [attr.aria-expanded]="expandedOrderId() === order.id">
+              {{ expandedOrderId() === order.id ? 'Ocultar entrega' : 'Ver entrega' }}
+            </button>
+          </div>
+
+          <app-order-delivery *ngIf="expandedOrderId() === order.id"
+                              [orderId]="order.id" [houseLabel]="home.patientName" />
         </div>
       </article>
 
