@@ -108,10 +108,16 @@
             </ng-container>
             <ng-container *ngIf="rec.normRef">· {{ rec.normRef }}</ng-container>
           </p>
-          <button class="btn btn--primary btn--small" *ngIf="rec.status === 'recommended'"
-                  (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
-            Aprovar e pedir
-          </button>
+          <div class="actions" *ngIf="rec.status === 'recommended'">
+            <button class="btn btn--primary btn--small"
+                    (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
+              Aprovar e pedir
+            </button>
+            <button class="btn btn--ghost btn--small"
+                    (click)="reject(rec)" [disabled]="busy() === 'reject-' + rec.recommendationId">
+              Recusar
+            </button>
+          </div>
         </div>
       </article>
 

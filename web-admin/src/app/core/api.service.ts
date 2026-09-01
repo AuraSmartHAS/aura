@@ -68,6 +68,13 @@ export class ApiService {
     );
   }
 
+  reject(recommendationId: string): Observable<{ status: string }> {
+    return this.http.post<{ status: string }>(
+      `${this.baseUrl}/recommendations/${recommendationId}/reject`,
+      {},
+    );
+  }
+
   orders(homeId: string): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.baseUrl}/homes/${homeId}/orders`);
   }

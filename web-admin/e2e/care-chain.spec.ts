@@ -65,6 +65,24 @@ test.describe('painel da cuidadora', () => {
     await expect(page.locator('.order')).toHaveCount(pedidosAntes + 1);
   });
 
+  test('recusar uma recomendação não cria pedido', async ({ page }) => {
+    await entrar(page, CUIDADORA);
+    await page.getByRole('button', { name: 'Recalcular escore' }).click();
+    await expect(page.locator('.score').first()).toBeVisible();
+
+    await page.getByRole('button', { name: 'Gerar recomendação' }).first().click();
+    const recomendacao = page.locator('.rec').first();
+    await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
+
+    const pedidosAntes = await page.locator('.order').count();
+
+    // RN-022 pelo navegador: a recusa é registrada e nenhum pedido nasce dela
+    await recomendacao.getByRole('button', { name: 'Recusar' }).click();
+    await expect(page.locator('.notice')).toContainText('Nenhum pedido');
+    await expect(page.locator('.rec').first().locator('.tag')).toHaveText('Recusado');
+    await expect(page.locator('.order')).toHaveCount(pedidosAntes);
+  });
+
   test('o pedido avança pelos estágios da cadeia', async ({ page }) => {
     await entrar(page, CUIDADORA);
     const pedido = page.locator('.order').first();

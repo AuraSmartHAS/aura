@@ -189,6 +189,17 @@ export class HomePageComponent implements OnInit {
     });
   }
 
+  reject(rec: Recommendation): void {
+    const home = this.selected();
+    if (!home) {
+      return;
+    }
+    this.run('reject-' + rec.recommendationId, this.api.reject(rec.recommendationId), () => {
+      this.flash('Recomendação recusada. Nenhum pedido foi criado.');
+      this.refresh(home.id);
+    });
+  }
+
   advance(order: Order): void {
     const home = this.selected();
     if (!home) {

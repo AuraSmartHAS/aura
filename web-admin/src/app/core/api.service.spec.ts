@@ -74,4 +74,12 @@ describe('ApiService', () => {
     expect(req.request.method).toBe('POST');
     req.flush({ orderId: 'o1', stage: 'approved' });
   });
+
+  it('recusar recomendação bate na rota de recusa, com corpo vazio', () => {
+    api.reject('rec-1').subscribe();
+    const req = http.expectOne(`${api.baseUrl}/recommendations/rec-1/reject`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush({ status: 'rejected' });
+  });
 });
