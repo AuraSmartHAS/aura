@@ -285,7 +285,8 @@ public class DataSeeder implements CommandLineRunner {
         DeliveryOrder emRota = placed(casa, node, distanceM, "LM-ANTIDERRAP",
                 "Piso Antiderrapante p/ Box (m²)", OrderStage.IN_ROUTE,
                 now.minus(14, ChronoUnit.HOURS), null, null);
-        emRota.setEtaDelivery(now.plus(3, ChronoUnit.HOURS));
+        // dentro da janela de última milha — é o pedido que o mapa mostra andando
+        emRota.setEtaDelivery(now.plus(12, ChronoUnit.MINUTES));
         orders.save(emRota);
 
         // criado há (SLA - 1)h: o prazo vence na próxima hora, é o pedido apertado do painel

@@ -42,6 +42,9 @@ aura:
   carechain:
     delivery-sla-hours: 24
     install-sla-hours: 72
+    # Janela simulada da última milha (saída da loja → porta da casa). É dela que nasce a ETA
+    # de "em rota" e a posição do entregador; em produção viria do roteirizador do parceiro.
+    route-window-minutes: 20
     # Instalação cobrada à parte: a tela soma item + instalação antes de a cuidadora aprovar.
     installation-included: false
     installation-price: 149.90

@@ -39,7 +39,7 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
      * porque o catálogo ainda não tem preço de instalação por SKU — e a cuidadora precisa
      * saber quanto vai pagar antes de aprovar, não depois.
      */
-    public record Carechain(int deliverySlaHours, int installSlaHours,
+    public record Carechain(int deliverySlaHours, int installSlaHours, int routeWindowMinutes,
                             boolean installationIncluded, BigDecimal installationPrice) { }
 
     public record Cors(String allowedOrigins) { }

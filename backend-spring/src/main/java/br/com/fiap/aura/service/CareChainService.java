@@ -206,7 +206,8 @@ public class CareChainService {
         order.setStage(next);
 
         switch (next) {
-            case IN_ROUTE -> order.setEtaDelivery(now.plus(4, ChronoUnit.HOURS));
+            case IN_ROUTE -> order.setEtaDelivery(
+                    now.plus(props.carechain().routeWindowMinutes(), ChronoUnit.MINUTES));
             case DELIVERED -> {
                 order.setDeliveredAt(now);
                 order.setSlaBreached(order.getSlaDueAt() != null && now.isAfter(order.getSlaDueAt()));
