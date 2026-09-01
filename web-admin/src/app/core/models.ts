@@ -116,6 +116,21 @@ export interface Kpis {
   byStage: { stage: string; count: number }[];
 }
 
+/** Projeção da reposição por consumo (POST /homes/{id}/replenishment/check) — a conta viaja aberta. */
+export interface ReplenishmentProjection {
+  medicationId: string;
+  medicationName: string;
+  stockDoses: number | null;
+  avgDosesPerDay: number | null;
+  daysOfSupply: number | null;
+  leadTimeHours: number;
+  safetyStockDays: number;
+  thresholdDays: number;
+  suggested: boolean;
+  recommendationId: string | null;
+  reason: string | null;
+}
+
 /** Uma linha da carteira de pedidos da Torre (GET /ops/orders, só admin). */
 export interface OpsOrder {
   id: string;

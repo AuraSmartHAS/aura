@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CatalogItem, Home, Kpis, OpsOrder, Order, OrderDetail, Recommendation, Score, Signal, TokenResponse } from './models';
+import { CatalogItem, Home, Kpis, OpsOrder, Order, OrderDetail, Recommendation, ReplenishmentProjection, Score, Signal, TokenResponse } from './models';
 
 /** Todas as chamadas ao backend Spring Boot passam por aqui. */
 @Injectable({ providedIn: 'root' })
@@ -77,6 +77,14 @@ export class ApiService {
 
   orders(homeId: string): Observable<Order[]> {
     return this.http.get<Order[]>(`${this.baseUrl}/homes/${homeId}/orders`);
+  }
+
+  /** Projeta o estoque contra o consumo confirmado; a régua disparada materializa recomendação. */
+  replenishmentCheck(homeId: string): Observable<ReplenishmentProjection[]> {
+    return this.http.post<ReplenishmentProjection[]>(
+      `${this.baseUrl}/homes/${homeId}/replenishment/check`,
+      {},
+    );
   }
 
   advance(orderId: string): Observable<{ stage: string; slaBreached: boolean }> {

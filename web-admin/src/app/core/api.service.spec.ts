@@ -68,6 +68,15 @@ describe('ApiService', () => {
     atualizado.flush({ sku: 'LM-NOVO', ...corpo });
   });
 
+  it('check de reposição projeta por POST com corpo vazio', () => {
+    api.replenishmentCheck('casa-1').subscribe();
+
+    const req = http.expectOne(`${api.baseUrl}/homes/casa-1/replenishment/check`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush([]);
+  });
+
   it('carteira da Torre busca os pedidos da operação', () => {
     api.opsOrders().subscribe();
 

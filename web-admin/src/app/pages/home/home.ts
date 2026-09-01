@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
 import { RECOMMENDATION_STATUS_LABELS, STAGE_LABELS } from '../../core/labels';
-import { Home, Order, Recommendation, Score, Signal } from '../../core/models';
+import { Home, Order, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
 import { OrderDeliveryComponent } from './order-delivery';
 
 /** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → entrega. */
@@ -22,6 +22,7 @@ export class HomePageComponent implements OnInit {
   readonly selected = signal<Home | null>(null);
   readonly scores = signal<Score[]>([]);
   readonly recommendations = signal<Recommendation[]>([]);
+  readonly replenishment = signal<ReplenishmentProjection[]>([]);
   readonly orders = signal<Order[]>([]);
   readonly signals = signal<Signal[]>([]);
 
@@ -135,9 +136,36 @@ export class HomePageComponent implements OnInit {
 
   private refresh(homeId: string): void {
     this.api.latestScores(homeId).subscribe({ next: (s) => this.scores.set(s) });
-    this.api.recommendations(homeId).subscribe({ next: (r) => this.recommendations.set(r) });
     this.api.orders(homeId).subscribe({ next: (o) => this.orders.set(o) });
     this.api.signals(homeId, 8).subscribe({ next: (s) => this.signals.set(s) });
+    // o check pode materializar recomendação nova — as recomendações carregam depois dele
+    this.api.replenishmentCheck(homeId).subscribe({
+      next: (r) => {
+        this.replenishment.set(r);
+        this.loadRecommendations(homeId);
+      },
+      error: () => this.loadRecommendations(homeId),
+    });
+  }
+
+  private loadRecommendations(homeId: string): void {
+    this.api.recommendations(homeId).subscribe({ next: (r) => this.recommendations.set(r) });
+  }
+
+  /** Só as projeções em que a régua disparou — o card não existe sem motivo. */
+  suggestedReplenishments(): ReplenishmentProjection[] {
+    return this.replenishment().filter((p) => p.suggested);
+  }
+
+  /** A recomendação materializada pelo check, se ainda aguarda decisão humana. */
+  replenishmentRec(p: ReplenishmentProjection): Recommendation | undefined {
+    return this.recommendations().find(
+      (r) => r.recommendationId === p.recommendationId && r.status === 'recommended',
+    );
+  }
+
+  roundDays(days: number | null): number {
+    return Math.round(days ?? 0);
   }
 
   saveChecklist(): void {

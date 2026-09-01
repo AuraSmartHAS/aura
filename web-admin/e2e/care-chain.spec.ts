@@ -48,7 +48,8 @@ test.describe('painel da cuidadora', () => {
     await expect(gerar).toBeVisible();
     await gerar.click();
 
-    const recomendacao = page.locator('.rec').first();
+    // no card do Care-Chain — o card de reposição também usa .rec e vem antes no DOM
+    const recomendacao = page.locator('.card', { hasText: 'Care-Chain' }).locator('.rec').first();
     await expect(recomendacao).toContainText('Barras de Apoio');
     // com escore na mesa o motivo sai composto: "porque houve <fatores> (norma)"
     await expect(recomendacao).toContainText('porque houve');
@@ -71,7 +72,8 @@ test.describe('painel da cuidadora', () => {
     await expect(page.locator('.score').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Gerar recomendação' }).first().click();
-    const recomendacao = page.locator('.rec').first();
+    const careChain = page.locator('.card', { hasText: 'Care-Chain' });
+    const recomendacao = careChain.locator('.rec').first();
     await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
 
     const pedidosAntes = await page.locator('.order').count();
@@ -79,8 +81,25 @@ test.describe('painel da cuidadora', () => {
     // RN-022 pelo navegador: a recusa é registrada e nenhum pedido nasce dela
     await recomendacao.getByRole('button', { name: 'Recusar' }).click();
     await expect(page.locator('.notice')).toContainText('Nenhum pedido');
-    await expect(page.locator('.rec').first().locator('.tag')).toHaveText('Recusado');
+    await expect(careChain.locator('.rec').first().locator('.tag')).toHaveText('Recusado');
     await expect(page.locator('.order')).toHaveCount(pedidosAntes);
+  });
+
+  test('a reposição por consumo nasce do burn rate e entra na mesma esteira', async ({ page }) => {
+    await entrar(page, CUIDADORA);
+
+    const card = page.locator('.card', { hasText: 'Reposição por consumo' });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText('cerca de 5 dias');
+    await expect(card).toContainText('média simples');
+    await expect(card).toContainText('rede parceira');
+
+    const pedidosAntes = await page.locator('.order').count();
+
+    await card.getByRole('button', { name: 'Aprovar reposição' }).click();
+    await expect(page.locator('.notice')).toContainText('cadeia logística');
+    await expect(page.locator('.order')).toHaveCount(pedidosAntes + 1);
+    await expect(page.locator('.order').first()).toContainText('refil');
   });
 
   test('o pedido avança pelos estágios da cadeia', async ({ page }) => {
