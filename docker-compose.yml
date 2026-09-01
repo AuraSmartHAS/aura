@@ -1,0 +1,35 @@
+# Demo AURA em qualquer máquina: git clone → docker compose up --build → duas janelas.
+# O backend sobe com H2 em memória e o seed completo; reiniciar o container do backend
+# recompõe o cenário limpo com todos os prazos relativos ao relógio (o reset do ensaio):
+#     docker compose restart backend
+# O app React Native (janela C) é opcional e mais pesado:
+#     docker compose --profile rn up --build
+services:
+  backend:
+    build: ./backend-spring
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # o JRE não traz curl; checar a porta aberta pelo bash basta para o dev/demo
+      test: ["CMD-SHELL", "bash -c ': > /dev/tcp/localhost/8080'"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 15s
+
+  web-admin:
+    build: ./web-admin
+    ports:
+      - "4200:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  mobile-rn:
+    build: ./mobile-rn
+    ports:
+      - "8081:8081"
+    profiles: ["rn"]
+    depends_on:
+      backend:
+        condition: service_healthy
