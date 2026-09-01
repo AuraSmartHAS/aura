@@ -254,6 +254,16 @@ export class HomePageComponent implements OnInit {
       : rec.factors.map((factor) => this.describeScoreFactor(factor));
   }
 
+  /** Instalação só entra na conta quando o item é instalável e o serviço é cobrado à parte. */
+  needsInstallation(rec: Recommendation): boolean {
+    return rec.installable === true && !rec.installationIncluded && rec.installationPrice !== null;
+  }
+
+  /** O total que a cuidadora aprova — é este número que a fala da demo cita. */
+  recTotal(rec: Recommendation): number {
+    return (rec.price ?? 0) + (this.needsInstallation(rec) ? (rec.installationPrice ?? 0) : 0);
+  }
+
   /** Fallback para códigos ainda não mapeados: "near_fall" -> "Near fall". */
   private humanize(raw: string): string {
     const spaced = raw.replace(/_/g, ' ');

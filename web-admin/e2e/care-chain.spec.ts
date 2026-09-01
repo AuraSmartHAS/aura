@@ -54,6 +54,10 @@ test.describe('painel da cuidadora', () => {
     await expect(recomendacao).toContainText('porque houve');
     await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
 
+    // a decisão de compra mostra o custo completo: item + instalação = total
+    await expect(recomendacao).toContainText('129,90');
+    await expect(recomendacao).toContainText('279,80');
+
     const pedidosAntes = await page.locator('.order').count();
 
     await recomendacao.getByRole('button', { name: 'Aprovar e pedir' }).click();

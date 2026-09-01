@@ -100,6 +100,14 @@
             Fatores:
             <span *ngFor="let factor of recFactorLabels(rec); let last = last">{{ factor }}{{ last ? '' : ' · ' }}</span>
           </p>
+          <p class="small" *ngIf="rec.price !== null">
+            {{ rec.price | currency: 'BRL' }}
+            <ng-container *ngIf="needsInstallation(rec)">
+              + instalação {{ rec.installationPrice | currency: 'BRL' }}
+              · <strong>Total {{ recTotal(rec) | currency: 'BRL' }}</strong>
+            </ng-container>
+            <ng-container *ngIf="rec.normRef">· {{ rec.normRef }}</ng-container>
+          </p>
           <button class="btn btn--primary btn--small" *ngIf="rec.status === 'recommended'"
                   (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
             Aprovar e pedir
