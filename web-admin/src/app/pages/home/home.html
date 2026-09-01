@@ -129,7 +129,7 @@
           </ol>
 
           <button class="btn btn--small" (click)="advance(order)"
-                  *ngIf="order.stage !== 'returned'"
+                  *ngIf="canAdvance(order)"
                   [disabled]="busy() === 'advance-' + order.id">
             Avançar estágio
           </button>

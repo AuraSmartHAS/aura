@@ -209,6 +209,11 @@ export class HomePageComponent implements OnInit {
     return this.stages.indexOf(stage);
   }
 
+  /** Instalado e devolvido são finais: sem próximo estágio, sem botão que devolva por engano. */
+  canAdvance(order: Order): boolean {
+    return order.stage !== 'installed' && order.stage !== 'returned';
+  }
+
   describeSignalType(signal: Signal): string {
     return this.signalTypeLabels[signal.type] ?? this.humanize(signal.type);
   }
