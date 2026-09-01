@@ -1,7 +1,7 @@
 # 📱 FRONTEND — Índice das specs (AURA Care-Chain)
 
 > Pacote **autossuficiente** para construir o **frontend Flutter unificado** (responsável: João).
-> Para o Claude Code: leia na ordem. Pode renomear este arquivo para `CLAUDE.md` na raiz do repo Flutter.
+> Leitura na ordem dos números — este índice é o ponto de partida dos planos do mobile.
 
 ## ⛔ Regras de ouro (nunca violar)
 1. **Nunca prescrever/diagnosticar** na UI — sempre encaminhar ao médico. Medicamento é só sinal.
