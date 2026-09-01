@@ -13,7 +13,7 @@ describe('errorMessage', () => {
 
   it('explica o que fazer quando a API está fora do ar', () => {
     const erro = new HttpErrorResponse({ status: 0 });
-    expect(errorMessage(erro)).toContain('API fora do ar');
+    expect(errorMessage(erro)).toContain('Não conseguimos falar com o AURA');
   });
 
   it('cai no texto padrão quando o corpo não tem envelope', () => {

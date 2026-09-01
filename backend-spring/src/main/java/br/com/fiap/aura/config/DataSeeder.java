@@ -156,7 +156,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Map<String, Object> checklist = new LinkedHashMap<>();
         checklist.put("grab_bar_bathroom", false);   // falta a barra → fator de risco
-        checklist.put("anti_slip_floor", false);     // sem piso anti-derrapante → fator de risco
+        checklist.put("anti_slip_floor", false);     // sem piso antiderrapante → fator de risco
         checklist.put("night_light", true);
         checklist.put("gas_detector", true);
         checklist.put("air_purifier", true);

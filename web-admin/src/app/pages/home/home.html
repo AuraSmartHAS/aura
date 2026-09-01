@@ -2,7 +2,7 @@
   <header class="page__head">
     <div>
       <p class="eyebrow">Acompanhamento</p>
-      <h1>Casa do paciente</h1>
+      <h1>Casa de quem você cuida</h1>
     </div>
 
     <div class="select" *ngIf="homes().length > 0">
@@ -35,7 +35,7 @@
         </dl>
 
         <h3>Checklist de segurança</h3>
-        <p class="muted small">Cada item alimenta diretamente o escore de risco.</p>
+        <p class="muted small">Cada item entra direto no cálculo do risco.</p>
         <label class="check" *ngFor="let key of checklistLabels | keyvalue">
           <input type="checkbox" [(ngModel)]="checklist[key.key]" [name]="key.key" />
           <span>{{ key.value }}</span>
@@ -56,18 +56,18 @@
         <div class="card__head">
           <h2>Risco por dimensão</h2>
           <button class="btn btn--primary" (click)="recompute()" [disabled]="busy() === 'score'">
-            {{ busy() === 'score' ? 'Calculando…' : 'Recalcular escore' }}
+            {{ busy() === 'score' ? 'Atualizando…' : 'Atualizar leituras' }}
           </button>
         </div>
 
         <p class="empty" *ngIf="scores().length === 0">
-          Nenhum escore calculado ainda. Clique em “Recalcular escore”.
+          Nenhuma leitura ainda. Clique em “Atualizar leituras”.
         </p>
 
         <div class="score" *ngFor="let score of scores()">
           <div class="score__head">
             <strong>{{ dimensionLabels[score.dimension] || score.dimension }}</strong>
-            <span [class]="levelClass(score.level)">{{ levelLabels[score.level] || score.level }} · {{ percent(score.score) }}</span>
+            <span [class]="levelClass(score.level)">{{ levelLabels[score.level] || score.level }}</span>
           </div>
           <div class="bar"><span [style.width]="percent(score.score)" [class]="'bar__fill bar__fill--' + score.level"></span></div>
           <p class="explain">
@@ -162,7 +162,7 @@
           <div class="order__head">
             <strong>{{ order.productName }}</strong>
             <span class="tag" [class.tag--danger]="order.slaBreached">
-              {{ order.slaBreached ? 'SLA estourado' : 'SLA ok' }}
+              {{ order.slaBreached ? 'Entrega atrasada' : 'Entrega no prazo' }}
             </span>
           </div>
 

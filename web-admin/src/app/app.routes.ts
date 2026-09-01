@@ -8,6 +8,6 @@ export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'home' },
   { path: 'login', component: LoginComponent, title: 'AURA · entrar' },
   { path: 'home', component: HomePageComponent, canActivate: [authGuard], title: 'AURA · casa' },
-  { path: 'admin', component: AdminPageComponent, canActivate: [authGuard], title: 'AURA · torre de controle' },
+  { path: 'admin', component: AdminPageComponent, canActivate: [authGuard], title: 'AURA · operação' },
   { path: '**', redirectTo: 'home' },
 ];

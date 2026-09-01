@@ -386,9 +386,7 @@ public class EmergencyService {
                 // segundo recebe sucesso — 409 aqui só assustaria quem está tentando ajudar
                 return respostaDeConfirmacao(atual, false);
             }
-            throw ApiException.conflict(
-                    "Esta emergência já foi encerrada (%s) e não aceita confirmação."
-                            .formatted(atual.getState().value()));
+            throw ApiException.conflict("Este pedido de ajuda já foi encerrado e não aceita mais confirmação.");
         }
 
         atual.setAcknowledgedAt(agora);

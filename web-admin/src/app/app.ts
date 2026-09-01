@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/auth.service';
+import { ROLE_LABELS } from './core/labels';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ import { AuthService } from './core/auth.service';
 export class App {
   private readonly router = inject(Router);
   readonly auth = inject(AuthService);
+  readonly roleLabels = ROLE_LABELS;
 
   logout(): void {
     this.auth.clear();

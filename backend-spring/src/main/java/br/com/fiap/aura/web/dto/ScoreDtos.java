@@ -31,7 +31,7 @@ public final class ScoreDtos {
             List<String> factors,
             @Schema(example = "[0.4, 0.3, 0.2]") List<Double> weights,
             @Schema(example = "[\"quase-queda relatada\", \"ausência de barra de apoio\", "
-                    + "\"ausência de piso anti-derrapante\"]",
+                    + "\"ausência de piso antiderrapante\"]",
                     description = "Os mesmos fatores em português, na mesma ordem — a tela não traduz código")
             List<String> factorLabels,
             @Schema(example = "Norma NBR 9050 → risco ALTO. Fatores: quase-queda relatada, "

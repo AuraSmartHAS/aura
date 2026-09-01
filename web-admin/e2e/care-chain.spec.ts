@@ -15,7 +15,7 @@ test.describe('painel da cuidadora', () => {
     await entrar(page, CUIDADORA);
     await expect(page).toHaveURL(/\/home/);
 
-    await page.getByRole('button', { name: 'Recalcular escore' }).click();
+    await page.getByRole('button', { name: 'Atualizar leituras' }).click();
     await expect(page.locator('.score').first()).toBeVisible();
 
     // o escore precisa mostrar POR QUE subiu — é a promessa do produto
@@ -31,7 +31,7 @@ test.describe('painel da cuidadora', () => {
     await page.getByRole('button', { name: 'Salvar checklist' }).click();
     await expect(page.locator('.notice')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Recalcular escore' }).click();
+    await page.getByRole('button', { name: 'Atualizar leituras' }).click();
     await expect(page.locator('.score .badge').first()).not.toHaveText(antes);
 
     // devolve o checklist ao estado anterior para o teste ser repetível
@@ -41,7 +41,7 @@ test.describe('painel da cuidadora', () => {
 
   test('nada é comprado sem a aprovação da cuidadora', async ({ page }) => {
     await entrar(page, CUIDADORA);
-    await page.getByRole('button', { name: 'Recalcular escore' }).click();
+    await page.getByRole('button', { name: 'Atualizar leituras' }).click();
     await expect(page.locator('.score').first()).toBeVisible();
 
     const gerar = page.getByRole('button', { name: 'Gerar recomendação' }).first();
@@ -68,7 +68,7 @@ test.describe('painel da cuidadora', () => {
 
   test('recusar uma recomendação não cria pedido', async ({ page }) => {
     await entrar(page, CUIDADORA);
-    await page.getByRole('button', { name: 'Recalcular escore' }).click();
+    await page.getByRole('button', { name: 'Atualizar leituras' }).click();
     await expect(page.locator('.score').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Gerar recomendação' }).first().click();

@@ -23,7 +23,7 @@ aura:
             kind: CHECKLIST_ABSENT
             checklist-key: grab_bar_bathroom
           - name: anti_slip_floor
-            label: "ausência de piso anti-derrapante"
+            label: "ausência de piso antiderrapante"
             weight: 0.2
             kind: CHECKLIST_ABSENT
             checklist-key: anti_slip_floor

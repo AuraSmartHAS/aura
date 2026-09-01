@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 export function errorMessage(error: unknown, fallback = 'Não foi possível concluir a operação.'): string {
   if (error instanceof HttpErrorResponse) {
     if (error.status === 0) {
-      return 'API fora do ar. Suba o backend em http://localhost:8080.';
+      return 'Não conseguimos falar com o AURA agora. Espere um instante e recarregue a página.';
     }
     const body = error.error as { error?: { code?: string; message?: string } } | null;
     if (body?.error?.message) {

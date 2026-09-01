@@ -6,11 +6,11 @@
 
   <nav *ngIf="auth.isLoggedIn()">
     <a routerLink="/home" routerLinkActive="active">Casa</a>
-    <a routerLink="/admin" routerLinkActive="active">Torre de Controle</a>
+    <a routerLink="/admin" routerLinkActive="active">Operação</a>
   </nav>
 
   <div class="topbar__right" *ngIf="auth.isLoggedIn(); else anon">
-    <span class="chip chip--role">{{ auth.role() }}</span>
+    <span class="chip chip--role">{{ roleLabels[auth.role() || ''] || auth.role() }}</span>
     <button class="btn btn--ghost btn--small" (click)="logout()">Sair</button>
   </div>
   <ng-template #anon>

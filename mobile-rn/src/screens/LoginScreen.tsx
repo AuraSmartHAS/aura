@@ -33,7 +33,7 @@ export default function LoginScreen({ navigation }: Props) {
       <Image source={require('../../assets/aura-logo.png')} style={styles.logo} accessibilityLabel="Logo AURA" />
 
       <Text style={styles.title}>AURA Care-Chain</Text>
-      <Text style={styles.subtitle}>Cuidado domiciliar com cadeia de segurança</Text>
+      <Text style={styles.subtitle}>Cuidado em casa, com calma e clareza.</Text>
 
       <View style={styles.card}>
         <Text style={styles.label}>E-mail</Text>
@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }: Props) {
         </View>
 
         <TouchableOpacity onPress={() => { setEmail('admin@aura.com'); setPassword('aura1234'); }}>
-          <Text style={styles.hint}>usar conta da Torre de Controle</Text>
+          <Text style={styles.hint}>Usar conta da Operação</Text>
         </TouchableOpacity>
       </View>
 

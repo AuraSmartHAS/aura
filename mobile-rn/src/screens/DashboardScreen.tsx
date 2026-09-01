@@ -24,10 +24,11 @@ const dimensionLabels: Record<string, string> = {
   environment: 'Ambiente',
 };
 
+/** O nível fala com a família: estado da casa, não nota de prova — sem sigla, sem percentual. */
 const levelLabels: Record<string, string> = {
-  low: 'BAIXO',
-  medium: 'MÉDIO',
-  high: 'ALTO',
+  low: 'Tudo certo',
+  medium: 'Atenção',
+  high: 'Risco alto',
 };
 
 /** Painel da cuidadora: risco por dimensão, sempre com os fatores que explicam o número. */
@@ -110,7 +111,7 @@ export default function DashboardScreen({ navigation }: Props) {
       <Text style={styles.sectionTitle}>Risco por dimensão</Text>
 
       {scores.length === 0 && (
-        <Text style={styles.muted}>Sem escore calculado. Toque em "Recalcular escore".</Text>
+        <Text style={styles.muted}>Ainda não há leituras. Toque em "Atualizar leituras".</Text>
       )}
 
       {scores.map((score) => (
@@ -119,7 +120,7 @@ export default function DashboardScreen({ navigation }: Props) {
             <Text style={styles.cardTitle}>{dimensionLabels[score.dimension] ?? score.dimension}</Text>
             <View style={[styles.badge, { backgroundColor: `${levelColor[score.level]}22` }]}>
               <Text style={[styles.badgeText, { color: levelColor[score.level] }]}>
-                {levelLabels[score.level] ?? score.level.toUpperCase()} · {Math.round(score.score * 100)}%
+                {levelLabels[score.level] ?? score.level}
               </Text>
             </View>
           </View>
@@ -154,13 +155,13 @@ export default function DashboardScreen({ navigation }: Props) {
       ))}
 
       <View style={styles.actions}>
-        <AuraButton title="Recalcular escore" onPress={recompute} />
+        <AuraButton title="Atualizar leituras" onPress={recompute} />
         <View style={styles.spacer} />
         <AuraButton title="Registrar quase-queda" onPress={registerNearFall} variant="outline" />
       </View>
 
       <Text style={styles.disclaimer}>
-        O AURA não prescreve nem diagnostica. Sintomas relevantes são sempre encaminhados ao médico.
+        O AURA não prescreve nem diagnostica. Ele te avisa do que percebe — decisões de saúde ficam com o médico.
       </Text>
     </ScrollView>
   );

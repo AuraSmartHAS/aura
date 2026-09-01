@@ -45,7 +45,7 @@ export class HomePageComponent implements OnInit {
 
   readonly checklistLabels: Record<string, string> = {
     grab_bar_bathroom: 'Barra de apoio no banheiro',
-    anti_slip_floor: 'Piso anti-derrapante',
+    anti_slip_floor: 'Piso antiderrapante',
     night_light: 'Iluminação noturna',
     gas_detector: 'Detector de gás/fumaça',
     air_purifier: 'Purificador de ar',
@@ -95,7 +95,7 @@ export class HomePageComponent implements OnInit {
   readonly scoreFactorLabels: Record<string, string> = {
     near_fall_reported: 'quase-queda relatada',
     no_grab_bar: 'ausência de barra de apoio',
-    anti_slip_floor: 'ausência de piso anti-derrapante',
+    anti_slip_floor: 'ausência de piso antiderrapante',
     dizziness_bath: 'tontura ao banho',
     night_trips_reported: 'idas noturnas frequentes',
     poor_night_lighting: 'iluminação noturna insuficiente',
@@ -176,7 +176,7 @@ export class HomePageComponent implements OnInit {
       return;
     }
     this.run('checklist', this.api.updateChecklist(home.id, this.checklist), () =>
-      this.flash('Checklist salvo. Recalcule o escore para ver o efeito no risco.'),
+      this.flash('Checklist salvo. Atualize as leituras para ver o efeito no risco.'),
     );
   }
 
@@ -197,7 +197,7 @@ export class HomePageComponent implements OnInit {
       return;
     }
     this.run('score', this.api.recompute(home.id), () => {
-      this.flash('Escore recalculado com os fatores atuais.');
+      this.flash('Leituras atualizadas. O risco reflete o estado atual da casa.');
       this.refresh(home.id);
     });
   }

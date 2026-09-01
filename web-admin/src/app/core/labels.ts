@@ -18,6 +18,14 @@ export const RECOMMENDATION_STATUS_LABELS: Record<string, string> = {
   rejected: 'Recusado',
 };
 
+/** Papel da conta como a pessoa entende, não como o banco grava. */
+export const ROLE_LABELS: Record<string, string> = {
+  admin: 'Operação',
+  cuidadora: 'Cuidadora',
+  profissional: 'Profissional',
+  paciente: 'Paciente',
+};
+
 /** Dimensões do escore explicável (ver scoring-weights.yml no backend). */
 export const DIMENSION_LABELS: Record<string, string> = {
   mobility: 'Mobilidade',
@@ -27,10 +35,11 @@ export const DIMENSION_LABELS: Record<string, string> = {
   mood: 'Humor',
 };
 
+/** O nível fala com a família: estado da casa, não nota de prova — sem sigla, sem percentual. */
 export const RISK_LEVEL_LABELS: Record<string, string> = {
-  low: 'baixo',
-  medium: 'médio',
-  high: 'ALTO',
+  low: 'Tudo certo',
+  medium: 'Atenção',
+  high: 'Risco alto',
 };
 
 /** Fallback consciente: código desconhecido aparece cru, nunca some da tela. */

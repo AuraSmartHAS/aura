@@ -129,7 +129,7 @@ export default function CareChainScreen({ route }: Props) {
           </View>
 
           <Text style={order.slaBreached ? styles.slaBad : styles.sla}>
-            {order.slaBreached ? 'SLA estourado' : 'SLA dentro do prazo'}
+            {order.slaBreached ? 'Entrega atrasada' : 'Entrega no prazo'}
           </Text>
 
           {order.stage !== 'returned' && (
