@@ -95,6 +95,25 @@ test.describe('painel da cuidadora', () => {
     await expect(page.locator('.notice')).toContainText('avançou');
     await expect(page.locator('.order').first().locator('.timeline li.current')).not.toHaveText(antes);
   });
+
+  test('a última milha aparece no mapa com o entregador em rota', async ({ page }) => {
+    await entrar(page, CUIDADORA);
+
+    // pelo estágio, nunca pelo primeiro da lista: o teste de estágios muta o pedido mais recente
+    const pedido = page
+      .locator('.order', { has: page.locator('.timeline li.current', { hasText: 'Em rota' }) })
+      .first();
+    await expect(pedido).toBeVisible();
+
+    await pedido.getByRole('button', { name: 'Ver entrega' }).click();
+    await expect(pedido.locator('svg.map__svg')).toBeVisible();
+    await expect(pedido.locator('.map__courier')).toBeVisible();
+
+    const legenda = pedido.locator('.map__legend');
+    await expect(legenda).toContainText('Saindo de: Loja Marginal');
+    await expect(legenda).toContainText('km');
+    await expect(legenda).toContainText('chega às');
+  });
 });
 
 test.describe('torre de controle', () => {

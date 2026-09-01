@@ -104,3 +104,5 @@ Dado de saúde é sensível pela LGPD, então o consentimento é específico e d
 | A demo de voz não conecta | É rede/serviço externo. **Use o vídeo gravado** — ele é o plano A, não o plano B |
 
 **Regra de palco:** o vídeo gravado do caminho feliz é o plano A. Demonstração ao vivo de voz depende de wi-fi de terceiro e já custou caro uma vez.
+
+**Cena do mapa da entrega (painel web, pedido "Em rota" → Ver entrega):** reinicie o backend 3 a 5 minutos antes da cena — o seed nasce com o entregador a ~40% do caminho e ele cruza os 60% no minuto 4. Depois de 12 minutos o ponto trava em "chegando" (teto de 97%): não é defeito, mas a cena fica melhor com ele no meio da rota. O mapa fala só com o localhost — wi-fi do auditório não o afeta.
