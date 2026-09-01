@@ -116,6 +116,19 @@ export interface Kpis {
   byStage: { stage: string; count: number }[];
 }
 
+/** Uma linha da carteira de pedidos da Torre (GET /ops/orders, só admin). */
+export interface OpsOrder {
+  id: string;
+  sku: string;
+  productName: string;
+  stage: OrderStage;
+  nodeName: string | null;
+  slaDueAt: string | null;
+  slaBreached: boolean;
+  etaDelivery: string | null;
+  createdAt: string;
+}
+
 export interface Signal {
   id: string;
   type: string;

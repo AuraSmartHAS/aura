@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CatalogItem, Home, Kpis, Order, OrderDetail, Recommendation, Score, Signal, TokenResponse } from './models';
+import { CatalogItem, Home, Kpis, OpsOrder, Order, OrderDetail, Recommendation, Score, Signal, TokenResponse } from './models';
 
 /** Todas as chamadas ao backend Spring Boot passam por aqui. */
 @Injectable({ providedIn: 'root' })
@@ -109,5 +109,9 @@ export class ApiService {
 
   kpis(): Observable<Kpis> {
     return this.http.get<Kpis>(`${this.baseUrl}/ops/kpis`);
+  }
+
+  opsOrders(): Observable<OpsOrder[]> {
+    return this.http.get<OpsOrder[]>(`${this.baseUrl}/ops/orders`);
   }
 }

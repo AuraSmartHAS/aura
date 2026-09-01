@@ -131,6 +131,13 @@ test.describe('torre de controle', () => {
     await expect(page.locator('.kpis')).toBeVisible();
     await expect(page.locator('.kpi').first()).toContainText('OTIF');
     await expect(page.locator('.stage')).toHaveCount(6);
+
+    // a carteira mostra os pedidos da operação, com estágio traduzido e situação de SLA
+    const carteira = page.locator('.carteira');
+    await expect(carteira).toContainText('Carteira de pedidos');
+    await expect(carteira.locator('tbody tr').first()).toBeVisible();
+    await expect(carteira).toContainText('Em rota');
+    await expect(carteira).toContainText('SLA estourado');
   });
 
   test('admin administra o catálogo de acessibilidade', async ({ page }) => {
@@ -144,7 +151,8 @@ test.describe('torre de controle', () => {
     await page.getByRole('button', { name: 'Cadastrar item' }).click();
 
     await expect(page.locator('.notice')).toContainText('cadastrado');
-    await expect(page.locator('table')).toContainText(sku);
+    // a Torre agora tem duas tabelas: mirar na do catálogo
+    await expect(page.locator('.card', { hasText: 'Catálogo' }).locator('table')).toContainText(sku);
 
     // limpa o que criou
     page.once('dialog', (d) => d.accept());

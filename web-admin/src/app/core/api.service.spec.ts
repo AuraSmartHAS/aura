@@ -68,6 +68,14 @@ describe('ApiService', () => {
     atualizado.flush({ sku: 'LM-NOVO', ...corpo });
   });
 
+  it('carteira da Torre busca os pedidos da operação', () => {
+    api.opsOrders().subscribe();
+
+    const req = http.expectOne(`${api.baseUrl}/ops/orders`);
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
   it('aprovar recomendação bate na rota de aprovação (única porta do pedido)', () => {
     api.approve('rec-1').subscribe();
     const req = http.expectOne(`${api.baseUrl}/recommendations/rec-1/approve`);
