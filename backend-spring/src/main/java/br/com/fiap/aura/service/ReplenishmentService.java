@@ -2,9 +2,12 @@ package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.config.AuraProperties;
 import br.com.fiap.aura.domain.Medication;
+import br.com.fiap.aura.domain.Recommendation;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.repository.MedicationRepository;
+import br.com.fiap.aura.repository.ProductRepository;
+import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.SignalRepository;
 import br.com.fiap.aura.security.AuthPrincipal;
 import br.com.fiap.aura.web.dto.ReplenishmentDtos;
@@ -29,17 +32,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ReplenishmentService {
 
+    /** riskTag do produto-refil de parceiro no catálogo — nenhuma dimensão do escore o produz. */
+    static final String PARTNER_RISK_TAG = "med_replenishment";
+
     private final MedicationRepository medications;
     private final SignalRepository signals;
+    private final RecommendationRepository recommendations;
+    private final ProductRepository products;
     private final HomeService homeService;
     private final GuardrailService guardrails;
     private final AuraProperties props;
 
     public ReplenishmentService(MedicationRepository medications, SignalRepository signals,
+                                RecommendationRepository recommendations, ProductRepository products,
                                 HomeService homeService, GuardrailService guardrails,
                                 AuraProperties props) {
         this.medications = medications;
         this.signals = signals;
+        this.recommendations = recommendations;
+        this.products = products;
         this.homeService = homeService;
         this.guardrails = guardrails;
         this.props = props;
@@ -101,7 +112,26 @@ public class ReplenishmentService {
 
         return new ReplenishmentDtos.Projection(med.getId(), med.getName(), med.getStockDoses(),
                 avg, daysOfSupply, leadTimeHours, cfg.safetyStockDays(), thresholdDays,
-                suggested, null, reason);
+                suggested, suggested ? materialize(med, reason) : null, reason);
+    }
+
+    /**
+     * Régua disparada vira recomendação {@code recommended} na MESMA esteira do Care-Chain —
+     * deduplicada por medicação. Recomendação não é pedido: o pedido continua nascendo só na
+     * aprovação humana. Sem o produto-refil de parceiro no catálogo, projeta e não materializa.
+     */
+    private UUID materialize(Medication med, String reason) {
+        return products.findFirstByRiskTagOrderByInstallableDescPriceDesc(PARTNER_RISK_TAG)
+                .map(partner -> recommendations
+                        .findFirstByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
+                        .orElseGet(() -> recommendations.save(Recommendation.builder()
+                                .homeId(med.getHomeId())
+                                .medicationId(med.getId())
+                                .sku(partner.getSku())
+                                .reason(reason)
+                                .build()))
+                        .getId())
+                .orElse(null);
     }
 
     private static double round1(double value) {

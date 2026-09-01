@@ -9,6 +9,7 @@ import br.com.fiap.aura.domain.Score;
 import br.com.fiap.aura.domain.StockNode;
 import br.com.fiap.aura.domain.enums.OrderStage;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.ProductRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.ScoreRepository;
@@ -42,6 +43,7 @@ public class CareChainService {
     private final ProductRepository products;
     private final ScoreRepository scores;
     private final StockNodeRepository nodes;
+    private final MedicationRepository medications;
     private final HomeService homeService;
     private final AuthService auth;
     private final GeoService geo;
@@ -51,6 +53,7 @@ public class CareChainService {
 
     public CareChainService(RecommendationRepository recommendations, DeliveryOrderRepository orders,
                             ProductRepository products, ScoreRepository scores, StockNodeRepository nodes,
+                            MedicationRepository medications,
                             HomeService homeService, AuthService auth, GeoService geo,
                             GuardrailService guardrails, ScoringService scoring, AuraProperties props) {
         this.recommendations = recommendations;
@@ -58,6 +61,7 @@ public class CareChainService {
         this.products = products;
         this.scores = scores;
         this.nodes = nodes;
+        this.medications = medications;
         this.homeService = homeService;
         this.auth = auth;
         this.geo = geo;
@@ -212,6 +216,7 @@ public class CareChainService {
             case DELIVERED -> {
                 order.setDeliveredAt(now);
                 order.setSlaBreached(order.getSlaDueAt() != null && now.isAfter(order.getSlaDueAt()));
+                refillIfReplenishment(order);
             }
             case INSTALLED -> {
                 order.setInstalledAt(now);
@@ -221,6 +226,21 @@ public class CareChainService {
         }
         return new CareChainDtos.AdvanceResponse(order.getStage(), order.getEtaDelivery(),
                 order.getInstallAt(), order.isSlaBreached());
+    }
+
+    /**
+     * A entrega da reposição devolve o pacote ao estoque da casa — o ciclo fecha nos dois
+     * sentidos: desce com a voz da Maria, sobe com a cadeia. Pedido comum passa reto.
+     */
+    private void refillIfReplenishment(DeliveryOrder order) {
+        if (order.getRecommendationId() == null) {
+            return;
+        }
+        recommendations.findById(order.getRecommendationId())
+                .filter(rec -> rec.getMedicationId() != null)
+                .ifPresent(rec -> medications.findById(rec.getMedicationId()).ifPresent(med ->
+                        med.setStockDoses((med.getStockDoses() == null ? 0 : med.getStockDoses())
+                                + props.carechain().replenish().packageDoses())));
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package br.com.fiap.aura.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -127,6 +128,65 @@ class ReplenishmentFlowTest {
         assertThat(reason).contains("Reposição sugerida", "cerca de 4 dias", "24 h");
         // texto fala de estoque e prazo — nunca de saúde
         assertThat(reason.toLowerCase()).doesNotContain("tratamento", "tomar", "posologia");
+    }
+
+    @Test
+    @DisplayName("a reposição entra na MESMA esteira: dedupe, aprovação humana, SLA e refil na entrega")
+    void reposicaoNaMesmaEsteira() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-esteira@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+
+        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        assertThat(recId).isNotEqualTo("null");
+
+        // dedupe: um segundo check reusa a recomendação aberta em vez de criar outra
+        assertThat(check(ana[0], ana[1]).get(0).get("recommendationId").asText()).isEqualTo(recId);
+
+        // RN-022: a régua sugere, mas só a aprovação humana cria o pedido
+        String orderId = body(mvc.perform(post("/api/v1/recommendations/{id}/approve", recId)
+                        .header("Authorization", ana[0]))
+                .andExpect(status().isCreated())
+                .andReturn()).get("orderId").asText();
+
+        JsonNode pedido = body(mvc.perform(get("/api/v1/homes/{id}/orders", ana[1])
+                        .header("Authorization", ana[0]))
+                .andExpect(status().isOk())
+                .andReturn()).get(0);
+        assertThat(pedido.get("productName").asText()).contains("refil");
+        assertThat(pedido.get("slaDueAt").isNull()).isFalse();
+
+        // approved → sourcing → in_route → delivered: a entrega devolve o pacote (8 + 30 = 38)
+        for (int i = 0; i < 3; i++) {
+            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", ana[0]))
+                    .andExpect(status().isOk());
+        }
+        JsonNode medicaoes = body(mvc.perform(get("/api/v1/homes/{id}/medications", ana[1])
+                        .header("Authorization", ana[0]))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(medicaoes.get(0).get("stockDoses").asInt()).isEqualTo(38);
+    }
+
+    @Test
+    @DisplayName("reposição recusada não vira pedido — e sai do dedupe para a régua poder sugerir de novo")
+    void reposicaoRecusadaNaoViraPedido() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-recusa@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+
+        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        mvc.perform(post("/api/v1/recommendations/{id}/reject", recId).header("Authorization", ana[0]))
+                .andExpect(status().isOk());
+
+        JsonNode pedidos = body(mvc.perform(get("/api/v1/homes/{id}/orders", ana[1])
+                        .header("Authorization", ana[0]))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(pedidos.size()).isZero();
+
+        String novaRec = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        assertThat(novaRec).isNotEqualTo(recId);
     }
 
     @Test
