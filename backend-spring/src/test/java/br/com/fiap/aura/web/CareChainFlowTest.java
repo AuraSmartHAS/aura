@@ -376,6 +376,22 @@ class CareChainFlowTest {
         mvc.perform(get("/api/v1/ops/kpis").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.fillRate").value(1.0));
+
+        // a carteira segue a mesma porta dos KPIs: cuidadora fora, admin dentro
+        mvc.perform(get("/api/v1/ops/orders").header("Authorization", cuidadora))
+                .andExpect(status().isForbidden());
+
+        JsonNode carteira = body(mvc.perform(get("/api/v1/ops/orders")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(carteira.size()).isBetween(1, 20);
+        JsonNode primeiro = carteira.get(0);
+        assertThat(primeiro.get("productName").asText()).isNotBlank();
+        assertThat(primeiro.get("stage").asText()).isNotBlank();
+        // do mais novo pro mais antigo — a régua da Torre
+        assertThat(primeiro.get("createdAt").asText()
+                .compareTo(carteira.get(carteira.size() - 1).get("createdAt").asText())).isGreaterThanOrEqualTo(0);
     }
 
     @Test

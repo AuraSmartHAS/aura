@@ -25,4 +25,10 @@ public class OpsController {
     public OpsDtos.KpiResponse kpis() {
         return ops.kpis();
     }
+
+    @GetMapping("/orders")
+    @Operation(summary = "Carteira de pedidos: os 20 mais recentes, com estágio, nó e SLA")
+    public java.util.List<OpsDtos.OrderRow> orders() {
+        return ops.orders();
+    }
 }
