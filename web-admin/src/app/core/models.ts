@@ -62,6 +62,36 @@ export interface Order {
   recommendationId: string;
 }
 
+export interface OrderSla {
+  dueAt: string | null;
+  breached: boolean;
+  deliveredAt: string | null;
+  installedAt: string | null;
+}
+
+export interface OrderDelivery {
+  nodeName: string | null;
+  eta: string | null;
+  distanceM: number | null;
+  status: OrderStage;
+  durationS: number | null;
+  /** Percentual simulado já percorrido; teto de 97 enquanto "em rota". Nulo fora de in_route. */
+  progressPct: number | null;
+  /** Posição simulada do entregador, ordem [lng, lat] — a mesma da rota. */
+  currentPosition: [number, number] | null;
+  route: { type: string; coordinates: [number, number][] } | null;
+}
+
+export interface OrderDetail {
+  orderId: string;
+  stage: OrderStage;
+  sku: string;
+  productName: string;
+  sla: OrderSla;
+  delivery: OrderDelivery;
+  createdAt: string;
+}
+
 export interface CatalogItem {
   sku: string;
   name: string;
