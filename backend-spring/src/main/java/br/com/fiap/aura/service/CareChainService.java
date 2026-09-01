@@ -9,6 +9,7 @@ import br.com.fiap.aura.domain.Score;
 import br.com.fiap.aura.domain.StockNode;
 import br.com.fiap.aura.domain.enums.OrderStage;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.ProductRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.ScoreRepository;
@@ -18,6 +19,7 @@ import br.com.fiap.aura.web.dto.CareChainDtos;
 import br.com.fiap.aura.web.error.ApiException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -41,6 +43,7 @@ public class CareChainService {
     private final ProductRepository products;
     private final ScoreRepository scores;
     private final StockNodeRepository nodes;
+    private final MedicationRepository medications;
     private final HomeService homeService;
     private final AuthService auth;
     private final GeoService geo;
@@ -50,6 +53,7 @@ public class CareChainService {
 
     public CareChainService(RecommendationRepository recommendations, DeliveryOrderRepository orders,
                             ProductRepository products, ScoreRepository scores, StockNodeRepository nodes,
+                            MedicationRepository medications,
                             HomeService homeService, AuthService auth, GeoService geo,
                             GuardrailService guardrails, ScoringService scoring, AuraProperties props) {
         this.recommendations = recommendations;
@@ -57,6 +61,7 @@ public class CareChainService {
         this.products = products;
         this.scores = scores;
         this.nodes = nodes;
+        this.medications = medications;
         this.homeService = homeService;
         this.auth = auth;
         this.geo = geo;
@@ -206,10 +211,12 @@ public class CareChainService {
         order.setStage(next);
 
         switch (next) {
-            case IN_ROUTE -> order.setEtaDelivery(now.plus(4, ChronoUnit.HOURS));
+            case IN_ROUTE -> order.setEtaDelivery(
+                    now.plus(props.carechain().routeWindowMinutes(), ChronoUnit.MINUTES));
             case DELIVERED -> {
                 order.setDeliveredAt(now);
                 order.setSlaBreached(order.getSlaDueAt() != null && now.isAfter(order.getSlaDueAt()));
+                refillIfReplenishment(order);
             }
             case INSTALLED -> {
                 order.setInstalledAt(now);
@@ -219,6 +226,21 @@ public class CareChainService {
         }
         return new CareChainDtos.AdvanceResponse(order.getStage(), order.getEtaDelivery(),
                 order.getInstallAt(), order.isSlaBreached());
+    }
+
+    /**
+     * A entrega da reposição devolve o pacote ao estoque da casa — o ciclo fecha nos dois
+     * sentidos: desce com a voz da Maria, sobe com a cadeia. Pedido comum passa reto.
+     */
+    private void refillIfReplenishment(DeliveryOrder order) {
+        if (order.getRecommendationId() == null) {
+            return;
+        }
+        recommendations.findById(order.getRecommendationId())
+                .filter(rec -> rec.getMedicationId() != null)
+                .ifPresent(rec -> medications.findById(rec.getMedicationId()).ifPresent(med ->
+                        med.setStockDoses((med.getStockDoses() == null ? 0 : med.getStockDoses())
+                                + props.carechain().replenish().packageDoses())));
     }
 
     @Transactional(readOnly = true)
@@ -234,15 +256,46 @@ public class CareChainService {
                 order.getCreatedAt());
     }
 
+    /** O ponto nunca pousa na casa enquanto o status diz "em rota": fica "chegando". */
+    static final double MAX_ROUTE_PROGRESS = 0.97;
+
+    /**
+     * Fração já percorrida da última milha, em [0, {@value #MAX_ROUTE_PROGRESS}]. A partida é o
+     * despacho: {@code max(createdAt, eta − janela)} — pedido avançado ao vivo parte do instante do
+     * advance; pedido do seed (criado horas atrás) parte de {@code eta − janela}. O relógio entra
+     * por parâmetro para o teste ser determinístico, sem mock de {@code Instant.now()}.
+     */
+    static double routeProgress(Instant createdAt, Instant eta, Instant now, int windowMinutes) {
+        Instant windowStart = eta.minus(windowMinutes, ChronoUnit.MINUTES);
+        Instant departure = createdAt != null && createdAt.isAfter(windowStart) ? createdAt : windowStart;
+        long spanMillis = Duration.between(departure, eta).toMillis();
+        if (spanMillis <= 0) {
+            return MAX_ROUTE_PROGRESS;
+        }
+        double fraction = Duration.between(departure, now).toMillis() / (double) spanMillis;
+        return Math.clamp(fraction, 0d, MAX_ROUTE_PROGRESS);
+    }
+
     /** Entrega com a rota e a duração simuladas do {@link GeoService} — ambas nulas sem coordenadas. */
     private CareChainDtos.DeliveryResponse delivery(DeliveryOrder order, Home home) {
         StockNode node = originNode(order, home);
         GeoService.SimulatedRoute route = node == null ? null
                 : geo.simulateRoute(node.getLat(), node.getLng(), home.getLat(), home.getLng()).orElse(null);
 
+        // posição derivada da ETA, calculada aqui: a tela nunca inventa onde o entregador está
+        Integer progressPct = null;
+        List<Double> currentPosition = null;
+        if (order.getStage() == OrderStage.IN_ROUTE && order.getEtaDelivery() != null && route != null) {
+            double progress = routeProgress(order.getCreatedAt(), order.getEtaDelivery(), Instant.now(),
+                    props.carechain().routeWindowMinutes());
+            progressPct = (int) Math.round(progress * 100);
+            currentPosition = geo.positionAlong(route.coordinates(), progress);
+        }
+
         return new CareChainDtos.DeliveryResponse(order.getNodeName(), order.getEtaDelivery(),
                 order.getDistanceM(), order.getStage().value(),
                 route == null ? null : route.durationS(),
+                progressPct, currentPosition,
                 route == null ? null : new CareChainDtos.RouteResponse("LineString", route.coordinates()));
     }
 

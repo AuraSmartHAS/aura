@@ -62,6 +62,36 @@ export interface Order {
   recommendationId: string;
 }
 
+export interface OrderSla {
+  dueAt: string | null;
+  breached: boolean;
+  deliveredAt: string | null;
+  installedAt: string | null;
+}
+
+export interface OrderDelivery {
+  nodeName: string | null;
+  eta: string | null;
+  distanceM: number | null;
+  status: OrderStage;
+  durationS: number | null;
+  /** Percentual simulado já percorrido; teto de 97 enquanto "em rota". Nulo fora de in_route. */
+  progressPct: number | null;
+  /** Posição simulada do entregador, ordem [lng, lat] — a mesma da rota. */
+  currentPosition: [number, number] | null;
+  route: { type: string; coordinates: [number, number][] } | null;
+}
+
+export interface OrderDetail {
+  orderId: string;
+  stage: OrderStage;
+  sku: string;
+  productName: string;
+  sla: OrderSla;
+  delivery: OrderDelivery;
+  createdAt: string;
+}
+
 export interface CatalogItem {
   sku: string;
   name: string;
@@ -84,6 +114,34 @@ export interface Kpis {
   highRiskScores: number;
   uptime: string;
   byStage: { stage: string; count: number }[];
+}
+
+/** Projeção da reposição por consumo (POST /homes/{id}/replenishment/check) — a conta viaja aberta. */
+export interface ReplenishmentProjection {
+  medicationId: string;
+  medicationName: string;
+  stockDoses: number | null;
+  avgDosesPerDay: number | null;
+  daysOfSupply: number | null;
+  leadTimeHours: number;
+  safetyStockDays: number;
+  thresholdDays: number;
+  suggested: boolean;
+  recommendationId: string | null;
+  reason: string | null;
+}
+
+/** Uma linha da carteira de pedidos da Torre (GET /ops/orders, só admin). */
+export interface OpsOrder {
+  id: string;
+  sku: string;
+  productName: string;
+  stage: OrderStage;
+  nodeName: string | null;
+  slaDueAt: string | null;
+  slaBreached: boolean;
+  etaDelivery: string | null;
+  createdAt: string;
 }
 
 export interface Signal {

@@ -41,6 +41,10 @@ public class Recommendation {
     @Column(name = "score_id")
     private UUID scoreId;
 
+    /** Presente só na recomendação de reposição por consumo — é a chave do dedupe por medicação. */
+    @Column(name = "medication_id")
+    private UUID medicationId;
+
     @Column(nullable = false)
     private String sku;
 

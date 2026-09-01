@@ -112,7 +112,14 @@ public class DataSeeder implements CommandLineRunner {
                 product("LM-CAD-BANHO", "Cadeira de Banho Regulável", "Cadeira de banho", "249.90", false, "mobility", 12),
                 product("LM-LUZ-SENSOR", "Iluminação Noturna c/ Sensor", "Iluminação", "59.90", false, "night_trips", 64),
                 product("LM-DET-GAS", "Detector de Gás e Fumaça", "Segurança", "89.90", true, "cognition", 30),
-                product("LM-PURIF-AR", "Purificador de Ar Compacto", "Ambiente", "199.90", false, "environment", 18)));
+                product("LM-PURIF-AR", "Purificador de Ar Compacto", "Ambiente", "199.90", false, "environment", 18),
+                // consumível recorrente de parceiro: o riskTag não existe em nenhuma dimensão do
+                // escore — só a régua de reposição o encontra. "(rede parceira)" no nome é blindagem
+                // de discurso: em nenhuma tela o item aparece como produto da loja.
+                Product.builder().sku("PARC-REPO-LEVODOPA")
+                        .name("Levodopa + Carbidopa 250/25 — refil 30 doses (rede parceira)")
+                        .category("Consumível recorrente — parceiro").price(new BigDecimal("49.90"))
+                        .installable(false).riskTag("med_replenishment").stockNearby(30).build()));
 
         nodes.saveAll(java.util.List.of(
                 StockNode.builder().name("Loja Marginal").type("loja").lat(-23.55).lng(-46.64).build(),
@@ -163,6 +170,9 @@ public class DataSeeder implements CommandLineRunner {
         // remédios da Maria: horários em "HH:mm", nunca texto livre (é o que o app lê)
         Medication levodopa = medications.save(medicacao(casa, "Levodopa + Carbidopa", "250/25mg",
                 java.util.List.of("06:00", "12:00", "18:00"), "tomar 1h antes das refeições"));
+        // 13 doses ÷ ~2,8/dia ≈ 4,6 dias < 5,0 (24 h + margem de 4) — o card de reposição nasce aceso
+        levodopa.setStockDoses(13);
+        medications.save(levodopa);
         medications.save(medicacao(casa, "Pramipexol", "0,25mg",
                 java.util.List.of("08:00", "20:00"), null));
         medications.save(medicacao(casa, "Losartana", "50mg",
@@ -176,6 +186,7 @@ public class DataSeeder implements CommandLineRunner {
 
         Instant now = Instant.now();
         seedHistory(casa.getId(), now);
+        seedAdherence(casa.getId(), levodopa.getId().toString(), now);
         seedWearableVitals(casa.getId(), now);
         seedScoreTrend(casa.getId(), now);
         seedOrderPipeline(casa, now);
@@ -213,6 +224,29 @@ public class DataSeeder implements CommandLineRunner {
         observed(homeId, now, 2, SignalType.SLEEP, SignalSource.VOICE,
                 Map.of("event", "night_trip", "times", 4));
         observed(homeId, now, 1, SignalType.ADHERENCE, SignalSource.SELF_REPORT, Map.of("taken", false));
+    }
+
+    /**
+     * Três semanas de doses da Levodopa confirmadas por voz — o combustível do burn rate.
+     * 3 horários/dia com 6 falhas espalhadas (gravadas como {@code taken=false}, coerentes com a
+     * história de declínio): 57 confirmações + a de hoje = 58 → ~2,8/dia, e 13 doses ÷ 2,8 ≈ 4,6
+     * dias — abaixo da régua de 5,0. Nada disso toca o escore-herói de 0,9: nenhuma dimensão do
+     * scoring-weights usa ADHERENCE, e o casamento de fatores é pela chave "event", que estes
+     * sinais não têm.
+     */
+    private void seedAdherence(UUID homeId, String medicationId, Instant now) {
+        for (int day = 21; day >= 1; day--) {
+            for (int slot = 0; slot < 3; slot++) {
+                boolean taken = (day * 3 + slot) % 10 != 0; // exatamente 6 falhas, espalhadas
+                Map<String, Object> value = new LinkedHashMap<>();
+                value.put("medicationId", medicationId);
+                value.put("taken", taken);
+                signals.save(Signal.builder().homeId(homeId).type(SignalType.ADHERENCE)
+                        .source(SignalSource.SELF_REPORT).value(value)
+                        .capturedAt(now.minus(day, ChronoUnit.DAYS).plus(6L * (slot + 1), ChronoUnit.HOURS))
+                        .build());
+            }
+        }
     }
 
     /** Sincronização diária do wearable: passos e sono caindo, frequência cardíaca de repouso subindo. */
@@ -285,7 +319,8 @@ public class DataSeeder implements CommandLineRunner {
         DeliveryOrder emRota = placed(casa, node, distanceM, "LM-ANTIDERRAP",
                 "Piso Antiderrapante p/ Box (m²)", OrderStage.IN_ROUTE,
                 now.minus(14, ChronoUnit.HOURS), null, null);
-        emRota.setEtaDelivery(now.plus(3, ChronoUnit.HOURS));
+        // dentro da janela de última milha — é o pedido que o mapa mostra andando
+        emRota.setEtaDelivery(now.plus(12, ChronoUnit.MINUTES));
         orders.save(emRota);
 
         // criado há (SLA - 1)h: o prazo vence na próxima hora, é o pedido apertado do painel

@@ -42,9 +42,18 @@ aura:
   carechain:
     delivery-sla-hours: 24
     install-sla-hours: 72
+    # Janela simulada da última milha (saída da loja → porta da casa). É dela que nasce a ETA
+    # de "em rota" e a posição do entregador; em produção viria do roteirizador do parceiro.
+    route-window-minutes: 20
     # Instalação cobrada à parte: a tela soma item + instalação antes de a cuidadora aprovar.
     installation-included: false
     installation-price: 149.90
+    replenish:
+      # Régua da reposição por consumo (v1 explicável — média simples, sem modelo preditivo).
+      window-days: 21        # janela do burn rate
+      safety-stock-days: 4   # margem além do lead time, versionada como os pesos do escore
+      min-history-days: 7    # sem uma semana de confirmações, nada se projeta
+      package-doses: 30      # doses que uma reposição entrega
   cors:
     allowed-origins: "*"
   sos:

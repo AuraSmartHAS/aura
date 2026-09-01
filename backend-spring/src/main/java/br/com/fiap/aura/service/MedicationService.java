@@ -53,6 +53,7 @@ public class MedicationService {
                 .schedule(req.schedule() == null ? new ArrayList<>() : new ArrayList<>(req.schedule()))
                 .notes(req.notes())
                 .active(req.active() == null || req.active())
+                .stockDoses(req.stockDoses())
                 .build());
         return toResponse(med);
     }
@@ -90,6 +91,9 @@ public class MedicationService {
         if (req.active() != null) {
             med.setActive(req.active());
         }
+        if (req.stockDoses() != null) {
+            med.setStockDoses(req.stockDoses());
+        }
         return toResponse(med);
     }
 
@@ -105,6 +109,11 @@ public class MedicationService {
         Medication med = requireAccess(principal, medId);
 
         boolean tomou = taken == null || taken;
+        // dose confirmada desce o estoque da casa, com piso em zero; dose negada não mexe
+        if (tomou && med.getStockDoses() != null) {
+            med.setStockDoses(Math.max(0, med.getStockDoses() - 1));
+        }
+
         Map<String, Object> value = new LinkedHashMap<>();
         value.put("medicationId", med.getId().toString());
         value.put("taken", tomou);
@@ -115,7 +124,7 @@ public class MedicationService {
                 .source(SignalSource.SELF_REPORT)
                 .value(value)
                 .build());
-        return new MedicationDtos.ConfirmMedicationResponse(signal.getId(), tomou);
+        return new MedicationDtos.ConfirmMedicationResponse(signal.getId(), tomou, med.getStockDoses());
     }
 
     /** Resolve medicação → casa e aplica o mesmo isolamento por paciente das outras rotas. */
@@ -128,6 +137,6 @@ public class MedicationService {
 
     static MedicationDtos.MedicationResponse toResponse(Medication m) {
         return new MedicationDtos.MedicationResponse(m.getId(), m.getHomeId(), m.getName(), m.getDosage(),
-                m.getSchedule(), m.getNotes(), m.isActive(), m.getCreatedAt());
+                m.getSchedule(), m.getNotes(), m.isActive(), m.getStockDoses(), m.getCreatedAt());
     }
 }

@@ -83,6 +83,38 @@
         </div>
       </article>
 
+      <!-- reposição por consumo -->
+      <article class="card" *ngIf="suggestedReplenishments().length > 0">
+        <h2>Reposição por consumo</h2>
+        <p class="muted small">Regra v1 declarada: média simples sobre doses confirmadas — sem modelo preditivo.</p>
+
+        <div class="rec" *ngFor="let p of suggestedReplenishments()">
+          <div class="rec__head">
+            <strong>{{ p.medicationName }}</strong>
+            <span class="tag tag--danger">acaba em ~{{ roundDays(p.daysOfSupply) }} dias</span>
+          </div>
+          <p class="explain">{{ p.reason }}</p>
+          <p class="small muted">
+            Prazo da cadeia: {{ p.leadTimeHours }} h · margem de segurança: {{ p.safetyStockDays }} dias
+          </p>
+          <ng-container *ngIf="replenishmentRec(p) as rec">
+            <p class="small" *ngIf="rec.price !== null">
+              {{ rec.price | currency: 'BRL' }} · rede parceira · sem instalação
+            </p>
+            <div class="actions">
+              <button class="btn btn--primary btn--small"
+                      (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
+                Aprovar reposição
+              </button>
+              <button class="btn btn--ghost btn--small"
+                      (click)="reject(rec)" [disabled]="busy() === 'reject-' + rec.recommendationId">
+                Deixar para depois
+              </button>
+            </div>
+          </ng-container>
+        </div>
+      </article>
+
       <!-- care-chain -->
       <article class="card">
         <h2>Care-Chain</h2>
@@ -142,11 +174,21 @@
             </li>
           </ol>
 
-          <button class="btn btn--small" (click)="advance(order)"
-                  *ngIf="canAdvance(order)"
-                  [disabled]="busy() === 'advance-' + order.id">
-            Avançar estágio
-          </button>
+          <div class="actions">
+            <button class="btn btn--small" (click)="advance(order)"
+                    *ngIf="canAdvance(order)"
+                    [disabled]="busy() === 'advance-' + order.id">
+              Avançar estágio
+            </button>
+            <button class="btn btn--ghost btn--small" *ngIf="order.stage === 'in_route'"
+                    (click)="toggleDelivery(order)"
+                    [attr.aria-expanded]="expandedOrderId() === order.id">
+              {{ expandedOrderId() === order.id ? 'Ocultar entrega' : 'Ver entrega' }}
+            </button>
+          </div>
+
+          <app-order-delivery *ngIf="expandedOrderId() === order.id"
+                              [orderId]="order.id" [houseLabel]="home.patientName" />
         </div>
       </article>
 

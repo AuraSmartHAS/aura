@@ -1,0 +1,26 @@
+<div class="map" *ngIf="detail() as d">
+  <svg *ngIf="view() as v" class="map__svg" viewBox="0 0 640 260" role="img"
+       [attr.aria-label]="'Mapa da entrega saindo de ' + (d.delivery.nodeName || 'nó logístico')">
+    <path class="map__route-halo" [attr.d]="v.path"></path>
+    <path class="map__route" [attr.d]="v.path"></path>
+
+    <g class="map__node" [attr.transform]="translate(v.start)"><rect x="-5" y="-5" width="10" height="10" rx="2"></rect></g>
+    <text class="map__label" [attr.x]="v.startLabel[0]" [attr.y]="v.startLabel[1]">{{ d.delivery.nodeName || 'Nó logístico' }}</text>
+
+    <g class="map__house" [attr.transform]="translate(v.end)"><circle r="5"></circle></g>
+    <text class="map__label" [attr.x]="v.endLabel[0]" [attr.y]="v.endLabel[1]">{{ houseLabel }}</text>
+
+    <g class="map__courier" *ngIf="v.courier"
+       [style.transform]="'translate(' + v.courier[0] + 'px, ' + v.courier[1] + 'px)'">
+      <circle class="map__courier-ring" r="10"></circle>
+      <circle class="map__courier-dot" r="6"></circle>
+    </g>
+  </svg>
+
+  <p class="map__legend small">
+    Saindo de: <strong>{{ d.delivery.nodeName || 'nó logístico' }}</strong>
+    <ng-container *ngIf="d.delivery.distanceM !== null"> · {{ km(d.delivery.distanceM) }} km</ng-container>
+    <ng-container *ngIf="d.delivery.eta"> · chega às {{ d.delivery.eta | date: 'HH:mm' }}</ng-container>
+    <span class="map__arriving" *ngIf="(d.delivery.progressPct ?? 0) >= 97"> · chegando</span>
+  </p>
+</div>

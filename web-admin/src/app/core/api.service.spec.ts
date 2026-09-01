@@ -68,11 +68,46 @@ describe('ApiService', () => {
     atualizado.flush({ sku: 'LM-NOVO', ...corpo });
   });
 
+  it('check de reposição projeta por POST com corpo vazio', () => {
+    api.replenishmentCheck('casa-1').subscribe();
+
+    const req = http.expectOne(`${api.baseUrl}/homes/casa-1/replenishment/check`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({});
+    req.flush([]);
+  });
+
+  it('carteira da Torre busca os pedidos da operação', () => {
+    api.opsOrders().subscribe();
+
+    const req = http.expectOne(`${api.baseUrl}/ops/orders`);
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
   it('aprovar recomendação bate na rota de aprovação (única porta do pedido)', () => {
     api.approve('rec-1').subscribe();
     const req = http.expectOne(`${api.baseUrl}/recommendations/rec-1/approve`);
     expect(req.request.method).toBe('POST');
     req.flush({ orderId: 'o1', stage: 'approved' });
+  });
+
+  it('detalhe do pedido busca a rota e a posição do entregador', () => {
+    api.orderDetail('o1').subscribe();
+
+    const req = http.expectOne(`${api.baseUrl}/orders/o1`);
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      orderId: 'o1', stage: 'in_route', sku: 'LM-ANTIDERRAP', productName: 'Piso',
+      sla: { dueAt: null, breached: false, deliveredAt: null, installedAt: null },
+      delivery: {
+        nodeName: 'Loja Marginal', eta: '2026-09-01T17:30:00Z', distanceM: 2038,
+        status: 'in_route', durationS: 294, progressPct: 60,
+        currentPosition: [-46.6462, -23.5527],
+        route: { type: 'LineString', coordinates: [[-46.64, -23.55], [-46.656, -23.561]] },
+      },
+      createdAt: '2026-09-01T03:00:00Z',
+    });
   });
 
   it('recusar recomendação bate na rota de recusa, com corpo vazio', () => {

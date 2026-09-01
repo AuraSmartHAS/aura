@@ -18,6 +18,13 @@ public final class OpsDtos {
 
     public record StageCount(String stage, long count) { }
 
+    @Schema(description = """
+            Uma linha da carteira de pedidos da Torre: o pedido como a operação o vê — produto,
+            estágio, nó que despachou e situação do SLA. Vem do mesmo banco dos KPIs, nunca de mock.""")
+    public record OrderRow(java.util.UUID id, String sku, String productName, String stage,
+                           String nodeName, java.time.Instant slaDueAt, boolean slaBreached,
+                           java.time.Instant etaDelivery, java.time.Instant createdAt) { }
+
     public record HealthResponse(
             @Schema(example = "ok") String status,
             @Schema(example = "1.0.0") String version,

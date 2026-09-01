@@ -58,6 +58,33 @@
     </div>
   </article>
 
+  <article class="card carteira" *ngIf="carteira().length > 0">
+    <h2>Carteira de pedidos</h2>
+    <p class="muted small">Os 20 mais recentes, direto do banco — a mesma carteira que alimenta os KPIs.</p>
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Estágio</th><th>Nó de despacho</th><th>SLA</th><th>Criado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pedido of carteira()">
+          <td>
+            <strong>{{ pedido.productName }}</strong>
+            <span class="small muted">{{ pedido.sku }}</span>
+          </td>
+          <td><span class="tag">{{ stageLabels[pedido.stage] || pedido.stage }}</span></td>
+          <td>{{ pedido.nodeName || '—' }}</td>
+          <td>
+            <span class="tag" [class.tag--danger]="pedido.slaBreached">
+              {{ pedido.slaBreached ? 'SLA estourado' : 'no prazo' }}
+            </span>
+            <span class="small muted" *ngIf="pedido.slaDueAt"> até {{ pedido.slaDueAt | date: 'dd/MM HH:mm' }}</span>
+          </td>
+          <td>{{ pedido.createdAt | date: 'dd/MM HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
   <div class="grid grid--2">
     <article class="card">
       <div class="card__head">

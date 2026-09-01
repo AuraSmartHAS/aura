@@ -66,6 +66,19 @@ public class OpsService {
                 homes.count(), signals.count(), highRisk, uptime(), byStage);
     }
 
+    /** A carteira que a Torre exibe: os 20 pedidos mais recentes, do mais novo pro mais antigo. */
+    @Transactional(readOnly = true)
+    public List<OpsDtos.OrderRow> orders() {
+        var nameBySku = products.findAll().stream()
+                .collect(java.util.stream.Collectors.toMap(p -> p.getSku(), p -> p.getName(), (a, b) -> a));
+        return this.orders.findTop20ByOrderByCreatedAtDesc().stream()
+                .map(o -> new OpsDtos.OrderRow(o.getId(), o.getSku(),
+                        nameBySku.getOrDefault(o.getSku(), o.getSku()), o.getStage().value(),
+                        o.getNodeName(), o.getSlaDueAt(), o.isSlaBreached(),
+                        o.getEtaDelivery(), o.getCreatedAt()))
+                .toList();
+    }
+
     private String uptime() {
         Duration up = Duration.ofMillis(ManagementFactory.getRuntimeMXBean().getUptime());
         return "%dh %02dm".formatted(up.toHours(), up.toMinutesPart());

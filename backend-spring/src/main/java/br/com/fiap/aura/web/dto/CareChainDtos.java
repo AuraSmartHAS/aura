@@ -56,9 +56,19 @@ public final class CareChainDtos {
     @Schema(description = """
             Entrega despachada do nó logístico mais próximo. `route` e `durationS` são opcionais e
             simulados (ver GeoService): vêm nulos quando a casa não tem coordenadas, e nesse caso o
-            cliente cai no estado vazio do mapa sem quebrar.""")
+            cliente cai no estado vazio do mapa sem quebrar. `progressPct` e `currentPosition` só vêm
+            preenchidos com o pedido em rota (e com ETA e rota presentes) — a posição deriva da ETA,
+            nunca de relógio do cliente.""")
     public record DeliveryResponse(String nodeName, Instant eta, Integer distanceM, String status,
-                                   Integer durationS, RouteResponse route) { }
+                                   Integer durationS,
+                                   @Schema(example = "62", description = "Percentual simulado já percorrido; "
+                                           + "teto de 97 enquanto o status for in_route — o ponto fica \"chegando\", "
+                                           + "nunca pousa na casa antes da entrega")
+                                   Integer progressPct,
+                                   @Schema(example = "[-46.6462, -23.5527]",
+                                           description = "Posição simulada do entregador, ordem [lng, lat] como a rota")
+                                   List<Double> currentPosition,
+                                   RouteResponse route) { }
 
     @Schema(description = "Pedido da cadeia de segurança, com SLA e dados da entrega roteada ao nó mais próximo.")
     public record OrderDetailResponse(UUID orderId, OrderStage stage, String sku, String productName,

@@ -52,6 +52,14 @@ public class Medication {
     @Column(length = 500)
     private String notes;
 
+    /**
+     * Estoque domiciliar em doses; nulo = a casa não controla estoque deste item e nada dispara.
+     * Desce a cada dose confirmada por voz e sobe quando a reposição da cadeia é entregue —
+     * é o número que liga a adesão à logística.
+     */
+    @Column(name = "stock_doses")
+    private Integer stockDoses;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;
