@@ -121,7 +121,7 @@ public class ReplenishmentService {
      * aprovação humana. Sem o produto-refil de parceiro no catálogo, projeta e não materializa.
      */
     private UUID materialize(Medication med, String reason) {
-        return products.findFirstByRiskTagOrderByInstallableDescPriceDesc(PARTNER_RISK_TAG)
+        return products.findFirstByRiskTagOrderByFeaturedDescInstallableDescPriceDesc(PARTNER_RISK_TAG)
                 .map(partner -> recommendations
                         .findFirstByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
                         .orElseGet(() -> recommendations.save(Recommendation.builder()

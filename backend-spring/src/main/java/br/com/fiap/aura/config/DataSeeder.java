@@ -29,18 +29,24 @@ import br.com.fiap.aura.repository.StockNodeRepository;
 import br.com.fiap.aura.repository.UserAccountRepository;
 import br.com.fiap.aura.service.GeoService;
 import br.com.fiap.aura.domain.Consent;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -119,7 +125,10 @@ public class DataSeeder implements CommandLineRunner {
                 Product.builder().sku("PARC-REPO-LEVODOPA")
                         .name("Levodopa + Carbidopa 250/25 — refil 30 doses (rede parceira)")
                         .category("Consumível recorrente — parceiro").price(new BigDecimal("49.90"))
-                        .installable(false).riskTag("med_replenishment").stockNearby(30).build()));
+                        .installable(false).riskTag("med_replenishment").stockNearby(30)
+                        .featured(true).build()));
+
+        seedCuratedCatalog();
 
         nodes.saveAll(java.util.List.of(
                 StockNode.builder().name("Loja Marginal").type("loja").lat(-23.55).lng(-46.64).build(),
@@ -400,9 +409,69 @@ public class DataSeeder implements CommandLineRunner {
                 .schedule(new java.util.ArrayList<>(schedule)).notes(notes).build();
     }
 
+    /** Produtos-base são os destaques da curadoria: é neles que a recomendação mira primeiro. */
     private Product product(String sku, String name, String category, String price,
                             boolean installable, String riskTag, int stock) {
         return Product.builder().sku(sku).name(name).category(category).price(new BigDecimal(price))
-                .installable(installable).normRef(NORM).riskTag(riskTag).stockNearby(stock).build();
+                .installable(installable).normRef(NORM).riskTag(riskTag).stockNearby(stock)
+                .featured(true).build();
+    }
+
+    /**
+     * Catálogo curado da rede (produtos-leroy.csv, empacotado no jar): entra no boot, em qualquer
+     * ambiente, sem passo manual. SKU que já existe no seed-base vence — preço e papel dos
+     * produtos-herói da demo não mudam — e nada aqui vira destaque: a prateleira cresce sem
+     * mexer no que a recomendação escolhe.
+     */
+    private void seedCuratedCatalog() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new ClassPathResource("produtos-leroy.csv").getInputStream(), StandardCharsets.UTF_8))) {
+            reader.readLine(); // cabeçalho: sku,name,category,price,installable,normRef,riskTag,stockNearby
+            Set<String> existing = products.findAll().stream().map(Product::getSku)
+                    .collect(java.util.stream.Collectors.toSet());
+            List<Product> curated = new ArrayList<>();
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                if (line.isBlank()) {
+                    continue;
+                }
+                List<String> c = parseCsvLine(line);
+                if (c.size() < 8 || existing.contains(c.get(0))) {
+                    continue;
+                }
+                curated.add(Product.builder()
+                        .sku(c.get(0)).name(c.get(1)).category(c.get(2))
+                        .price(new BigDecimal(c.get(3)))
+                        .installable(Boolean.parseBoolean(c.get(4)))
+                        .normRef(c.get(5).isBlank() ? null : c.get(5))
+                        .riskTag(c.get(6).isBlank() ? null : c.get(6))
+                        .stockNearby(Integer.parseInt(c.get(7)))
+                        .build());
+            }
+            products.saveAll(curated);
+            log.info("Catálogo curado: {} produtos carregados do CSV", curated.size());
+        } catch (Exception e) {
+            // catálogo curado é enriquecimento: sem ele a demo segue inteira com os produtos-base
+            log.warn("Catálogo curado não carregado ({}) — seguindo só com os produtos-base", e.toString());
+        }
+    }
+
+    /** CSV com aspas: vírgula dentro de campo entre aspas não separa ("Corrimão/Barra 1,20m"). */
+    private static List<String> parseCsvLine(String line) {
+        List<String> cells = new ArrayList<>();
+        StringBuilder cell = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < line.length(); i++) {
+            char ch = line.charAt(i);
+            if (ch == '"') {
+                quoted = !quoted;
+            } else if (ch == ',' && !quoted) {
+                cells.add(cell.toString().trim());
+                cell.setLength(0);
+            } else {
+                cell.append(ch);
+            }
+        }
+        cells.add(cell.toString().trim());
+        return cells;
     }
 }

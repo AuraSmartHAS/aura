@@ -31,7 +31,10 @@ import urllib.request
 BASE = os.environ.get("AURA_API_URL", "http://localhost:8080/api/v1")
 EMAIL = os.environ.get("AURA_ADMIN_EMAIL", "admin@aura.com")
 PASSWORD = os.environ.get("AURA_ADMIN_PASSWORD", "aura1234")
-CSV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "produtos-leroy.csv")
+# O CSV canônico vive nos resources do backend: é empacotado no jar e o seed o carrega no
+# boot em qualquer ambiente. Este importador vira ferramenta de ajuste fino em banco vivo.
+CSV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "backend-spring", "src", "main", "resources", "produtos-leroy.csv")
 KNOWN_TAGS = {"fall_bathroom", "night_trips", "mobility", "cognition", "environment", "med_replenishment"}
 
 

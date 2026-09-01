@@ -91,7 +91,7 @@ public class CareChainService {
         }
 
         final String tag = riskTag;
-        Product product = products.findFirstByRiskTagOrderByInstallableDescPriceDesc(tag)
+        Product product = products.findFirstByRiskTagOrderByFeaturedDescInstallableDescPriceDesc(tag)
                 .orElseThrow(() -> ApiException.unprocessable("NO_PRODUCT",
                         "Sem produto no catálogo para o risco '" + tag + "'."));
 

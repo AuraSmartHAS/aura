@@ -10,8 +10,9 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByRiskTagOrderByNameAsc(String riskTag);
 
     /**
-     * Item primário do risco: instalável primeiro e, entre eles, o de maior cobertura.
-     * Ex.: fall_bathroom → Kit Barra de Apoio antes do piso antiderrapante complementar.
+     * Item primário do risco: o destaque da curadoria primeiro (kit de entrada validado com a
+     * persona), depois instalável e, entre eles, o de maior cobertura. Sem o degrau do destaque,
+     * um catálogo grande faria a recomendação cair no item mais premium da prateleira.
      */
-    Optional<Product> findFirstByRiskTagOrderByInstallableDescPriceDesc(String riskTag);
+    Optional<Product> findFirstByRiskTagOrderByFeaturedDescInstallableDescPriceDesc(String riskTag);
 }

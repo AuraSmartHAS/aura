@@ -44,6 +44,15 @@ public class Product {
     @Column(name = "risk_tag")
     private String riskTag;
 
+    /**
+     * Produto de referência da curadoria para o seu risco — é o que a recomendação escolhe
+     * primeiro. Sem isso, um catálogo grande faria a régua "instalável mais caro" recomendar
+     * o item mais premium da prateleira em vez do kit de entrada validado com a persona.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean featured = false;
+
     @Column(name = "stock_nearby", nullable = false)
     @Builder.Default
     private int stockNearby = 0;

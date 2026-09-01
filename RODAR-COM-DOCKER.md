@@ -9,9 +9,12 @@ mesmo seed, as mesmas contas e o mesmo cenário do ensaio. Só precisa do
 ```bash
 git clone https://github.com/AuraSmartHAS/aura.git
 cd aura
-git checkout fase5
 docker compose up --build
 ```
+
+A `main` já traz tudo: a Fase 5, o mapa da última milha (botão **Ver entrega** no pedido em
+rota), a **carteira de pedidos** na Torre, o card de **reposição por consumo** no painel da
+Ana e o **catálogo curado de 105 produtos**, que nasce no boot — nenhum import manual.
 
 A primeira execução baixa dependências e **demora alguns minutos** — faça isso em casa,
 nunca na sala da apresentação. Das vezes seguintes sobe em segundos.
