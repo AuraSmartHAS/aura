@@ -98,6 +98,46 @@ public class GeoService {
         return Optional.of(new SimulatedRoute(coordinates, (int) Math.max(durationS, 1)));
     }
 
+    /**
+     * Ponto a {@code fraction} do comprimento da polilinha (pares [lng, lat]), andando os
+     * segmentos por distância real acumulada e interpolando dentro do segmento. Fração fora
+     * de [0, 1] é grampeada; com menos de dois pontos devolve o que houver.
+     */
+    public List<Double> positionAlong(List<List<Double>> coordinates, double fraction) {
+        if (coordinates == null || coordinates.isEmpty()) {
+            return List.of();
+        }
+        if (coordinates.size() == 1) {
+            return coordinates.get(0);
+        }
+        double clamped = Math.clamp(fraction, 0d, 1d);
+
+        double[] lengths = new double[coordinates.size() - 1];
+        double total = 0;
+        for (int i = 0; i < lengths.length; i++) {
+            List<Double> a = coordinates.get(i);
+            List<Double> b = coordinates.get(i + 1);
+            lengths[i] = haversineMeters(a.get(1), a.get(0), b.get(1), b.get(0));
+            total += lengths[i];
+        }
+        if (total == 0) {
+            return coordinates.get(0);
+        }
+
+        double remaining = total * clamped;
+        for (int i = 0; i < lengths.length; i++) {
+            if (remaining <= lengths[i] || i == lengths.length - 1) {
+                double t = lengths[i] == 0 ? 0 : Math.min(remaining / lengths[i], 1d);
+                List<Double> a = coordinates.get(i);
+                List<Double> b = coordinates.get(i + 1);
+                return List.of(round6(a.get(0) + (b.get(0) - a.get(0)) * t),
+                        round6(a.get(1) + (b.get(1) - a.get(1)) * t));
+            }
+            remaining -= lengths[i];
+        }
+        return coordinates.get(coordinates.size() - 1);
+    }
+
     private double round6(double value) {
         return Math.round(value * 1_000_000d) / 1_000_000d;
     }

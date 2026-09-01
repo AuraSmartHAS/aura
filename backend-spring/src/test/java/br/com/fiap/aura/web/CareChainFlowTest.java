@@ -211,6 +211,50 @@ class CareChainFlowTest {
     }
 
     @Test
+    @DisplayName("em rota o pedido diz onde o entregador está; fora de rota os campos vêm nulos")
+    void courierPositionOnlyInRoute() throws Exception {
+        String auth = "Bearer " + signup("entregador@aura.com");
+        String homeId = homeOf(auth);
+
+        String recId = body(mvc.perform(post("/api/v1/recommendations").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"homeId":"%s"}""".formatted(homeId)))
+                .andExpect(status().isCreated())
+                .andReturn()).get("recommendationId").asText();
+
+        String orderId = body(mvc.perform(post("/api/v1/recommendations/{id}/approve", recId)
+                        .header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andReturn()).get("orderId").asText();
+
+        // aprovado, ainda fora da rua: sem posição e sem percentual
+        JsonNode parado = body(mvc.perform(get("/api/v1/orders/{id}", orderId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andReturn()).get("delivery");
+        assertThat(parado.get("progressPct").isNull()).isTrue();
+        assertThat(parado.get("currentPosition").isNull()).isTrue();
+
+        // sourcing → in_route: o despacho acabou de acontecer, o entregador está saindo da loja
+        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+                .andExpect(status().isOk());
+        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.stage").value("in_route"));
+
+        JsonNode delivery = body(mvc.perform(get("/api/v1/orders/{id}", orderId).header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andReturn()).get("delivery");
+
+        assertThat(delivery.get("progressPct").asInt()).isBetween(0, 5);
+
+        JsonNode position = delivery.get("currentPosition");
+        assertThat(position.size()).isEqualTo(2);
+        assertThat(position.get(0).asDouble()).isBetween(-47.0, -46.0);
+        assertThat(position.get(1).asDouble()).isBetween(-24.0, -23.0);
+    }
+
+    @Test
     @DisplayName("a recomendação chega com preço, instalação, norma e os fatores em português (C1)")
     void recommendationCarriesPriceInstallationAndLabels() throws Exception {
         String auth = "Bearer " + signup("contrato@aura.com");

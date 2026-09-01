@@ -18,6 +18,7 @@ import br.com.fiap.aura.web.dto.CareChainDtos;
 import br.com.fiap.aura.web.error.ApiException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -235,15 +236,46 @@ public class CareChainService {
                 order.getCreatedAt());
     }
 
+    /** O ponto nunca pousa na casa enquanto o status diz "em rota": fica "chegando". */
+    static final double MAX_ROUTE_PROGRESS = 0.97;
+
+    /**
+     * Fração já percorrida da última milha, em [0, {@value #MAX_ROUTE_PROGRESS}]. A partida é o
+     * despacho: {@code max(createdAt, eta − janela)} — pedido avançado ao vivo parte do instante do
+     * advance; pedido do seed (criado horas atrás) parte de {@code eta − janela}. O relógio entra
+     * por parâmetro para o teste ser determinístico, sem mock de {@code Instant.now()}.
+     */
+    static double routeProgress(Instant createdAt, Instant eta, Instant now, int windowMinutes) {
+        Instant windowStart = eta.minus(windowMinutes, ChronoUnit.MINUTES);
+        Instant departure = createdAt != null && createdAt.isAfter(windowStart) ? createdAt : windowStart;
+        long spanMillis = Duration.between(departure, eta).toMillis();
+        if (spanMillis <= 0) {
+            return MAX_ROUTE_PROGRESS;
+        }
+        double fraction = Duration.between(departure, now).toMillis() / (double) spanMillis;
+        return Math.clamp(fraction, 0d, MAX_ROUTE_PROGRESS);
+    }
+
     /** Entrega com a rota e a duração simuladas do {@link GeoService} — ambas nulas sem coordenadas. */
     private CareChainDtos.DeliveryResponse delivery(DeliveryOrder order, Home home) {
         StockNode node = originNode(order, home);
         GeoService.SimulatedRoute route = node == null ? null
                 : geo.simulateRoute(node.getLat(), node.getLng(), home.getLat(), home.getLng()).orElse(null);
 
+        // posição derivada da ETA, calculada aqui: a tela nunca inventa onde o entregador está
+        Integer progressPct = null;
+        List<Double> currentPosition = null;
+        if (order.getStage() == OrderStage.IN_ROUTE && order.getEtaDelivery() != null && route != null) {
+            double progress = routeProgress(order.getCreatedAt(), order.getEtaDelivery(), Instant.now(),
+                    props.carechain().routeWindowMinutes());
+            progressPct = (int) Math.round(progress * 100);
+            currentPosition = geo.positionAlong(route.coordinates(), progress);
+        }
+
         return new CareChainDtos.DeliveryResponse(order.getNodeName(), order.getEtaDelivery(),
                 order.getDistanceM(), order.getStage().value(),
                 route == null ? null : route.durationS(),
+                progressPct, currentPosition,
                 route == null ? null : new CareChainDtos.RouteResponse("LineString", route.coordinates()));
     }
 
