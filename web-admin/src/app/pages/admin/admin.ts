@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { EMPTY, catchError, interval, startWith, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/error-message';
@@ -17,6 +19,7 @@ import { CatalogItem, Kpis } from '../../core/models';
 export class AdminPageComponent implements OnInit {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly kpis = signal<Kpis | null>(null);
   readonly catalog = signal<CatalogItem[]>([]);
@@ -45,10 +48,24 @@ export class AdminPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadCatalog();
     if (this.isAdmin()) {
-      this.api.kpis().subscribe({
-        next: (k) => this.kpis.set(k),
-        error: (err) => this.error.set(errorMessage(err)),
-      });
+      // NOC não espera F5: os KPIs se renovam sozinhos. Num tick com erro o último
+      // valor fica na tela — o banner só aparece se nunca houve KPI carregado.
+      interval(10_000)
+        .pipe(
+          startWith(0),
+          switchMap(() =>
+            this.api.kpis().pipe(
+              catchError((err) => {
+                if (!this.kpis()) {
+                  this.error.set(errorMessage(err));
+                }
+                return EMPTY;
+              }),
+            ),
+          ),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe((k) => this.kpis.set(k));
     }
   }
 
