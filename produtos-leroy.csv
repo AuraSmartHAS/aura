@@ -1,0 +1,3 @@
+sku,name,category,price,installable,normRef,riskTag,stockNearby
+EXEMPLO-BARRA-90,Barra de apoio reta 90cm inox,Barra de apoio,189.90,true,NBR 9050,fall_bathroom,25
+EXEMPLO-ASSENTO,Assento retratil para box,Cadeira de banho,299.90,true,NBR 9050,mobility,10
