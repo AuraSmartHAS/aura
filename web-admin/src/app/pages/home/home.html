@@ -93,7 +93,7 @@
         <div class="rec" *ngFor="let rec of recommendations()">
           <div class="rec__head">
             <strong>{{ rec.productName }}</strong>
-            <span class="tag tag--{{ rec.status }}">{{ rec.status }}</span>
+            <span class="tag tag--{{ rec.status }}">{{ recStatusLabels[rec.status] || rec.status }}</span>
           </div>
           <p class="explain">{{ rec.reason }}</p>
           <p class="small muted">

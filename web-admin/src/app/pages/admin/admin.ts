@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/error-message';
+import { STAGE_LABELS } from '../../core/labels';
 import { CatalogItem, Kpis } from '../../core/models';
 
 /** Torre de Controle: KPIs da operação + manutenção do catálogo de acessibilidade. */
@@ -30,6 +31,8 @@ export class AdminPageComponent implements OnInit {
   riskFilter = '';
 
   readonly riskTags = ['fall_bathroom', 'night_trips', 'mobility', 'cognition', 'environment'];
+
+  readonly stageLabels = STAGE_LABELS;
 
   readonly riskTagLabels: Record<string, string> = {
     fall_bathroom: 'Queda no banheiro',

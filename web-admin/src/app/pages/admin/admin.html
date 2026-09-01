@@ -53,7 +53,7 @@
     <div class="stages">
       <div class="stage" *ngFor="let s of k.byStage">
         <span class="stage__count">{{ s.count }}</span>
-        <span class="stage__label">{{ s.stage }}</span>
+        <span class="stage__label">{{ stageLabels[s.stage] || s.stage }}</span>
       </div>
     </div>
   </article>

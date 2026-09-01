@@ -52,7 +52,7 @@ test.describe('painel da cuidadora', () => {
     await expect(recomendacao).toContainText('Barras de Apoio');
     // com escore na mesa o motivo sai composto: "porque houve <fatores> (norma)"
     await expect(recomendacao).toContainText('porque houve');
-    await expect(recomendacao.locator('.tag')).toHaveText('recommended');
+    await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
 
     const pedidosAntes = await page.locator('.order').count();
 

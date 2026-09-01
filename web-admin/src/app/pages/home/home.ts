@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
+import { RECOMMENDATION_STATUS_LABELS, STAGE_LABELS } from '../../core/labels';
 import { Home, Order, Recommendation, Score, Signal } from '../../core/models';
 
 /** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → entrega. */
@@ -47,14 +48,8 @@ export class HomePageComponent implements OnInit {
 
   readonly stages = ['approved', 'sourcing', 'in_route', 'delivered', 'installed'];
 
-  readonly stageLabels: Record<string, string> = {
-    approved: 'Aprovado',
-    sourcing: 'Separando',
-    in_route: 'Em rota',
-    delivered: 'Entregue',
-    installed: 'Instalado',
-    returned: 'Devolvido',
-  };
+  readonly stageLabels = STAGE_LABELS;
+  readonly recStatusLabels = RECOMMENDATION_STATUS_LABELS;
 
   /** Dimensão observada do sinal (ver SignalType no backend). */
   readonly signalTypeLabels: Record<string, string> = {
