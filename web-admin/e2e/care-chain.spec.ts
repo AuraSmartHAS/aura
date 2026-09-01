@@ -50,7 +50,8 @@ test.describe('painel da cuidadora', () => {
 
     const recomendacao = page.locator('.rec').first();
     await expect(recomendacao).toContainText('Barras de Apoio');
-    await expect(recomendacao).toContainText('reduz risco');
+    // com escore na mesa o motivo sai composto: "porque houve <fatores> (norma)"
+    await expect(recomendacao).toContainText('porque houve');
     await expect(recomendacao.locator('.tag')).toHaveText('recommended');
 
     const pedidosAntes = await page.locator('.order').count();
@@ -78,7 +79,8 @@ test.describe('torre de controle', () => {
   test('KPIs são exclusivos do admin', async ({ page }) => {
     await entrar(page, CUIDADORA);
     await page.click('a[href="/admin"]');
-    await expect(page.locator('.empty')).toContainText('admin');
+    // .empty também existe no catálogo enquanto a lista carrega — mirar só no aviso de KPIs
+    await expect(page.locator('.empty').filter({ hasText: 'KPIs' })).toContainText('admin');
     await expect(page.locator('.kpis')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Sair' }).click();
