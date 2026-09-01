@@ -40,7 +40,15 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
      * saber quanto vai pagar antes de aprovar, não depois.
      */
     public record Carechain(int deliverySlaHours, int installSlaHours, int routeWindowMinutes,
-                            boolean installationIncluded, BigDecimal installationPrice) { }
+                            boolean installationIncluded, BigDecimal installationPrice,
+                            Replenish replenish) { }
+
+    /**
+     * Régua da reposição por consumo — v1 explicável: média simples das doses confirmadas na
+     * janela, comparada ao lead time da cadeia mais a margem. Números versionados aqui, como
+     * os pesos do escore, para quem não programa poder auditar a conta.
+     */
+    public record Replenish(int windowDays, int safetyStockDays, int minHistoryDays, int packageDoses) { }
 
     public record Cors(String allowedOrigins) { }
 
