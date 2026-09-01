@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
-import { RECOMMENDATION_STATUS_LABELS, STAGE_LABELS } from '../../core/labels';
+import { DIMENSION_LABELS, RECOMMENDATION_STATUS_LABELS, RISK_LEVEL_LABELS, STAGE_LABELS } from '../../core/labels';
 import { Home, Order, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
 import { OrderDeliveryComponent } from './order-delivery';
 
@@ -55,6 +55,8 @@ export class HomePageComponent implements OnInit {
 
   readonly stageLabels = STAGE_LABELS;
   readonly recStatusLabels = RECOMMENDATION_STATUS_LABELS;
+  readonly dimensionLabels = DIMENSION_LABELS;
+  readonly levelLabels = RISK_LEVEL_LABELS;
 
   /** Dimensão observada do sinal (ver SignalType no backend). */
   readonly signalTypeLabels: Record<string, string> = {

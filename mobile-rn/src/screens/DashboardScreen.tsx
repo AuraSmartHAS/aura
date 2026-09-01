@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { api, Home, Score } from '../api';
 import AuraButton from '../components/AuraButton';
+import { pesoBr } from '../format';
 import type { ScreenProps } from '../navigation';
 import { fontFamily, levelColor, radius, spacing, theme } from '../theme';
 
@@ -21,6 +22,12 @@ const dimensionLabels: Record<string, string> = {
   sleep: 'Sono',
   cognition: 'Cognição',
   environment: 'Ambiente',
+};
+
+const levelLabels: Record<string, string> = {
+  low: 'BAIXO',
+  medium: 'MÉDIO',
+  high: 'ALTO',
 };
 
 /** Painel da cuidadora: risco por dimensão, sempre com os fatores que explicam o número. */
@@ -112,7 +119,7 @@ export default function DashboardScreen({ navigation }: Props) {
             <Text style={styles.cardTitle}>{dimensionLabels[score.dimension] ?? score.dimension}</Text>
             <View style={[styles.badge, { backgroundColor: `${levelColor[score.level]}22` }]}>
               <Text style={[styles.badgeText, { color: levelColor[score.level] }]}>
-                {score.level.toUpperCase()} · {Math.round(score.score * 100)}%
+                {levelLabels[score.level] ?? score.level.toUpperCase()} · {Math.round(score.score * 100)}%
               </Text>
             </View>
           </View>
@@ -130,7 +137,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
           {score.factors.map((factor, index) => (
             <Text key={factor} style={styles.factor}>
-              • {score.factorLabels?.[index] ?? factor} <Text style={styles.weight}>peso {score.weights[index]}</Text>
+              • {score.factorLabels?.[index] ?? factor} <Text style={styles.weight}>peso {pesoBr(score.weights[index])}</Text>
             </Text>
           ))}
 

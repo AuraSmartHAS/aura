@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api, Order, Recommendation } from '../api';
 import AuraButton from '../components/AuraButton';
+import { pesoBr } from '../format';
 import type { ScreenProps } from '../navigation';
 import { fontFamily, radius, spacing, theme } from '../theme';
 
@@ -83,12 +84,17 @@ export default function CareChainScreen({ route }: Props) {
           <Text style={styles.product}>{recommendation.productName}</Text>
           <Text style={styles.reason}>{recommendation.reason}</Text>
 
-          <Text style={styles.label}>Por que este item</Text>
-          {recommendation.factors.map((factor, index) => (
-            <Text key={factor} style={styles.factor}>
-              • {recommendation.factorLabels?.[index] ?? factor} <Text style={styles.weight}>peso {recommendation.weights[index]}</Text>
-            </Text>
-          ))}
+          {recommendation.factors.length > 0 && (
+            <>
+              <Text style={styles.label}>Por que este item</Text>
+              {recommendation.factors.map((factor, index) => (
+                <Text key={factor} style={styles.factor}>
+                  • {recommendation.factorLabels?.[index] ?? factor}{' '}
+                  <Text style={styles.weight}>peso {pesoBr(recommendation.weights[index])}</Text>
+                </Text>
+              ))}
+            </>
+          )}
 
           {recommendation.status === 'recommended' ? (
             <View style={styles.button}>

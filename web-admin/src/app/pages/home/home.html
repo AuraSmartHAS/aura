@@ -66,8 +66,8 @@
 
         <div class="score" *ngFor="let score of scores()">
           <div class="score__head">
-            <strong>{{ score.dimension }}</strong>
-            <span [class]="levelClass(score.level)">{{ score.level }} · {{ percent(score.score) }}</span>
+            <strong>{{ dimensionLabels[score.dimension] || score.dimension }}</strong>
+            <span [class]="levelClass(score.level)">{{ levelLabels[score.level] || score.level }} · {{ percent(score.score) }}</span>
           </div>
           <div class="bar"><span [style.width]="percent(score.score)" [class]="'bar__fill bar__fill--' + score.level"></span></div>
           <p class="explain">
@@ -91,7 +91,7 @@
         <div class="rec" *ngFor="let p of suggestedReplenishments()">
           <div class="rec__head">
             <strong>{{ p.medicationName }}</strong>
-            <span class="tag tag--danger">acaba em ~{{ roundDays(p.daysOfSupply) }} dias</span>
+            <span class="tag tag--danger">acaba em uns {{ roundDays(p.daysOfSupply) }} dias</span>
           </div>
           <p class="explain">{{ p.reason }}</p>
           <p class="small muted">
@@ -128,7 +128,7 @@
             <span class="tag tag--{{ rec.status }}">{{ recStatusLabels[rec.status] || rec.status }}</span>
           </div>
           <p class="explain">{{ rec.reason }}</p>
-          <p class="small muted">
+          <p class="small muted" *ngIf="recFactorLabels(rec).length > 0">
             Fatores:
             <span *ngFor="let factor of recFactorLabels(rec); let last = last">{{ factor }}{{ last ? '' : ' · ' }}</span>
           </p>

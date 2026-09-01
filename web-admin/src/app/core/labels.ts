@@ -18,6 +18,21 @@ export const RECOMMENDATION_STATUS_LABELS: Record<string, string> = {
   rejected: 'Recusado',
 };
 
+/** Dimensões do escore explicável (ver scoring-weights.yml no backend). */
+export const DIMENSION_LABELS: Record<string, string> = {
+  mobility: 'Mobilidade',
+  sleep: 'Sono',
+  cognition: 'Cognição',
+  environment: 'Ambiente',
+  mood: 'Humor',
+};
+
+export const RISK_LEVEL_LABELS: Record<string, string> = {
+  low: 'baixo',
+  medium: 'médio',
+  high: 'ALTO',
+};
+
 /** Fallback consciente: código desconhecido aparece cru, nunca some da tela. */
 export function stageLabel(stage: string): string {
   return STAGE_LABELS[stage] ?? stage;
