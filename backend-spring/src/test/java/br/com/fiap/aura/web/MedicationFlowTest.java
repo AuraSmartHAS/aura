@@ -129,6 +129,63 @@ class MedicationFlowTest {
     }
 
     @Test
+    @DisplayName("estoque domiciliar: dose confirmada desce, dose negada não mexe, piso em zero")
+    void estoqueSeMoveComAsConfirmacoes() throws Exception {
+        String[] ana = cuidadoraComCasa("med-estoque@aura.com");
+        String auth = ana[0];
+
+        String medId = body(mvc.perform(post("/api/v1/homes/{homeId}/medications", ana[1])
+                        .header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Levodopa","schedule":["08:00"],"stockDoses":2}"""))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").value(2))
+                .andReturn()).get("id").asText();
+
+        // dose confirmada: 2 → 1, e a resposta já devolve o estoque novo
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", medId).header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").value(1));
+
+        // dose negada: registra o sinal, mas o estoque fica onde está
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", medId).header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"taken":false}"""))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").value(1));
+
+        // 1 → 0, e a confirmação seguinte não deixa o estoque negativo
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", medId).header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").value(0));
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", medId).header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").value(0));
+
+        // estoque negativo não entra nem no cadastro
+        mvc.perform(post("/api/v1/homes/{homeId}/medications", ana[1]).header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Vitamina D","stockDoses":-1}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+
+        // medicação sem estoque segue como sempre foi: confirma, e o campo vem nulo
+        String semEstoque = body(mvc.perform(post("/api/v1/homes/{homeId}/medications", ana[1])
+                        .header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(LOSARTANA))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").isEmpty())
+                .andReturn()).get("id").asText();
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", semEstoque).header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.stockDoses").isEmpty());
+    }
+
+    @Test
     @DisplayName("confirmar a dose grava um sinal de adesão auto-relatado (nunca prescrição)")
     void confirmGravaSinalDeAdesao() throws Exception {
         String[] ana = cuidadoraComCasa("med-confirm@aura.com");

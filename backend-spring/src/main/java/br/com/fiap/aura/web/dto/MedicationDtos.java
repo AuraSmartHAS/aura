@@ -3,6 +3,7 @@ package br.com.fiap.aura.web.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +22,9 @@ public final class MedicationDtos {
             @Schema(example = "[\"08:00\", \"20:00\"]")
             List<@Pattern(regexp = HHMM, message = HHMM_MSG) String> schedule,
             @Schema(example = "tomar com alimento") String notes,
-            @Schema(defaultValue = "true") Boolean active) { }
+            @Schema(defaultValue = "true") Boolean active,
+            @Schema(example = "60", description = "Estoque domiciliar em doses; nulo = sem controle de estoque")
+            @PositiveOrZero(message = "Estoque não pode ser negativo") Integer stockDoses) { }
 
     /** Atualização parcial: campo ausente (null) fica como está. */
     public record UpdateMedicationRequest(
@@ -30,15 +33,17 @@ public final class MedicationDtos {
             @Schema(example = "[\"08:00\", \"20:00\"]")
             List<@Pattern(regexp = HHMM, message = HHMM_MSG) String> schedule,
             String notes,
-            Boolean active) { }
+            Boolean active,
+            @PositiveOrZero(message = "Estoque não pode ser negativo") Integer stockDoses) { }
 
     public record MedicationResponse(UUID id, UUID homeId, String name, String dosage,
                                      List<String> schedule, String notes, boolean active,
-                                     Instant createdAt) { }
+                                     Integer stockDoses, Instant createdAt) { }
 
     public record ConfirmMedicationRequest(
             @Schema(description = "Se a dose foi tomada; ausente equivale a true", defaultValue = "true")
             Boolean taken) { }
 
-    public record ConfirmMedicationResponse(UUID signalId, boolean taken) { }
+    /** {@code stockDoses} devolve o estoque já decrementado, para a tela mostrar o efeito da voz. */
+    public record ConfirmMedicationResponse(UUID signalId, boolean taken, Integer stockDoses) { }
 }
