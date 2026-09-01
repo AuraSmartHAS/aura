@@ -17,7 +17,8 @@
   <div class="kpis" *ngIf="kpis() as k">
     <div class="kpi">
       <span class="kpi__label">OTIF</span>
-      <strong class="kpi__value" [class.kpi__value--good]="k.otif >= 0.95">{{ percent(k.otif) }}</strong>
+      <strong class="kpi__value" [class.kpi__value--good]="k.otif >= 0.95"
+              [class.kpi__value--alert]="k.otif < 0.95">{{ percent(k.otif) }}</strong>
       <span class="kpi__meta">meta ≥ 95%</span>
     </div>
     <div class="kpi">
