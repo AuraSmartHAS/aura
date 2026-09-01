@@ -33,16 +33,30 @@ export class AdminPageComponent implements OnInit {
   editing = false;
   riskFilter = '';
 
-  readonly riskTags = ['fall_bathroom', 'night_trips', 'mobility', 'cognition', 'environment'];
+  readonly riskTags = [
+    'fall_bathroom', 'fall_general', 'night_trips', 'mobility', 'cognition', 'environment',
+    'dexterity', 'daily_living', 'emergency', 'home_security', 'caregiver_monitoring',
+    'accessibility_voice', 'hydration', 'medication_adherence',
+  ];
 
   readonly stageLabels = STAGE_LABELS;
 
+  /** Cobre também as tags do catálogo curado (produtos-leroy.csv) — nada sai cru no telão. */
   readonly riskTagLabels: Record<string, string> = {
     fall_bathroom: 'Queda no banheiro',
+    fall_general: 'Queda em casa',
     night_trips: 'Idas noturnas ao banheiro',
     mobility: 'Mobilidade',
     cognition: 'Cognição',
     environment: 'Ambiente',
+    dexterity: 'Destreza das mãos',
+    daily_living: 'Rotina diária',
+    emergency: 'Emergência',
+    home_security: 'Segurança da casa',
+    caregiver_monitoring: 'Acompanhamento remoto',
+    accessibility_voice: 'Casa por voz',
+    hydration: 'Hidratação',
+    medication_adherence: 'Adesão à medicação',
   };
 
   ngOnInit(): void {

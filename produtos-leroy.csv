@@ -1,3 +1,100 @@
 sku,name,category,price,installable,normRef,riskTag,stockNearby
-EXEMPLO-BARRA-90,Barra de apoio reta 90cm inox,Barra de apoio,189.90,true,NBR 9050,fall_bathroom,25
-EXEMPLO-ASSENTO,Assento retratil para box,Cadeira de banho,299.90,true,NBR 9050,mobility,10
+LM-1566953614,Kit 2 Barras de Apoio 60cm,Barra de apoio,129.63,true,NBR 9050,fall_bathroom,44
+LM-1570794626,Barra de Apoio Inox 60cm,Barra de apoio,92.78,true,,fall_bathroom,12
+LM-1570997823,Barra em L 70×60cm,Barra de apoio,116.65,true,,fall_bathroom,13
+LM-1571063159,Barra Articulável Inox 60cm,Barra de apoio,325.52,true,,fall_bathroom,36
+LM-1570477975,Barra em U 30×30×30cm,Barra de apoio,110.00,true,,fall_bathroom,45
+LM-1567072938,Barra Preta 90cm,Barra de apoio,104.25,true,,fall_bathroom,17
+LM-1566988483,"Corrimão/Barra 1,20m",Barra de apoio,118.29,true,,fall_general,22
+LM-90449016,Cadeira para Banho Mebuki,Cadeira de banho,459.90,false,,fall_bathroom,33
+LM-90448995,Banco para Banho Mebuki,Cadeira de banho,249.90,false,,fall_bathroom,12
+LM-1570790197,Banco Articulado com Pé,Cadeira de banho,701.85,true,,fall_bathroom,11
+LM-89583165,"Assento Elevado 7,5cm Mebuki",Assento sanitário,167.89,false,,mobility,20
+LM-89583172,"Assento Elevado 13,5cm Mebuki",Assento sanitário,181.79,false,,mobility,27
+LM-92288434,Assento Elevado Astra com Tampa e Trava,Assento sanitário,170.90,false,,mobility,27
+LM-89562844,Tapete de Box Bella Casa 50×50cm,Antiderrapante,46.90,false,,fall_bathroom,35
+LM-89386283,Fita para Banheiro Safety Walk 3M,Antiderrapante,88.79,false,,fall_bathroom,20
+LM-90345150,Tratamento Antiderrapante Pisoclean 1L,Antiderrapante,100.90,false,,fall_bathroom,20
+LM-1572334620,Piso Vinílico Antiderrapante para Box,Antiderrapante,170.91,false,,fall_bathroom,46
+LM-92439032,Porcelanato Externo Avana Gray,Antiderrapante,93.91,true,,fall_bathroom,32
+LM-88412086,Vaso Sanitário PNE Celite,Sanitário PNE,541.13,true,,mobility,24
+LM-1571658654,Torneira PNE Automática Master,Torneira acessível,173.83,true,NBR 9050,dexterity,47
+LM-1568309643,Torneira PNE Automática,Torneira acessível,260.91,true,,dexterity,39
+LM-92416212,Torneira Docol Benefit com Alavanca,Torneira acessível,338.48,true,,dexterity,49
+LM-1571793976,Torneira com Sensor Infravermelho,Torneira acessível,298.10,true,,dexterity,28
+LM-1567579955,Bengala Dobrável Regulável,Mobilidade,49.90,false,,mobility,28
+LM-1571473953,Rampa para Soleira 4×80cm,Circulação,273.65,true,,mobility,10
+LM-1571473954,Rampa Antiderrapante 80×52×8cm,Circulação,702.30,true,,mobility,11
+LM-1571573355,Perfil Redutor Inox 15mm,Circulação,328.89,true,,fall_general,28
+LM-1572484016,Perfil Redutor Alumínio 5mm,Circulação,135.90,false,,fall_general,38
+LM-89580260,Fita Antiderrapante Nove54,Antiderrapante,24.67,false,,fall_general,26
+LM-1571828386,Fita Fotoluminescente Vonder,Antiderrapante,94.90,false,,fall_general,39
+LM-1571392523,Fita Antiderrapante Azul,Antiderrapante,54.30,false,,fall_general,47
+LM-1572632590,Canaleta de Piso 50×15mm,Circulação,37.26,false,,fall_general,28
+LM-1571521692,Canaleta Autoadesiva 10×10mm,Circulação,10.45,false,,fall_general,25
+LM-1572861708,Luminária Noturna Recarregável,Iluminação,24.99,false,,night_trips,38
+LM-1572172591,Luminária Inteligente 30cm,Iluminação,109.99,false,,night_trips,49
+LM-1572172592,Luminária Inteligente 60cm,Iluminação,149.99,false,,night_trips,50
+LM-1572098565,Barra LED Opus 60cm com Sensor,Iluminação,130.00,false,,night_trips,28
+LM-91915635,Luminária de Emergência Segurimax,Iluminação,15.99,false,,night_trips,41
+LM-1571569623,Lâmpada Recarregável de Emergência,Iluminação,49.90,false,,night_trips,27
+LM-90730486,Lâmpada Inteligente Elgin RGB,Iluminação,72.90,false,,night_trips,38
+LM-90940374,Sensor de Presença Intelbras ESPi 180 E,Segurança,46.22,false,,night_trips,47
+LM-89093823,Sensor E27 Intelbras 360 S,Segurança,75.90,false,,night_trips,13
+LM-1571852628,Sensor Infravermelho HS-P21,Segurança,47.90,false,,night_trips,50
+LM-92226652,Sensor para Fita LED Gaya,Iluminação,62.90,true,,night_trips,32
+LM-90628195,Smart Plug Positivo 10A,Casa segura,95.92,false,,accessibility_voice,42
+LM-1572318383,Tomada Dupla Wi‑Fi Tuya 16A,Casa segura,160.45,false,,accessibility_voice,45
+LM-1568024966,Interruptor Mini Inteligente 10A,Casa segura,69.52,false,,accessibility_voice,25
+LM-91709660,Interruptor Touch Intelbras EWS 1001,Casa segura,131.29,false,,accessibility_voice,50
+LM-91007924,Detector de Fumaça Wi‑Fi AGL,Segurança,304.90,true,,cognition,29
+LM-1570863970,Detector de Fumaça Tuya,Segurança,163.71,true,,cognition,25
+LM-88029984,Detector de Fumaça DNI com Sirene,Segurança,114.90,true,,cognition,42
+LM-90357484,Detector Óptico Segurimax 12/24V,Segurança,83.98,true,,cognition,13
+LM-90422290,Detector de Gás Natural e GLP DNI,Segurança,159.90,true,,cognition,39
+LM-1571134021,Alarme Audiovisual PCD Help,Segurança,267.91,true,,emergency,50
+LM-1568038401,Botão de Pânico Ipec NF,Segurança,38.32,true,,emergency,12
+LM-1571834172,Campainha X9 com Câmera,Segurança,107.91,false,,home_security,44
+LM-90663020,Vídeo Porteiro Multilaser Liv,Segurança,507.32,true,,home_security,17
+LM-91947751,Vídeo Porteiro Intelbras Allo WT7 Lite,Segurança,2632.96,true,,home_security,13
+LM-90861610,Fechadura Elsys ESF-DE4000B,Segurança,807.90,true,,home_security,44
+LM-92340906,Fechadura Yale Lia,Segurança,999.90,true,,home_security,19
+LM-91065310,Fechadura Intelbras IFR 7001,Segurança,1599.00,true,,home_security,15
+LM-92347206,Fechadura Intelbras MFV3000,Segurança,1199.90,true,,home_security,46
+LM-1571730862,Fechadura AGL N12,Segurança,259.90,true,,home_security,13
+LM-91806974,Câmera Steck Mini Wi‑Fi,Segurança,199.90,false,,caregiver_monitoring,30
+LM-92429603,Câmera Steck 360°,Segurança,204.90,false,,caregiver_monitoring,33
+LM-91819994,Câmera Intelbras IM3C,Segurança,349.90,false,,caregiver_monitoring,12
+LM-91998130,Sensor de Porta e Janela AGL,Segurança,164.90,false,,home_security,44
+LM-91047845,Sensor de Movimento Intelbras ISM 1001,Segurança,181.28,false,,home_security,16
+LM-1567399390,Purificador LG PuriCare 360°,Ambiente,3231.00,false,,environment,27
+LM-1567399391,Purificador LG PuriCare com 2 Filtros,Ambiente,4929.00,false,,environment,28
+LM-91883820,"Umidificador Equation 4,5L",Ambiente,199.90,false,,environment,42
+LM-92451422,Umidificador Midea Master Connect 6L,Ambiente,358.16,false,,environment,40
+LM-92110480,Desumidificador Force Line,Ambiente,229.90,false,,environment,13
+LM-89662804,Desumidificador Komeco AirLife,Ambiente,263.91,false,,environment,37
+LM-92206233,Desumidificador Compact Ion Desidrat,Ambiente,849.90,false,,environment,31
+LM-89304901,Desumidificador Cristal Thermomatic,Ambiente,187.59,false,,environment,23
+LM-92210503,Desumidificador Mini Thermomatic,Ambiente,749.00,false,,environment,37
+LM-1572545136,Termo-Higrômetro com Relógio,Casa segura,22.47,false,,environment,27
+LM-1570547932,Sensor Tuya Zigbee de Temperatura/Umidade,Segurança,89.88,false,,environment,15
+LM-1567144927,Termo-Higrômetro Tomate PD003,Casa segura,67.90,false,,environment,10
+LM-86693670,Antimofo Eletrônico DNI,Casa segura,95.81,false,,environment,41
+LM-92182335,"Climatizador Midea 4,5L",Casa segura,489.90,false,,environment,36
+LM-91782026,Climatizador Symphony 8L,Casa segura,1387.33,false,,environment,10
+LM-92331435,Ventilador Torre Bladeless Equation,Casa segura,1199.00,false,,environment,19
+LM-92332541,Ventilador Torre Spirit Sky,Casa segura,749.90,false,,environment,18
+LM-91796145,Ventilador de Parede Equation,Casa segura,349.90,true,,environment,25
+LM-92186010,Ventilador de Teto Inspire Nano Eco,Casa segura,499.90,false,,environment,21
+LM-92311205,Ar-Condicionado TCL TPRO Wi‑Fi,Casa segura,2349.00,false,,environment,43
+LM-1571316141,"Porta-Comprimidos 7 Dias, Manhã/Noite",Casa segura,26.98,false,,medication_adherence,48
+LM-1572870611,Timer Digital com Alarme,Segurança,15.49,false,,medication_adherence,44
+LM-92133412,Carrinho Organizador Oikos,Casa segura,189.90,false,,daily_living,26
+LM-1572824421,Poltrona Lift Rover,Casa segura,4414.50,false,,mobility,20
+LM-1572097300,Poltrona Imperial com Lift,Casa segura,5416.25,false,,mobility,34
+LM-1571813912,Mesa Auxiliar Regulável Artetube,Casa segura,350.11,false,,daily_living,38
+LM-91790293,Bandeja com Pés Oikos,Casa segura,164.90,false,,daily_living,36
+LM-1572696461,Abridor Multiuso Naxos,Casa segura,12.70,false,,dexterity,21
+LM-1567461426,Maçaneta Alavanca Aliança,Casa segura,26.90,true,,dexterity,30
+LM-87980025,Fechadura Arouca Idea com Alavanca,Segurança,89.90,true,,dexterity,21
+LM-91709373,Purificador de Água Consul CPB33AB,Ambiente,599.90,false,,hydration,50
