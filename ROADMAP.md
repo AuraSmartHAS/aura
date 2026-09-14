@@ -6,7 +6,7 @@ Exatamente uma task pode estar `- [-]`. Antes do despacho, o runner, sob instru�
 
 ## Estado atual
 
-- [-] TASK-000 — Bootstrap da memória durável e configuração de papéis
+- [X] TASK-000 — Bootstrap da memória durável e configuração de papéis
 
 ## Competição: janela de 14 dias (somente após ordem explícita)
 

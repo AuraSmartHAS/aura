@@ -1,8 +1,8 @@
 # TASK-000 — Checkpoint de bootstrap
 
-Atualizado em: 2026-09-14T18:56:58-0300
+Atualizado em: 2026-09-14T19:00:36-0300
 
-Status: approved_pending_first_commit.
+Status: complete.
 
 Escopo deste turno: somente arquivos, agentes e branch. Features de produto NÃO ESTÃO AUTORIZADAS neste turno.
 
@@ -55,3 +55,5 @@ Correções de revisão revalidadas: snapshots de worktree são explicitamente n
 Hashes após as correções: pacote com journal `d68271ab32c9778b0b923bec5d58b0e2302c254ac945dda213f0a2ebcefcca7b`; comparação sem journal `dd168cdb4ba4e3d7fe06b8c938bcb0e92cb7360e951515cafad81ab0af401110`.
 
 Veredito: aprovado por `code-reviewer` independente, sem bloqueantes. O pacote bootstrap está apto ao primeiro commit local do VCS; TASK-000 permanece em andamento até a reconciliação posterior ao commit.
+
+Encerramento: primeiro commit local de memória `e24087c9f71b58d52fc7f2b0e3380530357434ff` confirmado. Nenhuma task de produto foi autorizada ou iniciada; não houve push e `astra-main` continua sem upstream. TASK-000 está concluída; até nova ordem humana, não há task ativa.
