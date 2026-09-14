@@ -1,5 +1,7 @@
 # 🌅 AURA Care-Chain
 
+> Para retomar trabalho de engenharia, comece por [START-HERE.md](START-HERE.md). A memória e o protocolo de tasks ficam em [ROADMAP.md](ROADMAP.md) e [AGENTS.md](AGENTS.md); tarefas TODO não iniciam sem ordem humana explícita.
+
 > Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · **FIAP — Sociedade 5.0**
 > Assistente de saúde domiciliar **voice-first** para idosos com Parkinson +
 > **cadeia logística de segurança da casa**, com recomendação sempre explicada.

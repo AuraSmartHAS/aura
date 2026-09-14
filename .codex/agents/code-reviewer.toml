@@ -1,0 +1,6 @@
+name = "code_reviewer"
+description = "Revisor independente de diffs, sem contexto herdado e sem escrita."
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+developer_instructions = "Leia .agents/roles/code-reviewer.md e AGENTS.md. Revise somente; não edite, execute, commite ou decida produto."

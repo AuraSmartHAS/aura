@@ -1,0 +1,6 @@
+name = "vcs"
+description = "Único responsável por operações Git mutantes."
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+developer_instructions = "Leia .agents/roles/vcs.md e AGENTS.md. Faça Git mutante somente com instrução e mensagem literal do orquestrador."
