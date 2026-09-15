@@ -62,7 +62,7 @@ public class LgpdService {
     /** Apaga a casa e tudo que foi observado nela. */
     @Transactional
     public void deleteHome(AuthPrincipal principal, UUID homeId) {
-        Home home = homeService.requireAccess(principal, homeId);
+        Home home = homeService.requireOwnerOrAdmin(principal, homeId);
         purgeHome(home.getId());
         homes.delete(home);
         log.info("Casa {} e dados associados excluídos a pedido do titular", homeId);

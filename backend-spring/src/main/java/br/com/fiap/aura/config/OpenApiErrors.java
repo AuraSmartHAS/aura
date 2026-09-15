@@ -86,6 +86,12 @@ public class OpenApiErrors {
             Map.entry("/api/v1/auth/signup", Map.of(
                     "400", new String[] {"Payload inválido — details traz o campo e o motivo",
                             "VALIDATION_ERROR", "Corpo da requisição inválido."},
+                    "409", new String[] {"E-mail já cadastrado", "CONFLICT", "E-mail já cadastrado."},
+                    "403", new String[] {"ADMIN não pode ser solicitado no cadastro público",
+                            "FORBIDDEN", "Acesso negado a este recurso."})),
+            Map.entry("/api/v1/auth/admins", Map.of(
+                    "400", new String[] {"Payload inválido — details traz o campo e o motivo",
+                            "VALIDATION_ERROR", "Corpo da requisição inválido."},
                     "409", new String[] {"E-mail já cadastrado", "CONFLICT", "E-mail já cadastrado."})),
             Map.entry("/api/v1/catalog/{sku}", Map.of("409", new String[] {
                     "SKU já existe", "CONFLICT", "Já existe produto com o SKU LM-1566953614."})),

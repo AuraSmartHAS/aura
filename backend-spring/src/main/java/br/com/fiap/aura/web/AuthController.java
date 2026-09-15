@@ -37,9 +37,18 @@ public class AuthController {
     @PostMapping("/auth/signup")
     @ResponseStatus(HttpStatus.CREATED)
     @SecurityRequirements
-    @Operation(summary = "Cria conta (paciente, cuidadora, profissional ou admin)")
+    @Operation(summary = "Cria conta pública (paciente, cuidadora ou profissional)")
     public AuthDtos.SignupResponse signup(@Valid @RequestBody AuthDtos.SignupRequest req) {
         return auth.signup(req);
+    }
+
+    @PostMapping("/auth/admins")
+    @ResponseStatus(HttpStatus.CREATED)
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Provisiona uma conta ADMIN (somente ADMIN; não devolve tokens)")
+    public AuthDtos.AdminProvisionResponse provisionAdmin(
+            @Valid @RequestBody AuthDtos.AdminProvisionRequest req) {
+        return auth.provisionAdmin(currentUser.require(), req);
     }
 
     @PostMapping("/auth/login")

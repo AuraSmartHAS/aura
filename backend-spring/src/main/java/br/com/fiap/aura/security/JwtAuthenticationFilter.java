@@ -1,5 +1,7 @@
 package br.com.fiap.aura.security;
 
+import br.com.fiap.aura.domain.UserAccount;
+import br.com.fiap.aura.repository.UserAccountRepository;
 import br.com.fiap.aura.web.error.ApiErrorResponse;
 import br.com.fiap.aura.web.error.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,10 +26,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String PREFIX = "Bearer ";
 
     private final JwtService jwtService;
+    private final UserAccountRepository users;
     private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtService jwtService, ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserAccountRepository users,
+                                   ObjectMapper objectMapper) {
         this.jwtService = jwtService;
+        this.users = users;
         this.objectMapper = objectMapper;
     }
 
@@ -38,7 +43,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith(PREFIX)) {
             try {
-                AuthPrincipal principal = jwtService.parseAccess(header.substring(PREFIX.length()).trim());
+                AuthPrincipal tokenPrincipal = jwtService.parseAccess(header.substring(PREFIX.length()).trim());
+                UserAccount account = users.findById(tokenPrincipal.userId()).orElseThrow(() ->
+                        ApiException.unauthorized("UNAUTHORIZED", "Usuário do token não existe mais."));
+                // A assinatura ainda autentica o token; a conta persistida decide se ele continua
+                // autorizado e qual é seu papel vigente (inclusive depois de revogação de ADMIN).
+                AuthPrincipal principal = new AuthPrincipal(account.getId(), account.getRole());
                 var auth = new UsernamePasswordAuthenticationToken(principal, null,
                         List.of(new SimpleGrantedAuthority(principal.role().authority())));
                 SecurityContextHolder.getContext().setAuthentication(auth);

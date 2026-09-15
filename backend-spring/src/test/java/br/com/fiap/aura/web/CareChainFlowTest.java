@@ -52,6 +52,16 @@ class CareChainFlowTest {
         return json.readTree(res.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
+    /** A logística é operação: o seed fornece a conta administrativa legítima para este papel. */
+    private String adminAuth() throws Exception {
+        MvcResult res = mvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"admin@aura.com\",\"password\":\"aura1234\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        return "Bearer " + body(res).get("token").asText();
+    }
+
     /** Cuidadora consentida com uma casa da Maria — o ponto de partida de quase todo caso. */
     private String homeOf(String auth) throws Exception {
         mvc.perform(post("/api/v1/consent").header("Authorization", auth)).andExpect(status().isCreated());
@@ -147,8 +157,9 @@ class CareChainFlowTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("CONFLICT"));
 
+        String admin = adminAuth();
         for (String expected : new String[] {"sourcing", "in_route", "delivered"}) {
-            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", admin))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.stage").value(expected));
         }
@@ -236,9 +247,10 @@ class CareChainFlowTest {
         assertThat(parado.get("currentPosition").isNull()).isTrue();
 
         // sourcing → in_route: o despacho acabou de acontecer, o entregador está saindo da loja
-        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+        String admin = adminAuth();
+        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", admin))
                 .andExpect(status().isOk());
-        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", auth))
+        mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", admin))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stage").value("in_route"));
 

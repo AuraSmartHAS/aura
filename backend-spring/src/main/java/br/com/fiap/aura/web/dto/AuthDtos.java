@@ -16,13 +16,26 @@ public final class AuthDtos {
             @NotBlank @Email @Schema(example = "nova.cuidadora@aura.com") String email,
             @NotBlank @Size(min = 6, message = "A senha precisa ter ao menos 6 caracteres")
             @Schema(example = "aura1234") String password,
-            @Schema(example = "cuidadora") Role role,
+            @Schema(type = "string", allowableValues = {"paciente", "cuidadora", "profissional"}, example = "cuidadora",
+                    description = "Papel público: paciente, cuidadora ou profissional. ADMIN é provisionado por administrador autenticado.")
+            Role role,
             String name) { }
 
     public record SignupResponse(UUID userId,
             @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI3MmEyMWVkMi0xNzhl...") String token,
             @Schema(example = "eyJhbGciOiJIUzM4NCJ9.eyJ0eXAiOiJyZWZyZXNoIiwic3Vi...") String refreshToken,
             Role role) { }
+
+    public record AdminProvisionRequest(
+            @NotBlank @Email @Schema(example = "operacao@aura.com") String email,
+            @NotBlank @Size(min = 6, message = "A senha precisa ter ao menos 6 caracteres")
+            @Schema(example = "aura1234") String password,
+            String name) { }
+
+    /** Deliberadamente não contém access/refresh token. */
+    public record AdminProvisionResponse(UUID userId,
+                                         @Schema(type = "string", allowableValues = {"admin"}, example = "admin")
+                                         String role) { }
 
     public record LoginRequest(
             @NotBlank @Email @Schema(example = "ana@aura.com") String email,

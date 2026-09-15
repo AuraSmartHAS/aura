@@ -63,12 +63,12 @@
 <body>
 <div class="topo">
   <h1>AURA Care-Chain API <span style="color:var(--muted);font-size:13px">v1.0.0</span></h1>
-  <p>42 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
+  <p>43 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
      contas de demonstração: <code>ana@aura.com</code> · <code>admin@aura.com</code> — senha <code>aura1234</code></p>
   <input class="busca" id="busca" type="search" placeholder="Filtrar por rota, método ou descrição…" autocomplete="off">
 </div>
 <div class="layout">
-  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">8</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a></nav>
+  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">9</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a></nav>
   <main>
     <section class="grupo" id="0-Meta">
       <h2>0. Meta</h2>
@@ -93,6 +93,25 @@
     <section class="grupo" id="1-Autenticação-&amp;-LGPD">
       <h2>1. Autenticação &amp; LGPD</h2>
       
+      <article class="op" data-busca="post /api/v1/auth/admins provisiona uma conta admin (somente admin; não devolve tokens)">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/auth/admins</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Provisiona uma conta ADMIN (somente ADMIN; não devolve tokens)</p>
+        
+        <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
+  &quot;email&quot;: &quot;operacao@aura.com&quot;,
+  &quot;password&quot;: &quot;aura1234&quot;,
+  &quot;name&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
+  &quot;userId&quot;: &quot;string&quot;,
+  &quot;role&quot;: &quot;admin&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">400</span><code class="erro">VALIDATION_ERROR</code><span class="desc">Payload inválido — details traz o campo e o motivo</span></li><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">E-mail já cadastrado</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
       <article class="op" data-busca="post /api/v1/auth/login autentica e devolve o par de tokens (access + refresh)">
         <header>
           <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
@@ -179,13 +198,13 @@
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Refresh token inválido ou de tipo errado</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
-      <article class="op" data-busca="post /api/v1/auth/signup cria conta (paciente, cuidadora, profissional ou admin)">
+      <article class="op" data-busca="post /api/v1/auth/signup cria conta pública (paciente, cuidadora ou profissional)">
         <header>
           <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
           <code class="rota">/api/v1/auth/signup</code>
           <span class="selo publica">pública</span>
         </header>
-        <p class="resumo">Cria conta (paciente, cuidadora, profissional ou admin)</p>
+        <p class="resumo">Cria conta pública (paciente, cuidadora ou profissional)</p>
         
         <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
   &quot;email&quot;: &quot;nova.cuidadora@aura.com&quot;,
@@ -199,7 +218,7 @@
   &quot;refreshToken&quot;: &quot;eyJhbGciOiJIUzM4NCJ9.eyJ0eXAiOiJyZWZyZXNoIiwic3Vi...&quot;,
   &quot;role&quot;: &quot;paciente&quot;
 }</pre></div>
-        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">400</span><code class="erro">VALIDATION_ERROR</code><span class="desc">Payload inválido — details traz o campo e o motivo</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">E-mail já cadastrado</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">400</span><code class="erro">VALIDATION_ERROR</code><span class="desc">Payload inválido — details traz o campo e o motivo</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">ADMIN não pode ser solicitado no cadastro público</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">E-mail já cadastrado</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
       <article class="op" data-busca="post /api/v1/consent aceite da política lgpd — gate obrigatório antes de qualquer dado de saúde">
         <header>
@@ -284,13 +303,13 @@
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">CONSENT_REQUIRED</code><span class="desc">Consentimento LGPD não aceito (RN-001)</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
-      <article class="op" data-busca="delete /api/v1/homes/{homeid} exclui a casa e todos os dados observados nela (lgpd)">
+      <article class="op" data-busca="delete /api/v1/homes/{homeid} exclui a casa e seus dados (lgpd; somente dona ou admin)">
         <header>
           <span class="metodo" style="background:#f8514922;color:#f85149;border-color:#f8514955">DELETE</span>
           <code class="rota">/api/v1/homes/{homeId}</code>
           <span class="selo">JWT</span>
         </header>
-        <p class="resumo">Exclui a casa e todos os dados observados nela (LGPD)</p>
+        <p class="resumo">Exclui a casa e seus dados (LGPD; somente dona ou ADMIN)</p>
         <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>homeId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
         
         <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
@@ -844,13 +863,13 @@
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
-      <article class="op" data-busca="post /api/v1/orders/{orderid}/advance avança o pedido: approved → sourcing → in_route → delivered → installed → returned">
+      <article class="op" data-busca="post /api/v1/orders/{orderid}/advance avança a logística (somente admin): approved → sourcing → in_route → delivered → installed → returned">
         <header>
           <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
           <code class="rota">/api/v1/orders/{orderId}/advance</code>
           <span class="selo">JWT</span>
         </header>
-        <p class="resumo">Avança o pedido: approved → sourcing → in_route → delivered → installed → returned</p>
+        <p class="resumo">Avança a logística (somente ADMIN): approved → sourcing → in_route → delivered → installed → returned</p>
         <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>orderId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
         
         <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{

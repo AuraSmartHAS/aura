@@ -57,7 +57,7 @@ public class HomeController {
     }
 
     @DeleteMapping("/{homeId}")
-    @Operation(summary = "Exclui a casa e todos os dados observados nela (LGPD)")
+    @Operation(summary = "Exclui a casa e seus dados (LGPD; somente dona ou ADMIN)")
     public AuthDtos.OkResponse delete(@PathVariable UUID homeId) {
         lgpd.deleteHome(currentUser.require(), homeId);
         return new AuthDtos.OkResponse(true);

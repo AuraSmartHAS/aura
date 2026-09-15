@@ -110,6 +110,16 @@ public class HomeService {
         return home;
     }
 
+    /** Exclusão LGPD é mais restrita que leitura/escrita cotidiana: só dona ou ADMIN. */
+    @Transactional(readOnly = true)
+    public Home requireOwnerOrAdmin(AuthPrincipal principal, UUID homeId) {
+        Home home = homes.findById(homeId).orElseThrow(() -> ApiException.notFound("Casa"));
+        if (!principal.isAdmin() && !home.getOwnerUserId().equals(principal.userId())) {
+            throw ApiException.forbidden();
+        }
+        return home;
+    }
+
     static HomeDtos.HomeResponse toResponse(Home home) {
         return new HomeDtos.HomeResponse(home.getId(), home.getLabel(), home.getPatientName(),
                 home.getBirthDate(), home.getCep(), home.getAddress(), home.getLat(), home.getLng(),

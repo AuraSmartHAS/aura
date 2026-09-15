@@ -39,6 +39,11 @@ public class AuthService {
             throw ApiException.conflict("E-mail já cadastrado.");
         }
         Role role = req.role() == null ? Role.CUIDADORA : req.role();
+        if (role == Role.ADMIN) {
+            // A rota é pública; aceitar ADMIN aqui entregaria uma credencial de operação a quem
+            // ainda não provou ter qualquer autorização administrativa.
+            throw ApiException.forbidden();
+        }
         UserAccount user = users.save(UserAccount.builder()
                 .email(req.email().toLowerCase())
                 .passwordHash(encoder.encode(req.password()))
@@ -47,6 +52,27 @@ public class AuthService {
                 .build());
         return new AuthDtos.SignupResponse(user.getId(),
                 jwt.issueAccess(user.getId(), role), jwt.issueRefresh(user.getId(), role), role);
+    }
+
+    /** Cria uma conta administrativa sem devolver credenciais ao solicitante. */
+    @Transactional
+    public AuthDtos.AdminProvisionResponse provisionAdmin(AuthPrincipal principal,
+                                                           AuthDtos.AdminProvisionRequest req) {
+        UserAccount requester = users.findById(principal.userId()).orElseThrow(() ->
+                ApiException.unauthorized("UNAUTHORIZED", "Usuário do token não existe mais."));
+        if (requester.getRole() != Role.ADMIN) {
+            throw ApiException.forbidden();
+        }
+        if (users.existsByEmailIgnoreCase(req.email())) {
+            throw ApiException.conflict("E-mail já cadastrado.");
+        }
+        UserAccount user = users.save(UserAccount.builder()
+                .email(req.email().toLowerCase())
+                .passwordHash(encoder.encode(req.password()))
+                .role(Role.ADMIN)
+                .name(req.name())
+                .build());
+        return new AuthDtos.AdminProvisionResponse(user.getId(), Role.ADMIN.value());
     }
 
     @Transactional(readOnly = true)

@@ -202,6 +202,11 @@ public class CareChainService {
 
     @Transactional
     public CareChainDtos.AdvanceResponse advance(AuthPrincipal principal, UUID orderId) {
+        // A leitura do pedido continua disponível aos membros da casa, mas mover a cadeia altera
+        // estágio, ETA/SLA e eventualmente estoque: é uma ação da operação, não da família.
+        if (!principal.isAdmin()) {
+            throw ApiException.forbidden();
+        }
         DeliveryOrder order = requireOrder(principal, orderId);
         OrderStage next = order.getStage().next();
         if (next == null) {

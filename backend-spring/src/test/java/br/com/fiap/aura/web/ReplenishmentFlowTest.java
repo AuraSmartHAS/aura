@@ -60,6 +60,15 @@ class ReplenishmentFlowTest {
         return json.readTree(res.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
+    private String adminAuth() throws Exception {
+        MvcResult res = mvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"admin@aura.com\",\"password\":\"aura1234\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        return "Bearer " + body(res).get("token").asText();
+    }
+
     /** Cuidadora consentida com casa — o chão de todo cenário. */
     private String[] cuidadoraComCasa(String email) throws Exception {
         String auth = signup(email);
@@ -157,8 +166,9 @@ class ReplenishmentFlowTest {
         assertThat(pedido.get("slaDueAt").isNull()).isFalse();
 
         // approved → sourcing → in_route → delivered: a entrega devolve o pacote (8 + 30 = 38)
+        String admin = adminAuth();
         for (int i = 0; i < 3; i++) {
-            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", ana[0]))
+            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", admin))
                     .andExpect(status().isOk());
         }
         JsonNode medicaoes = body(mvc.perform(get("/api/v1/homes/{id}/medications", ana[1])

@@ -59,7 +59,7 @@ public class CareChainController {
     }
 
     @PostMapping("/orders/{orderId}/advance")
-    @Operation(summary = "Avança o pedido: approved → sourcing → in_route → delivered → installed → returned")
+    @Operation(summary = "Avança a logística (somente ADMIN): approved → sourcing → in_route → delivered → installed → returned")
     public CareChainDtos.AdvanceResponse advance(@PathVariable UUID orderId) {
         return careChain.advance(currentUser.require(), orderId);
     }

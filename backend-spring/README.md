@@ -77,10 +77,12 @@ python3 ../docs/api/gerar_doc.py ../docs/api/openapi.json ../docs/api/aura-api.h
 
 | Método | Rota | O que faz |
 |---|---|---|
-| `POST` | `/api/v1/auth/signup` · `login` · `refresh` | conta e tokens |
+| `POST` | `/api/v1/auth/signup` · `login` · `refresh` | conta pública (paciente, cuidadora ou profissional) e tokens |
+| `POST` | `/api/v1/auth/admins` | provisiona ADMIN — requer token de ADMIN e devolve somente `userId` e `role`, nunca tokens |
 | `GET` | `/api/v1/auth/me` | usuário atual + se aceitou a política |
 | `POST` | `/api/v1/consent` | aceite LGPD — **gate** de todo dado de saúde |
 | `POST` `GET` | `/api/v1/homes` · `/homes/{id}` | casa do paciente (endereço via ViaCEP) |
+| `DELETE` | `/api/v1/homes/{id}` | exclusão LGPD da casa — somente dona ou ADMIN |
 | `PUT` | `/api/v1/homes/{id}/checklist` | itens de segurança que alimentam o escore |
 | `POST` `GET` | `/api/v1/signals` · `/homes/{id}/signals` | sinais observados (voz, auto-relato, uso, wearable) |
 | `POST` | `/api/v1/scores/recompute` | escore explicável (fatores + pesos + frase) |
@@ -92,7 +94,7 @@ python3 ../docs/api/gerar_doc.py ../docs/api/openapi.json ../docs/api/aura-api.h
 | `POST` `GET` | `/api/v1/homes/{id}/medications` | medicações do paciente |
 | `PUT` `DELETE` | `/api/v1/medications/{id}` | edita e remove |
 | `POST` | `/api/v1/medications/{id}/confirm` | confirma a dose → grava sinal de adesão |
-| `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | cadeia logística, rota da entrega e SLA |
+| `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | avanço logístico somente ADMIN; leitura da cadeia, rota e SLA para membros autorizados |
 | `POST` | `/api/v1/notifications/register-token` | registra o aparelho que recebe o push |
 | `POST` | `/api/v1/notifications/test` | dispara o aviso e devolve `messageId`, `latencyMs` e `simulated` |
 | `GET` | `/api/v1/ops/kpis` | Torre de Controle — **admin** |
@@ -121,6 +123,9 @@ sustenta a promessa de explicabilidade.
 3. **Isolamento por paciente** — casa de outro usuário responde `403`, não `404`.
 4. **Nenhum pedido sem aprovação humana** — a recomendação só vira pedido quando a
    cuidadora aprova (RN-022).
+5. **Privilégios administrativos fechados** — o cadastro público nunca cria ADMIN; só um
+   ADMIN autenticado provisiona outro ADMIN, sem receber tokens dessa nova conta. A exclusão
+   de uma casa é da dona ou de ADMIN, e a movimentação logística é exclusivamente ADMIN.
 
 ## ⚠️ Envelope de erro
 
