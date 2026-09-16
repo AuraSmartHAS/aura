@@ -166,7 +166,7 @@ public class DataSeeder implements CommandLineRunner {
                 .role(Role.CUIDADORA).name("Ana (cuidadora)").build());
         users.save(UserAccount.builder()
                 .email("admin@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
-                .role(Role.ADMIN).name("Torre de Controle").build());
+                .role(Role.ADMIN).name("Equipe Aura").build());
         UserAccount maria = users.save(UserAccount.builder()
                 .email("maria@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
                 .role(Role.PACIENTE).name("Maria (paciente)").build());
@@ -227,8 +227,94 @@ public class DataSeeder implements CommandLineRunner {
         seedScoreTrend(casa.getId(), now);
         seedOrderPipeline(casa, now);
 
+        Home segunda = seedSegundaCasa(now);
+
         log.info("Seed pronto — login de demonstração: ana@aura.com (dona) e maria@aura.com (paciente), "
-                + "senha {} (casa {})", DEMO_PASSWORD, casa.getId());
+                + "senha {} (casa {}); segunda casa: carlos@aura.com (dono) e antonio@aura.com "
+                + "(paciente), casa {}", DEMO_PASSWORD, casa.getId(), segunda.getId());
+    }
+
+    /**
+     * Uma segunda casa, com um idoso de perfil diferente da Maria. Existe por três motivos, e
+     * nenhum deles é encher tabela.
+     *
+     * <p><b>Uma casa só não mostra isolamento.</b> A regra de acesso (RN-017) só fica visível
+     * quando existe uma segunda casa para a Ana <i>não</i> enxergar. Com uma casa, "cada família vê
+     * só a sua" é afirmação; com duas, é demonstrável na tela.
+     *
+     * <p><b>Uma casa só não mostra o produto.</b> O risco da Maria mora no banheiro — barra de
+     * apoio e piso antiderrapante. O do seu Antônio mora no trajeto noturno: idas frequentes de
+     * madrugada e corredor sem iluminação. Mesmo motor, mesma norma, recomendação diferente. É isso que separa um
+     * sistema de recomendação de uma tela com um produto fixo.
+     *
+     * <p><b>O painel dizia "1 casa monitorada".</b>
+     *
+     * <p>Antônio e Carlos são dados de demonstração, como a Maria e a Ana. Não representam
+     * validação com pessoa real, que é trabalho de campo e continua pendente.
+     */
+    private Home seedSegundaCasa(Instant now) {
+        UserAccount carlos = users.save(UserAccount.builder()
+                .email("carlos@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
+                .role(Role.CUIDADORA).name("Carlos (neto)").build());
+        UserAccount antonio = users.save(UserAccount.builder()
+                .email("antonio@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
+                .role(Role.PACIENTE).name("Antônio R. (paciente)").build());
+
+        consents.saveAll(List.of(
+                Consent.builder().userId(carlos.getId()).version("2026-06").build(),
+                Consent.builder().userId(antonio.getId()).version("2026-06").build()));
+
+        // Casa oposta à da Maria: o banheiro está resolvido, o trajeto noturno não.
+        Map<String, Object> checklist = new LinkedHashMap<>();
+        checklist.put("grab_bar_bathroom", true);
+        checklist.put("anti_slip_floor", true);
+        checklist.put("night_light", false);        // sem luz noturna → poor_night_lighting (0,4)
+        checklist.put("gas_detector", true);
+        checklist.put("air_purifier", false);
+
+        Home casa = homes.save(Home.builder()
+                .ownerUserId(carlos.getId()).patientName("Antônio R.")
+                .birthDate(LocalDate.of(1948, 11, 22))
+                .label("Casa do seu Antônio").cep("03310000")
+                .address("Rua Serra de Bragança, Tatuapé, São Paulo, SP")
+                .lat(-23.545).lng(-46.573).safetyChecklist(checklist)
+                .build());
+
+        members.saveAll(List.of(
+                HomeMember.builder().homeId(casa.getId()).userId(carlos.getId())
+                        .role(HomeMemberRole.DONO).build(),
+                HomeMember.builder().homeId(casa.getId()).userId(antonio.getId())
+                        .role(HomeMemberRole.PACIENTE).build()));
+
+        medications.save(medicacao(casa, "Donepezila", "10mg",
+                java.util.List.of("21:00"), "à noite, conforme orientação do neurologista"));
+        medications.save(medicacao(casa, "Enalapril", "20mg",
+                java.util.List.of("07:00", "19:00"), null));
+
+        // Histórico curto e coerente com o perfil: levantar de madrugada e tropeçar no escuro.
+        observed(casa.getId(), now, 12, SignalType.SLEEP, SignalSource.VOICE,
+                Map.of("event", "night_trip", "times", 3));
+        observed(casa.getId(), now, 8, SignalType.MOBILITY, SignalSource.SELF_REPORT,
+                Map.of("event", "dizziness", "place", "corridor"));
+        observed(casa.getId(), now, 5, SignalType.SLEEP, SignalSource.VOICE,
+                Map.of("event", "night_trip", "times", 4));
+        observed(casa.getId(), now, 2, SignalType.COGNITION, SignalSource.VOICE,
+                Map.of("event", "confusion", "context", "esqueceu_a_luz_acesa"));
+
+        // A dimensão importa: ela é o que decide qual família de produto o motor procura. O risco
+        // do seu Antônio é de TRAJETO NOTURNO, não de banheiro — então mora em `sleep`, cujo
+        // risk-tag é night_trips. Colocá-lo em `mobility` faria o sistema diagnosticar corredor
+        // escuro e recomendar barra de apoio de banheiro, que é o tipo de incoerência que a banca
+        // nota na hora. Os nomes dos fatores são os do scoring-weights.yml, não inventados.
+        explained(casa.getId(), now, 7, "sleep", 0.6, RiskLevel.MEDIUM,
+                List.of("night_trips_reported"), List.of(0.6));
+        explained(casa.getId(), now, 1, "sleep", 1.0, RiskLevel.HIGH,
+                List.of("night_trips_reported", "poor_night_lighting"), List.of(0.6, 0.4));
+
+        // A mobilidade dele está baixa de propósito: o banheiro já tem barra e piso antiderrapante.
+        explained(casa.getId(), now, 1, "mobility", 0.0, RiskLevel.LOW, List.of(), List.of());
+
+        return casa;
     }
 
     /**
