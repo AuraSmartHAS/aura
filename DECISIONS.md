@@ -67,3 +67,11 @@
 - **Evidência:** medição nesta sessão — cerca de 30 minutos de trabalho contra cerca de 45 minutos de cerimônia e travas. O ambiente aceita um agente por vez; o `runner` ficou 12 minutos sem escrever e o primeiro revisor 16 minutos sem responder. Encerrar agente travado por `TaskStop` ou `tmux kill-pane` derrubava a sessão principal do usuário, duas vezes.
 - **Motivo:** o que o protocolo protege de fato — prova de execução e olhar independente sobre o diff — é preservado: os testes continuam sendo rodados e registrados, e o usuário assume o papel de revisor independente. O que sai é o custo de despachar agente para cada passo, num ambiente onde isso é lento e instável, com a banca a poucos dias.
 - **Descartado:** manter o ciclo completo e gastar a janela até a banca em cerimônia; commitar sem revisão nenhuma.
+
+## D-010 — 2026-09-15 — `main` passa a receber `astra-main`
+
+- **Decisão:** publicar `astra-main` em `main` por avanço rápido, e manter as duas sincronizadas a cada entrega até a banca. Revoga, por ordem humana expressa, a regra de nunca alterar `main` que vinha valendo desde o bootstrap.
+- **Evidência:** a auditoria de prontidão desta sessão encontrou `main` como branch padrão do repositório e nove commits atrás de `astra-main`. Quem abrisse `github.com/AuraSmartHAS/aura` — o tutor, a banca, o contato da Leroy que pediu o link — cairia num estado anterior à 3ª mentoria, sem as correções de autorização, sem a persistência em PostgreSQL, sem o marketplace com página de parceiro e sem a linguagem da família.
+- **Motivo:** a Atividade 4 exige código-fonte versionado, divulgado e disponível no GitHub. Uma branch de trabalho invisível para quem avalia anula o trabalho entregue. O avanço é rápido e `main` era ancestral, então nenhum histórico foi reescrito nem perdido.
+- **Descartado:** abrir Pull Request e aguardar revisão, que não caberia no prazo; trocar a branch padrão do repositório para `astra-main`, que resolveria a visibilidade mas deixaria `main` como um estado morto e confuso para quem clona.
+- **Consequência operacional:** toda entrega daqui até a banca termina com push para as duas branches. Depois da banca, a regra de proteção de `main` volta a ser discutida.
