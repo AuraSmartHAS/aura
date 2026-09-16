@@ -346,8 +346,8 @@ class _ShortcutsGrid extends StatelessWidget {
       ),
       _Shortcut(
         icon: Icons.recommend_outlined,
-        label: 'Care-Chain',
-        hint: 'Recomendações explicáveis',
+        label: 'O que a casa precisa',
+        hint: 'Com o motivo de cada recomendação',
         tint: AppColors.careGreen,
         route: AppRoutes.careChain,
       ),

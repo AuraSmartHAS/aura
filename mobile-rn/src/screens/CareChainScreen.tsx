@@ -36,7 +36,7 @@ export default function CareChainScreen({ route }: Props) {
       setRecommendation(pending ?? (await api.recommend(homeId, scoreId)));
       setOrders(await api.orders(homeId));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha ao carregar a Care-Chain.');
+      setError(e instanceof Error ? e.message : 'Não foi possível carregar as recomendações agora.');
     } finally {
       setBusy(false);
     }
@@ -98,7 +98,7 @@ export default function CareChainScreen({ route }: Props) {
 
           {recommendation.status === 'recommended' ? (
             <View style={styles.button}>
-              <AuraButton title="Aprovar e pedir" onPress={approve} disabled={busy} />
+              <AuraButton title="Aprovar" onPress={approve} disabled={busy} />
             </View>
           ) : (
             <Text style={styles.approved}>Aprovado pela cuidadora ✓</Text>
@@ -106,7 +106,7 @@ export default function CareChainScreen({ route }: Props) {
         </View>
       )}
 
-      <Text style={styles.sectionTitle}>Pedidos</Text>
+      <Text style={styles.sectionTitle}>Aprovados pela família</Text>
 
       {orders.length === 0 && <Text style={styles.muted}>Nenhum pedido — nada é comprado sem aprovação.</Text>}
 

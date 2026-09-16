@@ -68,7 +68,7 @@
     <article class="card" *ngIf="isAdmin()">
       <h2>{{ editing ? 'Editar item' : 'Novo item' }}</h2>
       <form (ngSubmit)="save()" #productForm="ngForm" novalidate>
-        <label for="sku">SKU</label>
+        <label for="sku">Código do item</label>
         <input id="sku" name="sku" required [(ngModel)]="form.sku" [readonly]="editing" placeholder="LM-BARRA-90" />
 
         <label for="name">Nome</label>

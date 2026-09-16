@@ -148,7 +148,7 @@ export default function DashboardScreen({ navigation }: Props) {
               accessibilityRole="button"
               onPress={() => navigation.navigate('CareChain', { homeId: home!.id, scoreId: score.scoreId })}
             >
-              <Text style={styles.linkText}>Ver recomendação da Care-Chain →</Text>
+              <Text style={styles.linkText}>Ver o que a casa precisa →</Text>
             </TouchableOpacity>
           )}
         </View>

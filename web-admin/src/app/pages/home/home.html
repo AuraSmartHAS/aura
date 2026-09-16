@@ -54,7 +54,7 @@
       <!-- escore explicável -->
       <article class="card">
         <div class="card__head">
-          <h2>Risco por dimensão</h2>
+          <h2>Onde está o risco</h2>
           <button class="btn btn--primary" (click)="recompute()" [disabled]="busy() === 'score'">
             {{ busy() === 'score' ? 'Atualizando…' : 'Atualizar leituras' }}
           </button>
@@ -115,10 +115,10 @@
         </div>
       </article>
 
-      <!-- care-chain -->
+      <!-- recomendações -->
       <article class="card">
-        <h2>Care-Chain</h2>
-        <p class="muted small">Nenhum pedido nasce sem aprovação humana.</p>
+        <h2>O que a casa precisa</h2>
+        <p class="muted small">Nada é pedido sem alguém da família aprovar.</p>
 
         <p class="empty" *ngIf="recommendations().length === 0">Sem recomendações no momento.</p>
 

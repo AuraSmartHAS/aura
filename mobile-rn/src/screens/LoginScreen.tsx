@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }: Props) {
     <View style={styles.container}>
       <Image source={require('../../assets/aura-logo.png')} style={styles.logo} accessibilityLabel="Logo AURA" />
 
-      <Text style={styles.title}>AURA Care-Chain</Text>
+      <Text style={styles.title}>AURA</Text>
       <Text style={styles.subtitle}>Cuidado em casa, com calma e clareza.</Text>
 
       <View style={styles.card}>
