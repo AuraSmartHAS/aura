@@ -453,7 +453,13 @@ public class DataSeeder implements CommandLineRunner {
     private void seedCuratedCatalog() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 new ClassPathResource("produtos-leroy.csv").getInputStream(), StandardCharsets.UTF_8))) {
-            reader.readLine(); // cabeçalho: sku,name,category,price,installable,normRef,riskTag,stockNearby
+            // Pula o bloco de procedência (linhas iniciadas por #) e depois o cabeçalho. A
+            // procedência mora no arquivo de propósito: quem abrir o CSV precisa saber que é
+            // fotografia de um site, e de quando, sem ter de procurar no código.
+            String header = reader.readLine();
+            while (header != null && header.startsWith("#")) {
+                header = reader.readLine();
+            }
             Set<String> existing = products.findAll().stream().map(Product::getSku)
                     .collect(java.util.stream.Collectors.toSet());
             List<Product> curated = new ArrayList<>();

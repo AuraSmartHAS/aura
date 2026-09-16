@@ -36,6 +36,10 @@
     <article class="card">
       <div class="card__head">
         <h2>Catálogo de acessibilidade</h2>
+        <p class="muted small">
+          99 itens capturados do site público da Leroy Merlin em 01/09/2026, mais os itens
+          cadastrados aqui. Não há integração com o estoque do parceiro.
+        </p>
         <select [(ngModel)]="riskFilter" (change)="loadCatalog()" name="riskFilter">
           <option value="">todos os riscos</option>
           <option *ngFor="let tag of riskTags" [value]="tag">{{ riskTagLabels[tag] }}</option>

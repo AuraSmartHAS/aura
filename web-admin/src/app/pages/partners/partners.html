@@ -19,6 +19,10 @@
         <span class="muted small">{{ p.items }} {{ p.items === 1 ? 'item' : 'itens' }}</span>
       </li>
     </ul>
+    <p class="small muted">
+      Os preços do catálogo Leroy Merlin foram capturados do site público em 01/09/2026. Não é
+      integração: não há API nem credencial autorizada, e os valores não se atualizam sozinhos.
+    </p>
     <p class="small muted" *ngIf="unassigned() > 0">
       {{ unassigned() }} {{ unassigned() === 1 ? 'item ainda não tem' : 'itens ainda não têm' }}
       parceiro que os venda.

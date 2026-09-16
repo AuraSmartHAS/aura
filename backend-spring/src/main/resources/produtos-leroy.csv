@@ -1,3 +1,6 @@
+# Catalogo capturado do site publico da Leroy Merlin em 2026-09-01. Nao e integracao:
+# nao ha API nem credencial autorizada (B-001), e os precos nao se atualizam sozinhos.
+# Refazer a captura significa gerar este arquivo de novo e trocar a data acima.
 sku,name,category,price,installable,normRef,riskTag,stockNearby
 LM-1566953614,Kit 2 Barras de Apoio 60cm,Barra de apoio,129.63,true,NBR 9050,fall_bathroom,44
 LM-1570794626,Barra de Apoio Inox 60cm,Barra de apoio,92.78,true,,fall_bathroom,12
