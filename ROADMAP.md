@@ -11,7 +11,7 @@ Exatamente uma task pode estar `- [-]`. Antes do despacho, o runner, sob instru�
 ## Competição: janela de 14 dias (somente após ordem explícita)
 
 - [X] TASK-001 — Corrigir fronteiras de autorização e privilégios
-- [ ] TASK-002 — Tornar a infraestrutura da demonstração persistente e acessível na rede local
+- [X] TASK-002 — Tornar a infraestrutura da demonstração persistente e acessível na rede local
 - [ ] TASK-003 — Implementar cadastro, consentimento e vínculo familiar por QR
 - [ ] TASK-004 — Definir eventos de cuidado, idempotência, outbox e histórico compartilhado
 - [ ] TASK-005 — Conectar o fluxo Flutter do idoso, texto e voz ao contrato de cuidado
