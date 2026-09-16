@@ -19,7 +19,7 @@ Exatamente uma task pode estar `- [-]`. Antes do despacho, o runner, sob instru�
 - [ ] TASK-007 — Implementar ocorrências de medicamentos e confirmação idempotente
 - [ ] TASK-008 — Corrigir autorização e estados honestos do SOS
 - [ ] TASK-009 — Implementar recomendações explicáveis e catálogo Leroy verificável
-- [ ] TASK-010 — Restringir a logística ao operador e registrar histórico auditável
+- [X] TASK-010 — Catálogo multi-parceiro, página de parceiro e redirecionamento
 - [ ] TASK-011 — Validar contratos, resiliência, acessibilidade e cenários negativos entre stacks
 - [ ] TASK-012 — Validar a demonstração e preparar a apresentação da banca
 
