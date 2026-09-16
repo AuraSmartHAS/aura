@@ -140,6 +140,50 @@ class ReplenishmentFlowTest {
     }
 
     @Test
+    @DisplayName("o refil sugerido é o do medicamento que está acabando, nunca o de outro")
+    void refilCasaComOPrincipioAtivo() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-principio@aura.com");
+
+        // O catálogo tem refil de Levodopa, Pramipexol e Losartana. Antes de existir mais de um,
+        // a busca era só pelo riskTag e devolvia o primeiro da ordenação — o que, com três,
+        // sugeriria o remédio errado. Recomendar reposição do medicamento errado é dano, não erro
+        // cosmético, então isto é regressão e não teste de conveniência.
+        String pramipexol = medicacao(ana[0], ana[1], "Pramipexol", 8);
+        plantaConsumo(ana[1], pramipexol, 21, 2, true);
+
+        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        assertThat(recId).isNotEqualTo("null");
+
+        JsonNode recomendacoes = body(mvc.perform(get("/api/v1/homes/{id}/recommendations", ana[1])
+                        .header("Authorization", ana[0]))
+                .andExpect(status().isOk())
+                .andReturn());
+        String sku = null;
+        for (JsonNode r : recomendacoes) {
+            if (recId.equals(r.get("recommendationId").asText())) {
+                sku = r.get("sku").asText();
+            }
+        }
+        assertThat(sku).isEqualTo("PARC-REPO-PRAMIPEXOL");
+    }
+
+    @Test
+    @DisplayName("sem refil do princípio ativo no catálogo, projeta e não materializa — não empurra outro remédio")
+    void semRefilCorrespondenteNaoMaterializa() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-sem-refil@aura.com");
+
+        // Princípio ativo que não tem refil de parceiro cadastrado. A projeção continua aparecendo
+        // para a cuidadora; o que não pode acontecer é virar pedido de um remédio diferente.
+        String medId = medicacao(ana[0], ana[1], "Rivastigmina", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+
+        JsonNode projecao = check(ana[0], ana[1]).get(0);
+        assertThat(projecao.get("suggested").asBoolean()).isTrue();
+        assertThat(projecao.get("recommendationId").isNull()
+                || "null".equals(projecao.get("recommendationId").asText())).isTrue();
+    }
+
+    @Test
     @DisplayName("a reposição entra na MESMA esteira: dedupe, aprovação humana, SLA e refil na entrega")
     void reposicaoNaMesmaEsteira() throws Exception {
         String[] ana = cuidadoraComCasa("repo-esteira@aura.com");

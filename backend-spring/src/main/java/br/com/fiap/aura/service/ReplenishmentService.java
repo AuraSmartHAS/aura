@@ -2,6 +2,7 @@ package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.config.AuraProperties;
 import br.com.fiap.aura.domain.Medication;
+import br.com.fiap.aura.domain.Product;
 import br.com.fiap.aura.domain.Recommendation;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalType;
@@ -121,7 +122,7 @@ public class ReplenishmentService {
      * aprovação humana. Sem o produto-refil de parceiro no catálogo, projeta e não materializa.
      */
     private UUID materialize(Medication med, String reason) {
-        return products.findFirstByRiskTagOrderByFeaturedDescInstallableDescPriceDesc(PARTNER_RISK_TAG)
+        return refillFor(med)
                 .map(partner -> recommendations
                         .findFirstByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
                         .orElseGet(() -> recommendations.save(Recommendation.builder()
@@ -132,6 +133,35 @@ public class ReplenishmentService {
                                 .build()))
                         .getId())
                 .orElse(null);
+    }
+
+    /**
+     * O refil do <b>medicamento certo</b>. A busca só por {@link #PARTNER_RISK_TAG} bastava
+     * enquanto havia um único refil no catálogo; com mais de um, ela devolveria o primeiro da
+     * ordenação e poderia sugerir a reposição de um remédio que não é o que está acabando.
+     *
+     * <p>Casar por princípio ativo — a primeira palavra do nome cadastrado — é grosseiro de
+     * propósito: é explicável para quem lê a tela e não depende de um código de produto que a
+     * cuidadora não digita. Sem correspondência, nada é materializado: recomendar o remédio errado
+     * é pior do que não recomendar nada, e a projeção continua aparecendo sem virar pedido.
+     */
+    private java.util.Optional<Product> refillFor(Medication med) {
+        String activeIngredient = firstWord(med.getName());
+        if (activeIngredient.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        return products.findByRiskTagOrderByNameAsc(PARTNER_RISK_TAG).stream()
+                .filter(p -> firstWord(p.getName()).equalsIgnoreCase(activeIngredient))
+                .findFirst();
+    }
+
+    private static String firstWord(String name) {
+        if (name == null) {
+            return "";
+        }
+        String trimmed = name.trim();
+        int space = trimmed.indexOf(' ');
+        return space < 0 ? trimmed : trimmed.substring(0, space);
     }
 
     private static double round1(double value) {

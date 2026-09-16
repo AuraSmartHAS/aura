@@ -129,7 +129,28 @@ public class DataSeeder implements CommandLineRunner {
                         // Fornecedor diferente do varejo de acessibilidade: é o que torna o
                         // catálogo um marketplace e não a vitrine de uma loja só.
                         .partner(PARTNER_FARMA)
-                        .featured(true).build()));
+                        .featured(true).build(),
+
+                // O restante da prateleira do segundo fornecedor. Um marketplace com 104 itens de
+                // um parceiro e 1 de outro nao le como marketplace: le como loja unica com
+                // apendice. Estes sao consumiveis e apoios de uso diario, fora do varejo de
+                // reforma onde a Leroy e forte — que e justamente o ponto de ter mais de um
+                // fornecedor. Dados de demonstracao, como a Maria e a casa dela.
+                partnerProduct("PARC-REPO-PRAMIPEXOL",
+                        "Pramipexol 0,25 mg — refil 30 doses (rede parceira)",
+                        "Consumível recorrente — parceiro", "38.50", "med_replenishment", 24),
+                partnerProduct("PARC-REPO-LOSARTANA",
+                        "Losartana 50 mg — refil 30 doses (rede parceira)",
+                        "Consumível recorrente — parceiro", "22.90", "med_replenishment", 40),
+                partnerProduct("PARC-ORGANIZADOR",
+                        "Organizador semanal de comprimidos com alarme",
+                        "Apoio à medicação", "74.90", "med_adherence", 15),
+                partnerProduct("PARC-COPO-ADAPT",
+                        "Copo adaptado com alça dupla e bico",
+                        "Apoio ao dia a dia", "34.90", "mobility", 22),
+                partnerProduct("PARC-MEIA-ANTIDERRAP",
+                        "Meia antiderrapante hospitalar (par)",
+                        "Apoio ao dia a dia", "19.90", "fall_bathroom", 60)));
 
         seedCuratedCatalog();
 
@@ -416,6 +437,18 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     /** Produtos-base são os destaques da curadoria: é neles que a recomendação mira primeiro. */
+    /**
+     * Item do segundo fornecedor. Diferente de {@link #product}, nao recebe norma tecnica nem link:
+     * consumivel e apoio de uso diario nao se justificam pela NBR 9050, e este parceiro nao tem
+     * loja online no cenario da demonstracao — a tela nao oferece botao quando nao ha para onde ir.
+     */
+    private Product partnerProduct(String sku, String name, String category, String price,
+                                   String riskTag, int stock) {
+        return Product.builder().sku(sku).name(name).category(category).price(new BigDecimal(price))
+                .installable(false).riskTag(riskTag).stockNearby(stock)
+                .partner(PARTNER_FARMA).featured(false).build();
+    }
+
     private Product product(String sku, String name, String category, String price,
                             boolean installable, String riskTag, int stock) {
         return Product.builder().sku(sku).name(name).category(category).price(new BigDecimal(price))
