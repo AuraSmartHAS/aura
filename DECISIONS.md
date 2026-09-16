@@ -36,3 +36,10 @@
 - **Evidência:** `git check-ignore` identificou a linha 1 de `.gitignore` como responsável por excluir a única ponte, enquanto `.claude/agents/` permanecia incluível.
 - **Motivo:** a memória precisa ser compartilhada e versionada; depender de cada membro saber abrir manualmente os documentos canônicos anula a retomada automática no Claude Code.
 - **Descartado:** manter a ponte apenas local; depender de conhecimento prévio de cada integrante para abrir `AGENTS.md`.
+
+## D-006 — 2026-09-15 — Políticas de autorização da TASK-001
+
+- **Decisão:** dono da casa e ADMIN podem excluir uma casa; somente o ADMIN existente movimenta logística; implementar provisionamento restrito de contas ADMIN fora do cadastro público.
+- **Evidência:** respostas expressas do usuário nesta sessão às três lacunas levantadas pelo analista.
+- **Motivo:** fechar as fronteiras de autorização sem atribuir privilégios administrativos ao idoso ou familiar.
+- **Descartado:** exclusão por membro comum; novo papel OPERADOR nesta etapa; manter apenas o seed como mecanismo de provisionamento ADMIN.
