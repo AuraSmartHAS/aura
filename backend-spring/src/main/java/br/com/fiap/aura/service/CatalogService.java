@@ -71,6 +71,7 @@ public class CatalogService {
 
     static CatalogDtos.CatalogItemResponse toResponse(Product p) {
         return new CatalogDtos.CatalogItemResponse(p.getSku(), p.getName(), p.getCategory(), p.getPrice(),
-                p.isInstallable(), p.getNormRef(), p.getRiskTag(), p.getStockNearby());
+                p.isInstallable(), p.getNormRef(), p.getRiskTag(), p.getStockNearby(),
+                p.getPartner(), p.getProductUrl());
     }
 }

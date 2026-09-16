@@ -1,0 +1,43 @@
+<section class="page">
+  <header class="page__head">
+    <h1>Parceiros</h1>
+    <p class="muted">
+      O Aura não vende. Ele escuta o sinal dentro de casa, explica o risco pela norma e entrega
+      uma demanda já qualificada a quem vende — com a aprovação da família registrada antes.
+    </p>
+  </header>
+
+  <p class="empty" *ngIf="loading()">Carregando catálogo…</p>
+  <p class="empty" *ngIf="error() as e">{{ e }}</p>
+
+  <article class="card" *ngIf="!loading() && !error()">
+    <h2>No catálogo hoje</h2>
+    <p class="empty" *ngIf="partners().length === 0">Nenhum parceiro cadastrado ainda.</p>
+    <ul class="partners" *ngIf="partners().length > 0">
+      <li class="partner" *ngFor="let p of partners()">
+        <strong>{{ p.name }}</strong>
+        <span class="muted small">{{ p.items }} {{ p.items === 1 ? 'item' : 'itens' }}</span>
+      </li>
+    </ul>
+    <p class="small muted" *ngIf="unassigned() > 0">
+      {{ unassigned() }} {{ unassigned() === 1 ? 'item ainda não tem' : 'itens ainda não têm' }}
+      parceiro que os venda.
+    </p>
+  </article>
+
+  <article class="card">
+    <h2>Seja um parceiro</h2>
+    <p>
+      O catálogo é aberto. Um fornecedor de acessibilidade, de equipamento de saúde ou de
+      consumível recorrente entra trazendo seu próprio preço e o endereço do item no site dele —
+      e passa a receber demanda que já sabe o que precisa, por qual norma e por qual preço.
+    </p>
+    <p class="small muted">
+      O que chega ao parceiro é uma pessoa que leu a recomendação, viu o preço e aprovou. Não é
+      lista fria: é necessidade documentada por sinal de risco dentro de casa.
+    </p>
+    <div class="actions">
+      <a class="btn btn--primary" routerLink="/home">Ver uma recomendação em uso</a>
+    </div>
+  </article>
+</section>

@@ -53,6 +53,21 @@ public class Product {
     @Builder.Default
     private boolean featured = false;
 
+    /**
+     * Fornecedor que vende o item. O Aura não vende nada: ele qualifica a necessidade e entrega
+     * a demanda a um parceiro. A Leroy Merlin é o primeiro, não o único — foi o recorte que a
+     * própria Leroy indicou na 3ª mentoria, e é o que sustenta a página "seja um parceiro".
+     */
+    @Column(name = "partner")
+    private String partner;
+
+    /**
+     * Endereço do item no site do parceiro. É para onde a família vai depois de aprovar; nulo
+     * significa que este item não tem link e a interface não deve prometer um.
+     */
+    @Column(name = "product_url", length = 500)
+    private String productUrl;
+
     @Column(name = "stock_nearby", nullable = false)
     @Builder.Default
     private int stockNearby = 0;

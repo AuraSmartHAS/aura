@@ -10,32 +10,11 @@
   <p class="error" *ngIf="error()">{{ error() }}</p>
 
   <p class="empty" *ngIf="!isAdmin()">
-    KPIs de operação são exclusivos do papel <strong>admin</strong> — entre com admin&#64;aura.com para vê-los.
+    Os indicadores são exclusivos do papel <strong>admin</strong> — entre com admin&#64;aura.com para vê-los.
     O catálogo abaixo continua visível.
   </p>
 
   <div class="kpis" *ngIf="kpis() as k">
-    <div class="kpi">
-      <span class="kpi__label">OTIF</span>
-      <strong class="kpi__value" [class.kpi__value--good]="k.otif >= 0.95"
-              [class.kpi__value--alert]="k.otif < 0.95">{{ percent(k.otif) }}</strong>
-      <span class="kpi__meta">meta ≥ 95%</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi__label">Fill rate</span>
-      <strong class="kpi__value" [class.kpi__value--good]="k.fillRate >= 0.9">{{ percent(k.fillRate) }}</strong>
-      <span class="kpi__meta">meta ≥ 90%</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi__label">Lead time</span>
-      <strong class="kpi__value">{{ k.leadTimeHours }}h</strong>
-      <span class="kpi__meta">pedido → entrega</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi__label">Pedidos abertos</span>
-      <strong class="kpi__value">{{ k.openOrders }}</strong>
-      <span class="kpi__meta">{{ k.slaBreaches }} com SLA estourado</span>
-    </div>
     <div class="kpi">
       <span class="kpi__label">Casas monitoradas</span>
       <strong class="kpi__value">{{ k.homes }}</strong>
@@ -48,42 +27,10 @@
     </div>
   </div>
 
-  <article class="card" *ngIf="kpis() as k">
-    <h2>Pedidos por estágio</h2>
-    <div class="stages">
-      <div class="stage" *ngFor="let s of k.byStage">
-        <span class="stage__count">{{ s.count }}</span>
-        <span class="stage__label">{{ stageLabels[s.stage] || s.stage }}</span>
-      </div>
-    </div>
-  </article>
+  <!-- "Pedidos por estágio" e "Carteira de pedidos" saíram com a logística (D-008). O Aura
+       entrega demanda qualificada ao parceiro; acompanhar caminhão de terceiro não é o que ele
+       resolve, e a própria Leroy apontou isso na 3ª mentoria. Os parceiros estão em /parceiros. -->
 
-  <article class="card carteira" *ngIf="carteira().length > 0">
-    <h2>Carteira de pedidos</h2>
-    <p class="muted small">Os 20 mais recentes, direto do banco — a mesma carteira que alimenta os KPIs.</p>
-    <table>
-      <thead>
-        <tr><th>Item</th><th>Estágio</th><th>Nó de despacho</th><th>SLA</th><th>Criado</th></tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let pedido of carteira()">
-          <td>
-            <strong>{{ pedido.productName }}</strong>
-            <span class="small muted">{{ pedido.sku }}</span>
-          </td>
-          <td><span class="tag">{{ stageLabels[pedido.stage] || pedido.stage }}</span></td>
-          <td>{{ pedido.nodeName || '—' }}</td>
-          <td>
-            <span class="tag" [class.tag--danger]="pedido.slaBreached">
-              {{ pedido.slaBreached ? 'SLA estourado' : 'no prazo' }}
-            </span>
-            <span class="small muted" *ngIf="pedido.slaDueAt"> até {{ pedido.slaDueAt | date: 'dd/MM HH:mm' }}</span>
-          </td>
-          <td>{{ pedido.createdAt | date: 'dd/MM HH:mm' }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </article>
 
   <div class="grid grid--2">
     <article class="card">

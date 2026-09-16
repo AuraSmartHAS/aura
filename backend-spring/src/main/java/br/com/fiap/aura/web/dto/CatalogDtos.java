@@ -11,7 +11,8 @@ public final class CatalogDtos {
     private CatalogDtos() { }
 
     public record CatalogItemResponse(String sku, String name, String category, BigDecimal price,
-                                      boolean installable, String normRef, String riskTag, int stockNearby) { }
+                                      boolean installable, String normRef, String riskTag, int stockNearby,
+                                      String partner, String productUrl) { }
 
     public record UpsertProductRequest(
             @NotBlank String name,

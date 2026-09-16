@@ -168,7 +168,7 @@ class CareChainFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.stage").value("delivered"))
                 .andExpect(jsonPath("$.sla.breached").value(false))
-                .andExpect(jsonPath("$.delivery.nodeName").value("Loja Marginal"));
+                .andExpect(jsonPath("$.delivery.nodeName").value("Loja Marginal Tietê"));
     }
 
     @Test

@@ -155,6 +155,9 @@ export class AdminPageComponent implements OnInit {
       normRef: 'NBR 9050',
       riskTag: 'fall_bathroom',
       stockNearby: 0,
+      // Item novo nasce sem parceiro: quem cadastra escolhe depois quem vende.
+      partner: null,
+      productUrl: null,
     };
   }
 

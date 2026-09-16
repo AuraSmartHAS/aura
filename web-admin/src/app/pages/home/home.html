@@ -140,10 +140,17 @@
             </ng-container>
             <ng-container *ngIf="rec.normRef">· {{ rec.normRef }}</ng-container>
           </p>
+          <p class="small muted" *ngIf="rec.partner">Vendido por {{ rec.partner }}</p>
+          <div class="actions" *ngIf="rec.status === 'approved' && rec.productUrl">
+            <a class="btn btn--primary btn--small" [href]="rec.productUrl"
+               target="_blank" rel="noopener noreferrer">
+              Ver no site de {{ rec.partner }}
+            </a>
+          </div>
           <div class="actions" *ngIf="rec.status === 'recommended'">
             <button class="btn btn--primary btn--small"
                     (click)="approve(rec)" [disabled]="busy() === 'approve-' + rec.recommendationId">
-              Aprovar e pedir
+              Aprovar
             </button>
             <button class="btn btn--ghost btn--small"
                     (click)="reject(rec)" [disabled]="busy() === 'reject-' + rec.recommendationId">
@@ -153,44 +160,9 @@
         </div>
       </article>
 
-      <!-- pedidos -->
-      <article class="card">
-        <h2>Pedidos</h2>
-        <p class="empty" *ngIf="orders().length === 0">Nenhum pedido — aprove uma recomendação.</p>
-
-        <div class="order" *ngFor="let order of orders()">
-          <div class="order__head">
-            <strong>{{ order.productName }}</strong>
-            <span class="tag" [class.tag--danger]="order.slaBreached">
-              {{ order.slaBreached ? 'Entrega atrasada' : 'Entrega no prazo' }}
-            </span>
-          </div>
-
-          <ol class="timeline">
-            <li *ngFor="let stage of stages; let i = index"
-                [class.done]="i <= stageIndex(order.stage)"
-                [class.current]="i === stageIndex(order.stage)">
-              {{ stageLabels[stage] }}
-            </li>
-          </ol>
-
-          <div class="actions">
-            <button class="btn btn--small" (click)="advance(order)"
-                    *ngIf="canAdvance(order)"
-                    [disabled]="busy() === 'advance-' + order.id">
-              Avançar estágio
-            </button>
-            <button class="btn btn--ghost btn--small" *ngIf="order.stage === 'in_route'"
-                    (click)="toggleDelivery(order)"
-                    [attr.aria-expanded]="expandedOrderId() === order.id">
-              {{ expandedOrderId() === order.id ? 'Ocultar entrega' : 'Ver entrega' }}
-            </button>
-          </div>
-
-          <app-order-delivery *ngIf="expandedOrderId() === order.id"
-                              [orderId]="order.id" [houseLabel]="home.patientName" />
-        </div>
-      </article>
+      <!-- A esteira de entrega saiu da interface (D-008): rastrear caminhão de terceiro não é o
+           que o Aura resolve, e a própria Leroy apontou isso. Depois da aprovação, a família vai
+           para o site do parceiro pelo botão no card da recomendação. -->
 
       <!-- sinais -->
       <article class="card card--wide">

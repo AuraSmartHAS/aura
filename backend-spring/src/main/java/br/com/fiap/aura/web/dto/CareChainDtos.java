@@ -36,7 +36,13 @@ public final class CareChainDtos {
                                          @Schema(example = "149.90",
                                                  description = "Quanto se paga a mais pela instalação; 0 quando inclusa")
                                          BigDecimal installationPrice,
-                                         @Schema(example = "NBR 9050") String normRef) { }
+                                         @Schema(example = "NBR 9050") String normRef,
+                                         @Schema(example = "Leroy Merlin",
+                                                 description = "Fornecedor que vende o item; nulo quando o catálogo não tem parceiro para este SKU")
+                                         String partner,
+                                         @Schema(example = "https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567",
+                                                 description = "Endereço do item no site do parceiro; nulo quando não há link, e a interface não deve prometer um")
+                                         String productUrl) { }
 
     public record ApproveResponse(UUID orderId, OrderStage stage) { }
 

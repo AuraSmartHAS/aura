@@ -49,6 +49,10 @@ export interface Recommendation {
   installationIncluded: boolean | null;
   installationPrice: number | null;
   normRef: string | null;
+  /** Fornecedor que vende o item. O Aura não vende: entrega a demanda a quem vende. */
+  partner: string | null;
+  /** Endereço do item no site do parceiro. Nulo = sem link, e a tela não promete um. */
+  productUrl: string | null;
 }
 
 export interface Order {
@@ -101,6 +105,8 @@ export interface CatalogItem {
   normRef: string | null;
   riskTag: string | null;
   stockNearby: number;
+  partner: string | null;
+  productUrl: string | null;
 }
 
 export interface Kpis {

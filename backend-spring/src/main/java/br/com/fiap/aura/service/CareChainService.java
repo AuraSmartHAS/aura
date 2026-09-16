@@ -139,7 +139,9 @@ public class CareChainService {
                 product == null ? null : installable,
                 installable ? included : null,
                 installable ? money(included ? BigDecimal.ZERO : props.carechain().installationPrice()) : null,
-                product == null ? null : product.getNormRef());
+                product == null ? null : product.getNormRef(),
+                product == null ? null : product.getPartner(),
+                product == null ? null : product.getProductUrl());
     }
 
     /** Duas casas como o preço do catálogo: os dois valores são somados na mesma linha da tela. */

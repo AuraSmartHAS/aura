@@ -126,13 +126,19 @@ public class DataSeeder implements CommandLineRunner {
                         .name("Levodopa + Carbidopa 250/25 — refil 30 doses (rede parceira)")
                         .category("Consumível recorrente — parceiro").price(new BigDecimal("49.90"))
                         .installable(false).riskTag("med_replenishment").stockNearby(30)
+                        // Fornecedor diferente do varejo de acessibilidade: é o que torna o
+                        // catálogo um marketplace e não a vitrine de uma loja só.
+                        .partner(PARTNER_FARMA)
                         .featured(true).build()));
 
         seedCuratedCatalog();
 
         nodes.saveAll(java.util.List.of(
-                StockNode.builder().name("Loja Marginal").type("loja").lat(-23.55).lng(-46.64).build(),
-                StockNode.builder().name("CD Embu").type("cd").lat(-23.64).lng(-46.85).build()));
+                // Correção factual da 3ª mentoria: na Leroy a LOJA é o centro de distribuição, e o
+                // único CD propriamente dito é o de Cajamar. O modelo anterior supunha vários CDs
+                // pelo país, o que contrariava o dado que a própria Leroy deu.
+                StockNode.builder().name("Loja Marginal Tietê").type("loja").lat(-23.55).lng(-46.64).build(),
+                StockNode.builder().name("CD Cajamar").type("cd").lat(-23.35).lng(-46.87).build()));
 
         UserAccount ana = users.save(UserAccount.builder()
                 .email("ana@aura.com").passwordHash(encoder.encode(DEMO_PASSWORD))
@@ -414,6 +420,7 @@ public class DataSeeder implements CommandLineRunner {
                             boolean installable, String riskTag, int stock) {
         return Product.builder().sku(sku).name(name).category(category).price(new BigDecimal(price))
                 .installable(installable).normRef(NORM).riskTag(riskTag).stockNearby(stock)
+                .partner(PARTNER_LEROY).productUrl(leroySearchUrl(name))
                 .featured(true).build();
     }
 
@@ -423,6 +430,26 @@ public class DataSeeder implements CommandLineRunner {
      * produtos-herói da demo não mudam — e nada aqui vira destaque: a prateleira cresce sem
      * mexer no que a recomendação escolhe.
      */
+    /**
+     * Parceiros do catálogo. O Aura não vende: ele qualifica a necessidade e entrega a demanda a
+     * quem vende. A Leroy é o primeiro parceiro, não o único — foi o recorte que a própria Leroy
+     * indicou, e é o que a página "seja um parceiro" abre para os demais.
+     */
+    private static final String PARTNER_LEROY = "Leroy Merlin";
+
+    /** Fornecedor de demonstração, como a Maria e a casa dela: existe para o ensaio, não é parceria real. */
+    private static final String PARTNER_FARMA = "Rede Farma Cuidar (demonstração)";
+
+    /**
+     * Busca no site do parceiro pelo nome do item, e não uma URL de produto montada a partir do
+     * SKU. Sem acesso autorizado ao catálogo da Leroy (B-001), um link de produto inventado
+     * quebraria na frente da banca; a busca sempre resolve e não promete o que não se verificou.
+     */
+    private static String leroySearchUrl(String productName) {
+        return "https://www.leroymerlin.com.br/search?term="
+                + java.net.URLEncoder.encode(productName, StandardCharsets.UTF_8);
+    }
+
     private void seedCuratedCatalog() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 new ClassPathResource("produtos-leroy.csv").getInputStream(), StandardCharsets.UTF_8))) {
@@ -445,6 +472,8 @@ public class DataSeeder implements CommandLineRunner {
                         .normRef(c.get(5).isBlank() ? null : c.get(5))
                         .riskTag(c.get(6).isBlank() ? null : c.get(6))
                         .stockNearby(Integer.parseInt(c.get(7)))
+                        .partner(PARTNER_LEROY)
+                        .productUrl(leroySearchUrl(c.get(1)))
                         .build());
             }
             products.saveAll(curated);
