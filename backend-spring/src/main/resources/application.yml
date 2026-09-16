@@ -55,7 +55,10 @@ aura:
       min-history-days: 7    # sem uma semana de confirmações, nada se projeta
       package-doses: 30      # doses que uma reposição entrega
   cors:
-    allowed-origins: "*"
+    # Padroes, nao origens literais: com credenciais habilitadas o Spring recusa curinga em
+    # setAllowedOrigins, entao SecurityConfig usa setAllowedOriginPatterns. A faixa cobre o
+    # notebook e os Androids na mesma rede local do ensaio; nao ha origem publica.
+    allowed-origins: ${AURA_CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*,http://192.168.*.*:*,http://10.*.*.*:*,http://172.16.*.*:*}
   sos:
     # Fluxo de crise (C3). A contagem de cancelamento mora AQUI, no servidor, nunca no aparelho:
     # cronômetro de cliente morre quando o telefone cai da mão — que é exatamente o cenário.
@@ -93,6 +96,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  # O baseline em db/migration e SQL PostgreSQL e nao roda no H2. Aqui o schema continua
+  # nascendo do Hibernate a cada boot, que e o que mantem a suite rapida.
+  flyway:
+    enabled: false
 
 aura:
   seed:
@@ -106,10 +113,22 @@ spring:
   datasource:
     url: ${AURA_DB_URL:jdbc:postgresql://localhost:5432/aura}
     username: ${AURA_DB_USER:aura}
-    password: ${AURA_DB_PASSWORD:aura}
+    # Sem default: a aplicacao recusa subir sem AURA_DB_PASSWORD em vez de aceitar senha fraca
+    # num banco que agora e persistente e escuta na rede local.
+    password: ${AURA_DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      # validate, nao update: o schema vem do Flyway. Se V1__baseline.sql divergir das entidades
+      # o boot falha aqui, em vez de o banco derivar em silencio entre um ensaio e outro.
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  # Explicito e intencional: os Androids do ensaio alcancam a API pelo IP do notebook na rede
+  # local. Nao e omissao herdada do default do Tomcat. Use 127.0.0.1 para fechar a porta.
+  address: ${AURA_BIND_ADDRESS:0.0.0.0}
 
 aura:
   seed:

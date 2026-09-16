@@ -19,3 +19,9 @@ blob-report/
 
 # Worktrees de agentes (Claude Code) — nunca versionar
 .claude/worktrees/
+
+# Segredos locais: .env fica fora do repositorio; o modelo versionado e o .env.example.
+.env
+.env.local
+**/.env
+!**/.env.example

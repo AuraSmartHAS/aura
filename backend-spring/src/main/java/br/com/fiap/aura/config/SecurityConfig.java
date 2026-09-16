@@ -97,11 +97,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource(AuraProperties props) {
         List<String> origins = Arrays.stream(props.cors().allowedOrigins().split(",")).map(String::trim).toList();
         CorsConfiguration cfg = new CorsConfiguration();
-        if (origins.contains("*")) {
-            cfg.setAllowedOriginPatterns(List.of("*"));
-        } else {
-            cfg.setAllowedOrigins(origins);
-        }
+        // Sempre padrao, nunca origem literal: o ensaio roda em rede local e o IP do notebook muda
+        // de casa para casa, entao a configuracao usa faixas como http://192.168.*.*:*.
+        // setAllowedOrigins so casa string exata e recusaria justamente essas faixas; padrao cobre
+        // os dois casos, porque uma origem literal tambem e um padrao valido.
+        cfg.setAllowedOriginPatterns(origins);
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

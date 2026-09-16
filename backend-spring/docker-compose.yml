@@ -1,5 +1,6 @@
 # Postgres para rodar a API no perfil `postgres`:
 #   docker compose up -d
+#   export AURA_DB_PASSWORD=...   # obrigatorio, sem default
 #   AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 # O cenário padrão da demo (H2 em memória) não precisa deste arquivo.
 services:
@@ -9,9 +10,10 @@ services:
     environment:
       POSTGRES_DB: aura
       POSTGRES_USER: aura
-      POSTGRES_PASSWORD: aura
+      POSTGRES_PASSWORD: ${AURA_DB_PASSWORD:?defina AURA_DB_PASSWORD}
     ports:
-      - "5432:5432"
+      # Loopback apenas. O que precisa estar na rede local e a API na 8080, nao o banco.
+      - "127.0.0.1:5432:5432"
     volumes:
       - aura-pgdata:/var/lib/postgresql/data
     healthcheck:

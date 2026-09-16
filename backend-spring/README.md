@@ -29,12 +29,43 @@ Contas criadas pelo seed (senha `aura1234`):
 | `admin@aura.com` | admin | Torre de Controle (`/api/v1/ops/kpis`) e CRUD do catálogo |
 | `maria@aura.com` | paciente | perfil de voz |
 
-Com PostgreSQL:
+### Com PostgreSQL persistente (o modo do ensaio)
+
+O perfil `dev` usa H2 em memória: rápido, mas perde tudo a cada parada. Para um ensaio em que
+reiniciar o backend não pode apagar o que foi criado, use o perfil `postgres`.
 
 ```bash
-docker compose up -d
+cp .env.example .env        # preencha AURA_DB_PASSWORD; .env não vai para o repositório
+export $(grep -v '^#' .env | xargs)
+
+docker compose up -d        # sobe o Postgres, com volume aura-pgdata
 AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
+
+O schema vem do Flyway (`src/main/resources/db/migration`), não do Hibernate: neste perfil o
+`ddl-auto` é `validate`. Se uma entidade mudar sem a migração correspondente, o boot falha em vez
+de o banco derivar em silêncio entre uma subida e outra.
+
+O seed só popula com o banco vazio. Primeira subida cria os dados de demonstração; as seguintes
+preservam o que o ensaio produziu — que é justamente o ponto de trocar o H2.
+
+### Androids na mesma rede do notebook
+
+A API escuta em `0.0.0.0:8080` neste perfil (`AURA_BIND_ADDRESS`), então os aparelhos alcançam o
+notebook pelo IP dele na rede local. Descubra o IP e aponte os clientes para ele:
+
+```bash
+ipconfig getifaddr en0          # macOS · algo como 192.168.0.42
+```
+
+- Flutter: `BACKEND_BASE_URL=http://192.168.0.42:8080` em `mobile/.env`
+- React Native: `EXPO_PUBLIC_API_URL=http://192.168.0.42:8080/api/v1` em `mobile-rn/.env`
+
+O `AURA_CORS_ALLOWED_ORIGINS` já cobre as faixas privadas usuais. O Postgres, ao contrário da API,
+fica publicado só em loopback — a rede local precisa alcançar a aplicação, não o banco.
+
+**A API existe enquanto o notebook estiver ligado e na mesma rede.** Não há hospedagem, não há
+endereço público e nada continua no ar depois que a máquina desliga.
 
 ## 🧪 Testes
 
@@ -42,7 +73,24 @@ AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ./mvnw test
 ```
 
-50 testes: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
+A suíte padrão roda em H2 e não precisa de Docker. Um teste adicional sobe um PostgreSQL de
+verdade para provar que o baseline do Flyway bate com as entidades e que um segundo ciclo de seed
+não duplica dados — ele fica fora da execução padrão e roda sob demanda:
+
+```bash
+./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=
+```
+
+No Docker Desktop 29 em diante o cliente embutido no Testcontainers negocia uma versão de API que
+o daemon recusa, e o contêiner auxiliar não consegue montar o socket. Nesse caso:
+
+```bash
+export DOCKER_HOST="unix://$HOME/Library/Containers/com.docker.docker/Data/docker.raw.sock"
+export TESTCONTAINERS_RYUK_DISABLED=true
+./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups= -DargLine="-Dapi.version=1.47"
+```
+
+A suíte em H2 cobre: motor de escore (fatores, pesos, faixas, guardrail de não-prescrição),
 o percurso ponta a ponta em MockMvc — consentimento → casa → sinal → escore →
 recomendação → aprovação → pedido entregue — e o ciclo de vida da medicação,
 incluindo a confirmação de dose que vira sinal de adesão. Mais isolamento entre
