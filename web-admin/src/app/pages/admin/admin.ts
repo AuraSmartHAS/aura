@@ -6,7 +6,7 @@ import { EMPTY, catchError, forkJoin, interval, startWith, switchMap } from 'rxj
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/error-message';
-import { STAGE_LABELS } from '../../core/labels';
+import { RISK_TAG_LABELS, STAGE_LABELS, riskTagLabel } from '../../core/labels';
 import { CatalogItem, Kpis, OpsOrder } from '../../core/models';
 
 /** Torre de Controle: KPIs da operação + manutenção do catálogo de acessibilidade. */
@@ -42,23 +42,7 @@ export class AdminPageComponent implements OnInit {
 
   readonly stageLabels = STAGE_LABELS;
 
-  /** Cobre também as tags do catálogo curado (produtos-leroy.csv) — nada sai cru no telão. */
-  readonly riskTagLabels: Record<string, string> = {
-    fall_bathroom: 'Queda no banheiro',
-    fall_general: 'Queda em casa',
-    night_trips: 'Idas noturnas ao banheiro',
-    mobility: 'Mobilidade',
-    cognition: 'Cognição',
-    environment: 'Ambiente',
-    dexterity: 'Destreza das mãos',
-    daily_living: 'Rotina diária',
-    emergency: 'Emergência',
-    home_security: 'Segurança da casa',
-    caregiver_monitoring: 'Acompanhamento remoto',
-    accessibility_voice: 'Casa por voz',
-    hydration: 'Hidratação',
-    medication_adherence: 'Adesão à medicação',
-  };
+  readonly riskTagLabels = RISK_TAG_LABELS;
 
   ngOnInit(): void {
     this.loadCatalog();
@@ -95,7 +79,7 @@ export class AdminPageComponent implements OnInit {
   }
 
   riskLabel(tag: string | null): string {
-    return (tag && this.riskTagLabels[tag]) ?? (tag ?? '');
+    return riskTagLabel(tag);
   }
 
   edit(item: CatalogItem): void {

@@ -4,7 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
-import { DIMENSION_LABELS, RECOMMENDATION_STATUS_LABELS, RISK_LEVEL_LABELS, STAGE_LABELS } from '../../core/labels';
+import {
+  CHECKLIST_LABELS,
+  DIMENSION_LABELS,
+  RECOMMENDATION_STATUS_LABELS,
+  RISK_LEVEL_LABELS,
+  SCORE_FACTOR_LABELS,
+  SIGNAL_EVENT_LABELS,
+  SIGNAL_PLACE_LABELS,
+  SIGNAL_SOURCE_LABELS,
+  SIGNAL_TYPE_LABELS,
+  STAGE_LABELS,
+} from '../../core/labels';
 import { Home, Order, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
 import { OrderDeliveryComponent } from './order-delivery';
 
@@ -43,13 +54,7 @@ export class HomePageComponent implements OnInit {
     air_purifier: false,
   };
 
-  readonly checklistLabels: Record<string, string> = {
-    grab_bar_bathroom: 'Barra de apoio no banheiro',
-    anti_slip_floor: 'Piso antiderrapante',
-    night_light: 'Iluminação noturna',
-    gas_detector: 'Detector de gás/fumaça',
-    air_purifier: 'Purificador de ar',
-  };
+  readonly checklistLabels = CHECKLIST_LABELS;
 
   readonly stages = ['approved', 'sourcing', 'in_route', 'delivered', 'installed'];
 
@@ -58,52 +63,11 @@ export class HomePageComponent implements OnInit {
   readonly dimensionLabels = DIMENSION_LABELS;
   readonly levelLabels = RISK_LEVEL_LABELS;
 
-  /** Dimensão observada do sinal (ver SignalType no backend). */
-  readonly signalTypeLabels: Record<string, string> = {
-    mobility: 'Mobilidade',
-    sleep: 'Sono',
-    cognition: 'Cognição',
-    mood: 'Humor',
-    environment: 'Ambiente',
-    adherence: 'Adesão ao tratamento',
-    vitals: 'Sinais vitais',
-  };
-
-  /** Origem do sinal (ver SignalSource no backend). */
-  readonly signalSourceLabels: Record<string, string> = {
-    voice: 'Assistente de voz',
-    self_report: 'Relato da pessoa ou cuidadora',
-    usage: 'Uso do aplicativo',
-    wearable: 'Dispositivo vestível',
-  };
-
-  /** Vocabulário de eventos conhecidos (ver scoring-weights.yml no backend). */
-  readonly signalEventLabels: Record<string, string> = {
-    near_fall: 'Queda ou quase-queda registrada',
-    dizziness: 'Tontura relatada',
-    night_trip: 'Idas noturnas ao banheiro',
-    confusion: 'Confusão ou repetição na fala registrada',
-    poor_air: 'Qualidade do ar ruim relatada',
-  };
-
-  /** Local onde o evento ocorreu, quando informado. */
-  readonly signalPlaceLabels: Record<string, string> = {
-    bathroom: 'banheiro',
-  };
-
-  /** Nomes de fator do escore explicável (ver scoring-weights.yml no backend). */
-  readonly scoreFactorLabels: Record<string, string> = {
-    near_fall_reported: 'quase-queda relatada',
-    no_grab_bar: 'ausência de barra de apoio',
-    anti_slip_floor: 'ausência de piso antiderrapante',
-    dizziness_bath: 'tontura ao banho',
-    night_trips_reported: 'idas noturnas frequentes',
-    poor_night_lighting: 'iluminação noturna insuficiente',
-    confusion_reported: 'confusão/repetição na fala',
-    no_gas_detector: 'sem detector de gás/fumaça',
-    poor_air_reported: 'qualidade do ar ruim relatada',
-    no_air_purifier: 'sem purificador de ar',
-  };
+  readonly signalTypeLabels = SIGNAL_TYPE_LABELS;
+  readonly signalSourceLabels = SIGNAL_SOURCE_LABELS;
+  readonly signalEventLabels = SIGNAL_EVENT_LABELS;
+  readonly signalPlaceLabels = SIGNAL_PLACE_LABELS;
+  readonly scoreFactorLabels = SCORE_FACTOR_LABELS;
 
   ngOnInit(): void {
     this.loading.set(true);
