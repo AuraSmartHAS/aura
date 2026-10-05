@@ -13,12 +13,11 @@ package br.com.fiap.aura.domain.enums;
  * {@link #DONO} e {@link #CUIDADORA} — quem recebe o aviso. {@link #PACIENTE} é quem dispara.
  *
  * <p><b>Persistido como texto</b> (ver {@code HomeMemberRoleConverter}), e não com
- * {@code @Enumerated(STRING)}: o projeto não tem Flyway nem Liquibase e o perfil {@code postgres}
- * roda com {@code ddl-auto: update}, que cria tabela nova mas não altera <i>check constraint</i>
- * existente. Com {@code @Enumerated} o Hibernate geraria um check com os valores de hoje e o
- * primeiro papel novo (um profissional de saúde, um vizinho de plantão) quebraria em Postgres
- * passando 100% verde no H2, que recria o schema a cada boot. Coluna de texto validada na
- * aplicação deixa a evolução livre.
+ * {@code @Enumerated(STRING)}: com {@code @Enumerated} o Hibernate gera um <i>check constraint</i>
+ * com os valores de hoje no H2, que recria o schema a cada boot, enquanto no Postgres e no Oracle o
+ * schema vem do Flyway e o {@code validate} não confere check nenhum. Os dois lados divergiriam, e o
+ * primeiro papel novo (um profissional de saúde, um vizinho de plantão) passaria a depender de uma
+ * migration só para alargar uma lista. Coluna de texto validada na aplicação deixa a evolução livre.
  */
 public enum HomeMemberRole {
     DONO, CUIDADORA, PACIENTE;

@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
  *
  * <p><b>Sobre a regra 5 do C3 ("não criar valor novo no enum de sinal"), e por que ela não se
  * aplica aqui:</b> a armadilha da regra 5 é a <i>check constraint</i> que o Hibernate gera para
- * coluna anotada com {@code @Enumerated} — e {@code ddl-auto: update} não altera constraint
- * existente, então um valor novo passa verde no H2 e quebra no Postgres. {@code PushKind} não é
+ * coluna anotada com {@code @Enumerated} no H2 e que o schema do Flyway não tem — o mesmo enum
+ * passaria a valer coisas diferentes em cada banco (ver {@link HomeMemberRole}). {@code PushKind} não é
  * coluna de nenhuma entidade: ele só existe em DTO de requisição e na escolha do texto do aviso
  * (procure por usos — nenhuma classe de {@code domain} o declara como campo). Sem coluna, não há
  * constraint, e não há o que quebrar.

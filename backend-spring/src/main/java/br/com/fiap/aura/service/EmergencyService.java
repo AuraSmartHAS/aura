@@ -245,10 +245,10 @@ public class EmergencyService {
      * Sinal de emergência gravado — <b>regra 5</b>: nenhum valor novo em {@link SignalType}.
      *
      * <p>Criar um {@code SignalType.EMERGENCY} é a armadilha: {@code Signal.type} é
-     * {@code @Enumerated(STRING)}, o Hibernate gera <i>check constraint</i>, e {@code ddl-auto:
-     * update} do perfil Postgres <b>não</b> altera constraint existente — quebraria em produção
-     * passando 100% verde no H2, que é onde o CI roda. Então: tipo existente ({@code MOBILITY}, que
-     * é a dimensão de queda) e o evento no campo JSON, como o projeto já faz em todo lugar.
+     * {@code @Enumerated(STRING)}, o Hibernate gera <i>check constraint</i> no H2 (onde o CI roda)
+     * e o schema do Flyway não tem nenhum — um tipo novo mudaria o que cada banco aceita sem que a
+     * suíte percebesse. Então: tipo existente ({@code MOBILITY}, que é a dimensão de queda) e o
+     * evento no campo JSON, como o projeto já faz em todo lugar.
      *
      * <p><b>Efeito colateral verificado:</b> {@code event: "sos"} não corresponde a fator nenhum em
      * {@code scoring-weights.yml}, então este sinal não move o escore. Se algum dia alguém quiser

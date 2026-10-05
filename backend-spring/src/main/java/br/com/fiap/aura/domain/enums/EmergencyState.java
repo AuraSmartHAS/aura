@@ -23,10 +23,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * em {@code transportReal} e {@code notifiedCount}, nunca no nome do estado.
  *
  * <p><b>Persistido como texto</b> ({@code EmergencyStateConverter}), nunca com
- * {@code @Enumerated(STRING)} — a razão é a mesma documentada em {@link HomeMemberRole}: o perfil
- * {@code postgres} roda com {@code ddl-auto: update}, que <b>não</b> altera <i>check constraint</i>
- * existente. Um estado novo (um "sem resposta de ninguém", um "encerrado pela cuidadora") quebraria
- * em produção passando 100% verde no H2, que recria o schema a cada boot.
+ * {@code @Enumerated(STRING)} — a razão é a mesma documentada em {@link HomeMemberRole}: o check
+ * que o Hibernate gera no H2 não existe no schema do Flyway, e um estado novo (um "sem resposta de
+ * ninguém", um "encerrado pela cuidadora") não pode depender de migration para ser gravado.
  */
 public enum EmergencyState {
 
