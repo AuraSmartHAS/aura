@@ -15,16 +15,20 @@
 | [`mobile/`](mobile/) | Flutter (Dart) | App principal — Android, iOS e Web. Voz para a Maria, painel para a Ana |
 | [`mobile-rn/`](mobile-rn/) | React Native (Expo) | Fluxo crítico recriado na nova stack: login → risco explicado → aprovação → entrega |
 | [`backend-spring/`](backend-spring/) | Java 21 + Spring Boot 3.3 | API REST `/api/v1` com JWT, JPA, Swagger e página Thymeleaf |
-| [`web-admin/`](web-admin/) | Angular 20 | Painel da cuidadora e Torre de Controle (NOC) |
+| [`web-admin/`](web-admin/) | Angular 20 | Painel da cuidadora e Operação (administrador) |
+| [`database/oracle/`](database/oracle/) | Oracle PL/SQL | Dados simulados, consultas de demonstração e instalação por script (Fase 6) |
 
 Os **três clientes consomem exatamente a mesma API**. O contrato é o ponto de
 encontro do projeto: mudar de stack no mobile não muda o backend, e vice-versa.
 
 ```
- Flutter (Android/iOS/Web) ┐
- React Native (Expo)       ├──► Spring Boot /api/v1 ──► H2 (dev) · PostgreSQL (prod)
- Angular (painel web)      ┘        JWT · JPA · Swagger
+ Flutter (Android/iOS/Web) ┐                              ┌ H2 (testes)
+ React Native (Expo)       ├──► Spring Boot /api/v1 ───────┼ PostgreSQL (ensaio)
+ Angular (painel web)      ┘    JWT · JPA · Swagger        └ Oracle + PL/SQL (Fase 6)
 ```
+
+O mesmo back-end roda nos três bancos trocando só o perfil; cada um tem suas migrations em
+`backend-spring/src/main/resources/db/migration/{postgresql,oracle}`.
 
 ## ⛔ Regras de ouro (nunca violar)
 1. **Nunca prescreve/diagnostica** — não é dispositivo médico; sintoma relevante é sempre encaminhado ao médico.
@@ -50,7 +54,26 @@ cd mobile && cp .env.example .env && flutter pub get && flutter run -d chrome
 ```
 
 Contas de demonstração (senha `aura1234`): `ana@aura.com` (cuidadora),
-`admin@aura.com` (Torre de Controle), `maria@aura.com` (paciente).
+`admin@aura.com` (Operação), `maria@aura.com` (paciente).
+
+## 🗄️ Sobre Oracle, com PL/SQL (Fase 6)
+
+```bash
+export AURA_DB_PASSWORD='uma-senha-sua'
+docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
+./database/oracle/carregar-dados.sh   # CSV da pulseira (SQL*Loader) + carga simulada
+```
+
+O Flyway cria 16 tabelas, 3 functions e 3 procedures; a cada leitura nova o back-end chama
+`PRC_REGISTRAR_ALERTAS` por JDBC, depois do commit, e o aviso aparece no painel da cuidadora.
+Detalhes, DER e consultas de demonstração: [`database/oracle/README.md`](database/oracle/README.md)
+e [`docs/fase6/documentacao.html`](docs/fase6/documentacao.html).
+
+Testes: `./mvnw test` (H2, rápido) · `./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=`
+(Oracle real via Testcontainers) · `-Dtest.groups=postgres` (PostgreSQL).
+
+> A coluna `scores.level` virou `risk_level` (migration V3 no PostgreSQL). Um banco PostgreSQL
+> local migrado por esta versão não valida mais com o código anterior a ela.
 
 ## 🗺️ Telas do app Flutter
 
