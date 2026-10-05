@@ -1,0 +1,44 @@
+# AURA sobre Oracle (Fase 6). Override do compose padrão: o `docker compose up` de sempre continua
+# idêntico (H2 em memória); este arquivo só entra quando é pedido.
+#
+#   export AURA_DB_PASSWORD='uma-senha-sua'
+#   docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
+#   ./database/oracle/carregar-dados.sh          # dados simulados (CSV da pulseira + carga)
+#
+# Sem senha padrão, de propósito (mesma regra do perfil postgres, D-007): o compose recusa subir
+# sem AURA_DB_PASSWORD em vez de aceitar uma senha que todo mundo conhece.
+services:
+  oracle:
+    # Versão fixada: as tags flutuantes da imagem mudam de versão sem aviso.
+    image: gvenzl/oracle-free:23.26.3-slim-faststart
+    ports:
+      # Só na máquina local; o painel e os apps falam com a API, nunca com o banco.
+      - "127.0.0.1:1521:1521"
+    environment:
+      # A senha de SYS não é usada por nada do AURA: aleatória é a opção mais segura.
+      ORACLE_RANDOM_PASSWORD: "yes"
+      APP_USER: aura
+      APP_USER_PASSWORD: ${AURA_DB_PASSWORD:?defina AURA_DB_PASSWORD antes de subir o Oracle}
+    volumes:
+      # Scripts de carga e o CSV da pulseira, para o carregar-dados.sh rodar sqlplus/sqlldr aqui dentro.
+      - ./database/oracle:/opt/aura:ro
+    healthcheck:
+      # A imagem traz o script mas não declara HEALTHCHECK; sem esta linha o backend não sabe esperar.
+      test: ["CMD", "healthcheck.sh"]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 10s
+
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: oracle
+      AURA_DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1
+      AURA_DB_USER: aura
+      AURA_DB_PASSWORD: ${AURA_DB_PASSWORD:?defina AURA_DB_PASSWORD antes de subir o Oracle}
+      # Primeiro boot sobre schema vazio: o Flyway cria tabelas e PL/SQL, o seed põe as contas
+      # de demonstração. O seed é idempotente; nos boots seguintes não duplica nada.
+      AURA_SEED: "true"
+    depends_on:
+      oracle:
+        condition: service_healthy
