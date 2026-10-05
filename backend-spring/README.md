@@ -42,7 +42,7 @@ docker compose up -d        # sobe o Postgres, com volume aura-pgdata
 AURA_SEED=true ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
 ```
 
-O schema vem do Flyway (`src/main/resources/db/migration`), não do Hibernate: neste perfil o
+O schema vem do Flyway (`src/main/resources/db/migration/postgresql`), não do Hibernate: neste perfil o
 `ddl-auto` é `validate`. Se uma entidade mudar sem a migração correspondente, o boot falha em vez
 de o banco derivar em silêncio entre uma subida e outra.
 

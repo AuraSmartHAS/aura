@@ -5,6 +5,11 @@ spring:
     import: classpath:scoring-weights.yml
   profiles:
     active: dev
+  # Uma pasta de migrations por banco. {vendor} vira postgresql ou oracle conforme o driver: o SQL
+  # dos dois nao e intercambiavel, e o Flyway le subpastas, entao com o local padrao
+  # (db/migration) as migrations do Oracle vazariam para o Postgres e vice-versa.
+  flyway:
+    locations: classpath:db/migration/{vendor}
   jpa:
     hibernate:
       ddl-auto: update
@@ -96,7 +101,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-  # O baseline em db/migration e SQL PostgreSQL e nao roda no H2. Aqui o schema continua
+  # Nao existe db/migration/h2: as migrations sao SQL de cada banco real. Aqui o schema continua
   # nascendo do Hibernate a cada boot, que e o que mantem a suite rapida.
   flyway:
     enabled: false
