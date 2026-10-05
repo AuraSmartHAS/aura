@@ -116,6 +116,13 @@ export const SCORE_FACTOR_LABELS: Record<string, string> = {
   no_air_purifier: 'sem purificador de ar',
 };
 
+/** Peso do aviso como a família lê: o que pede olhar agora e o que é só acompanhamento. */
+export const ALERT_SEVERITY_LABELS: Record<string, string> = {
+  alta: 'Importante',
+  atencao: 'Atenção',
+  info: 'Para acompanhar',
+};
+
 /** Fallback consciente: código desconhecido aparece cru, nunca some da tela. */
 export function stageLabel(stage: string): string {
   return STAGE_LABELS[stage] ?? stage;
@@ -127,4 +134,13 @@ export function recommendationStatusLabel(status: string): string {
 
 export function riskTagLabel(tag: string | null): string {
   return tag ? (RISK_TAG_LABELS[tag] ?? tag) : '';
+}
+
+/**
+ * "2026-10-04" -> "04/10". Data local sem hora não pode passar pelo pipe date: ele a lê como
+ * meia-noite UTC e, em São Paulo, mostraria o dia anterior.
+ */
+export function diaMes(isoDate: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate ?? '');
+  return m ? `${m[3]}/${m[2]}` : '';
 }

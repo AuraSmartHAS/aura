@@ -1,9 +1,11 @@
 import {
+  ALERT_SEVERITY_LABELS,
   RECOMMENDATION_STATUS_LABELS,
   RISK_TAG_LABELS,
   SCORE_FACTOR_LABELS,
   STAGE_LABELS,
   recommendationStatusLabel,
+  diaMes,
   riskTagLabel,
   stageLabel,
 } from './labels';
@@ -42,5 +44,17 @@ describe('labels', () => {
 
   it('cobre os 10 fatores do escore explicável', () => {
     expect(Object.keys(SCORE_FACTOR_LABELS).length).toBe(10);
+  });
+
+  it('as 3 severidades de aviso têm rótulo em português', () => {
+    for (const severidade of ['alta', 'atencao', 'info']) {
+      expect(ALERT_SEVERITY_LABELS[severidade]).withContext(severidade).toBeTruthy();
+    }
+  });
+
+  it('data do período não volta um dia no fuso de São Paulo', () => {
+    expect(diaMes('2026-10-04')).toBe('04/10');
+    expect(diaMes('2026-10-01')).toBe('01/10');
+    expect(diaMes(null)).toBe('');
   });
 });

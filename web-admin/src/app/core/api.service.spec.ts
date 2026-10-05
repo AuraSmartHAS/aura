@@ -92,4 +92,47 @@ describe('ApiService', () => {
     expect(req.request.body).toEqual({});
     req.flush({ status: 'rejected' });
   });
+
+  it('avisos da casa e processamento sob demanda batem nas rotas da procedure', () => {
+    api.alertas('casa-1').subscribe();
+    const lista = http.expectOne(`${api.baseUrl}/homes/casa-1/alertas`);
+    expect(lista.request.method).toBe('GET');
+    lista.flush({ engine: 'oracle', alertas: [] });
+
+    api.processarAlertas('casa-1').subscribe();
+    const processar = http.expectOne(`${api.baseUrl}/homes/casa-1/alertas/processar`);
+    expect(processar.request.method).toBe('POST');
+    expect(processar.request.body).toEqual({});
+    processar.flush({ engine: 'oracle', novos: 1 });
+
+    api.marcarAlertaVisto('a1').subscribe();
+    const visto = http.expectOne(`${api.baseUrl}/alertas/a1/visto`);
+    expect(visto.request.method).toBe('POST');
+    visto.flush({ id: 'a1', status: 'visto' });
+  });
+
+  it('relatório de consumo só manda o período quando informado', () => {
+    api.relatorioConsumo('casa-1').subscribe();
+    const semPeriodo = http.expectOne((r) => r.url === `${api.baseUrl}/homes/casa-1/relatorio-consumo`);
+    expect(semPeriodo.request.params.keys()).toEqual([]);
+    semPeriodo.flush({ engine: 'oracle', de: '', ate: '', totalDoses: 0, demandaEncaminhadaReais: 0, itens: [] });
+
+    api.relatorioConsumo('casa-1', '2026-09-27', '2026-10-04').subscribe();
+    const comPeriodo = http.expectOne((r) => r.url === `${api.baseUrl}/homes/casa-1/relatorio-consumo`);
+    expect(comPeriodo.request.params.get('de')).toBe('2026-09-27');
+    expect(comPeriodo.request.params.get('ate')).toBe('2026-10-04');
+    comPeriodo.flush({ engine: 'oracle', de: '', ate: '', totalDoses: 0, demandaEncaminhadaReais: 0, itens: [] });
+  });
+
+  it('indicadores da Operação leem e consolidam pelas rotas de admin', () => {
+    api.indicadores().subscribe();
+    const ler = http.expectOne(`${api.baseUrl}/ops/indicadores`);
+    expect(ler.request.method).toBe('GET');
+    ler.flush({ engine: 'oracle', dataRef: '2026-10-04', casas: [] });
+
+    api.consolidarIndicadores().subscribe();
+    const consolidar = http.expectOne(`${api.baseUrl}/ops/indicadores/consolidar`);
+    expect(consolidar.request.method).toBe('POST');
+    consolidar.flush({ engine: 'oracle', casasProcessadas: 2 });
+  });
 });

@@ -254,6 +254,8 @@ input[readonly] { background: var(--surface-2); opacity: 0.8; }
 .tag--approved { color: var(--success); }
 .tag--rejected { color: var(--danger); }
 .tag--danger { color: var(--danger); background: rgba(192, 57, 43, 0.1); }
+/* Aviso já visto continua na lista, mas sai do primeiro plano. */
+.aviso--visto { opacity: 0.6; }
 
 .timeline { list-style: none; display: flex; gap: 6px; padding: 0; margin: 12px 0; flex-wrap: wrap; }
 .timeline li {

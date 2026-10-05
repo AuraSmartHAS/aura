@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, interval } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/error-message';
 import {
+  ALERT_SEVERITY_LABELS,
   CHECKLIST_LABELS,
   DIMENSION_LABELS,
   RECOMMENDATION_STATUS_LABELS,
@@ -14,8 +16,9 @@ import {
   SIGNAL_PLACE_LABELS,
   SIGNAL_SOURCE_LABELS,
   SIGNAL_TYPE_LABELS,
+  diaMes,
 } from '../../core/labels';
-import { Home, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
+import { Alerta, Home, Recommendation, RelatorioConsumo, ReplenishmentProjection, Score, Signal } from '../../core/models';
 
 /** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → site do parceiro. */
 @Component({
@@ -26,6 +29,7 @@ import { Home, Recommendation, ReplenishmentProjection, Score, Signal } from '..
 })
 export class HomePageComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly homes = signal<Home[]>([]);
   readonly selected = signal<Home | null>(null);
@@ -33,6 +37,10 @@ export class HomePageComponent implements OnInit {
   readonly recommendations = signal<Recommendation[]>([]);
   readonly replenishment = signal<ReplenishmentProjection[]>([]);
   readonly signals = signal<Signal[]>([]);
+  readonly alertas = signal<Alerta[]>([]);
+  readonly consumo = signal<RelatorioConsumo | null>(null);
+  /** Só com o motor Oracle ativo os cards de avisos e consumo existem; fora dele, somem. */
+  readonly oracleAtivo = signal(false);
 
   readonly loading = signal(false);
   readonly busy = signal<string | null>(null);
@@ -59,6 +67,8 @@ export class HomePageComponent implements OnInit {
   readonly signalEventLabels = SIGNAL_EVENT_LABELS;
   readonly signalPlaceLabels = SIGNAL_PLACE_LABELS;
   readonly scoreFactorLabels = SCORE_FACTOR_LABELS;
+  readonly severityLabels = ALERT_SEVERITY_LABELS;
+  readonly diaMes = diaMes;
 
   ngOnInit(): void {
     this.loading.set(true);
@@ -75,6 +85,17 @@ export class HomePageComponent implements OnInit {
         this.error.set(errorMessage(err));
       },
     });
+
+    // Uma leitura registrada em outro aparelho (o app da família, a pulseira) aciona a
+    // procedure de avisos no banco; o painel olha de novo a cada 10s para o aviso chegar sem F5.
+    interval(10_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        const home = this.selected();
+        if (home) {
+          this.loadAlertas(home.id);
+        }
+      });
   }
 
   select(home: Home): void {
@@ -93,6 +114,11 @@ export class HomePageComponent implements OnInit {
   private refresh(homeId: string): void {
     this.api.latestScores(homeId).subscribe({ next: (s) => this.scores.set(s) });
     this.api.signals(homeId, 8).subscribe({ next: (s) => this.signals.set(s) });
+    this.loadAlertas(homeId);
+    this.api.relatorioConsumo(homeId).subscribe({
+      next: (r) => this.consumo.set(r.engine === 'oracle' ? r : null),
+      error: () => this.consumo.set(null),
+    });
     // o check pode materializar recomendação nova — as recomendações carregam depois dele
     this.api.replenishmentCheck(homeId).subscribe({
       next: (r) => {
@@ -105,6 +131,39 @@ export class HomePageComponent implements OnInit {
 
   private loadRecommendations(homeId: string): void {
     this.api.recommendations(homeId).subscribe({ next: (r) => this.recommendations.set(r) });
+  }
+
+  /** Falha ao buscar avisos não vira banner: o card só some até o próximo ciclo. */
+  private loadAlertas(homeId: string): void {
+    this.api.alertas(homeId).subscribe({
+      next: (r) => {
+        this.oracleAtivo.set(r.engine === 'oracle');
+        this.alertas.set(r.alertas);
+      },
+      error: () => this.oracleAtivo.set(false),
+    });
+  }
+
+  alertasAbertos(): number {
+    return this.alertas().filter((a) => a.status === 'aberto').length;
+  }
+
+  marcarVisto(alerta: Alerta): void {
+    const home = this.selected();
+    if (!home) {
+      return;
+    }
+    this.run('visto-' + alerta.id, this.api.marcarAlertaVisto(alerta.id), () => this.loadAlertas(home.id));
+  }
+
+  severityClass(severidade: string): string {
+    const nivel: Record<string, string> = { alta: 'high', atencao: 'medium', info: 'low' };
+    return `badge badge--${nivel[severidade] ?? 'low'}`;
+  }
+
+  /** Adesão vem de FN_TAXA_ADESAO; nulo é "sem dose esperada no período", nunca 0%. */
+  adesao(pct: number | null): string {
+    return pct === null ? 'sem dados' : `${Math.round(pct)}%`;
   }
 
   /** Só as projeções em que a régua disparou — o card não existe sem motivo. */

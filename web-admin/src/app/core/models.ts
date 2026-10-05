@@ -102,3 +102,62 @@ export interface Signal {
   value: Record<string, unknown>;
   capturedAt: string;
 }
+
+/**
+ * Inteligência que roda dentro do Oracle (functions e procedures PL/SQL, Fase 6).
+ * Fora do perfil oracle o backend responde engine "indisponivel" com listas vazias, e a tela
+ * esconde os cards em vez de mostrar um zero que pareceria medição.
+ */
+export type Engine = 'oracle' | 'indisponivel';
+
+/** Aviso gravado pela procedure PRC_REGISTRAR_ALERTAS a partir das regras ativas no banco. */
+export interface Alerta {
+  id: string;
+  regra: string;
+  severidade: 'info' | 'atencao' | 'alta';
+  mensagem: string;
+  status: 'aberto' | 'visto';
+  criadoEm: string;
+}
+
+export interface AlertasResponse {
+  engine: Engine;
+  alertas: Alerta[];
+}
+
+/** Uma linha do relatório de consumo (PRC_RELATORIO_CONSUMO, cursor por medicação). */
+export interface ItemConsumo {
+  medicamento: string;
+  dosesConfirmadas: number;
+  dosesNegadas: number;
+  dosesEsperadas: number;
+  /** FN_TAXA_ADESAO: nulo quando não há dose esperada no período — "sem dados", nunca 0%. */
+  adesaoPct: number | null;
+  estoqueDoses: number | null;
+}
+
+export interface RelatorioConsumo {
+  engine: Engine;
+  de: string;
+  ate: string;
+  totalDoses: number | null;
+  /** Soma das recomendações aprovadas a preço de referência do parceiro; o Aura não vende. */
+  demandaEncaminhadaReais: number | null;
+  itens: ItemConsumo[];
+}
+
+/** Indicadores do dia por casa, consolidados por PRC_CONSOLIDAR_INDICADORES (só admin). */
+export interface IndicadorCasa {
+  homeId: string;
+  casa: string;
+  adesaoPct: number | null;
+  variacaoPassosPct: number | null;
+  alertasAbertos: number;
+  atualizadoEm: string;
+}
+
+export interface IndicadoresResponse {
+  engine: Engine;
+  dataRef: string | null;
+  casas: IndicadorCasa[];
+}

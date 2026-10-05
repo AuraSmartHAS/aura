@@ -2,7 +2,19 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CatalogItem, Home, Kpis, Recommendation, ReplenishmentProjection, Score, Signal, TokenResponse } from './models';
+import {
+  AlertasResponse,
+  CatalogItem,
+  Home,
+  IndicadoresResponse,
+  Kpis,
+  Recommendation,
+  RelatorioConsumo,
+  ReplenishmentProjection,
+  Score,
+  Signal,
+  TokenResponse,
+} from './models';
 
 /** Todas as chamadas ao backend Spring Boot passam por aqui. */
 @Injectable({ providedIn: 'root' })
@@ -104,4 +116,45 @@ export class ApiService {
     return this.http.get<Kpis>(`${this.baseUrl}/ops/kpis`);
   }
 
+
+  // --- Inteligência no Oracle (Fase 6): cada rota abaixo chega a uma function/procedure PL/SQL. ---
+
+  alertas(homeId: string): Observable<AlertasResponse> {
+    return this.http.get<AlertasResponse>(`${this.baseUrl}/homes/${homeId}/alertas`);
+  }
+
+  /** Roda PRC_REGISTRAR_ALERTAS sob demanda; a mesma procedure já roda sozinha a cada leitura. */
+  processarAlertas(homeId: string): Observable<{ engine: string; novos: number }> {
+    return this.http.post<{ engine: string; novos: number }>(
+      `${this.baseUrl}/homes/${homeId}/alertas/processar`,
+      {},
+    );
+  }
+
+  marcarAlertaVisto(alertaId: string): Observable<{ id: string; status: string }> {
+    return this.http.post<{ id: string; status: string }>(`${this.baseUrl}/alertas/${alertaId}/visto`, {});
+  }
+
+  /** Período em datas locais (AAAA-MM-DD); sem período, o backend usa os últimos 7 dias. */
+  relatorioConsumo(homeId: string, de?: string, ate?: string): Observable<RelatorioConsumo> {
+    let params = new HttpParams();
+    if (de) {
+      params = params.set('de', de);
+    }
+    if (ate) {
+      params = params.set('ate', ate);
+    }
+    return this.http.get<RelatorioConsumo>(`${this.baseUrl}/homes/${homeId}/relatorio-consumo`, { params });
+  }
+
+  indicadores(): Observable<IndicadoresResponse> {
+    return this.http.get<IndicadoresResponse>(`${this.baseUrl}/ops/indicadores`);
+  }
+
+  consolidarIndicadores(): Observable<{ engine: string; casasProcessadas: number }> {
+    return this.http.post<{ engine: string; casasProcessadas: number }>(
+      `${this.baseUrl}/ops/indicadores/consolidar`,
+      {},
+    );
+  }
 }
