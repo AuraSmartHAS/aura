@@ -108,6 +108,8 @@ DECLARE
   v_hoje      DATE := TRUNC(CAST(SYSTIMESTAMP AT TIME ZONE 'America/Sao_Paulo' AS DATE));
   v_quando    TIMESTAMP WITH TIME ZONE;
   v_tomou     BOOLEAN;
+  -- O texto do JSON sai em PL/SQL: BOOLEAN dentro de SQL só existe no 23ai e quebraria num 19c.
+  v_taken     VARCHAR2(5);
   v_inseridas PLS_INTEGER := 0;
 
   -- Medicações desta carga com o perfil de esquecimento de cada casa.
@@ -139,14 +141,15 @@ BEGIN
             v_tomou := MOD(d * 3 + TO_NUMBER(SUBSTR(horario.hh, 1, 2)), 14) <> 5;
           END IF;
 
+          v_taken := CASE WHEN v_tomou THEN 'true' ELSE 'false' END;
+
           MERGE INTO signals s
           USING (SELECT STANDARD_HASH('dose|' || med.id_texto || '|' || TO_CHAR(v_quando, 'YYYYMMDDHH24MI'), 'MD5') id
                    FROM dual) k
           ON (s.id = k.id)
           WHEN NOT MATCHED THEN INSERT (id, home_id, type, source, signal_value, captured_at)
           VALUES (k.id, med.home_id, 'ADHERENCE', 'SELF_REPORT',
-                  '{"medicationId":"' || med.id_texto || '","taken":'
-                    || CASE WHEN v_tomou THEN 'true' ELSE 'false' END || '}',
+                  '{"medicationId":"' || med.id_texto || '","taken":' || v_taken || '}',
                   v_quando);
           v_inseridas := v_inseridas + SQL%ROWCOUNT;
         END IF;
