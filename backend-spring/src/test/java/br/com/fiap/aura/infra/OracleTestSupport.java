@@ -25,7 +25,7 @@ import org.testcontainers.oracle.OracleContainer;
 @Tag("oracle")
 public abstract class OracleTestSupport {
 
-    static final OracleContainer ORACLE =
+    public static final OracleContainer ORACLE =
             new OracleContainer("gvenzl/oracle-free:23.26.3-slim-faststart")
                     // usuário de aplicação, não SYSTEM: é o que o servidor da FIAP oferece (um RM)
                     .withUsername("aura")
@@ -37,7 +37,7 @@ public abstract class OracleTestSupport {
     }
 
     @DynamicPropertySource
-    static void datasource(DynamicPropertyRegistry registry) {
+    public static void datasource(DynamicPropertyRegistry registry) {
         // O resto (validate, Flyway sem baseline, sem placeholder) vem do próprio perfil oracle:
         // o teste exercita a configuração que vai para a demo, não uma cópia dela.
         registry.add("spring.datasource.url", ORACLE::getJdbcUrl);
