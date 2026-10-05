@@ -48,8 +48,8 @@ test.describe('painel da cuidadora', () => {
     await expect(gerar).toBeVisible();
     await gerar.click();
 
-    // no card do Care-Chain — o card de reposição também usa .rec e vem antes no DOM
-    const recomendacao = page.locator('.card', { hasText: 'Care-Chain' }).locator('.rec').first();
+    // no card das recomendações — o card de reposição também usa .rec e vem antes no DOM
+    const recomendacao = page.locator('.card', { hasText: 'O que a casa precisa' }).locator('.rec').first();
     await expect(recomendacao).toContainText('Barras de Apoio');
     // com escore na mesa o motivo sai composto: "porque houve <fatores> (norma)"
     await expect(recomendacao).toContainText('porque houve');
@@ -59,11 +59,12 @@ test.describe('painel da cuidadora', () => {
     await expect(recomendacao).toContainText('129,90');
     await expect(recomendacao).toContainText('279,80');
 
-    const pedidosAntes = await page.locator('.order').count();
-
-    await recomendacao.getByRole('button', { name: 'Aprovar e pedir' }).click();
-    await expect(page.locator('.notice')).toContainText('cadeia logística');
-    await expect(page.locator('.order')).toHaveCount(pedidosAntes + 1);
+    // aprovar não compra nada aqui: a família segue para o site do parceiro (D-008)
+    await recomendacao.getByRole('button', { name: 'Aprovar' }).click();
+    await expect(page.locator('.notice')).toContainText('site do parceiro');
+    const aprovada = page.locator('.card', { hasText: 'O que a casa precisa' }).locator('.rec', { hasText: 'Barras de Apoio' }).first();
+    await expect(aprovada.locator('.tag')).toHaveText('Aprovado');
+    await expect(aprovada.getByRole('link', { name: /Ver no site de/ })).toBeVisible();
   });
 
   test('recusar uma recomendação não cria pedido', async ({ page }) => {
@@ -72,75 +73,50 @@ test.describe('painel da cuidadora', () => {
     await expect(page.locator('.score').first()).toBeVisible();
 
     await page.getByRole('button', { name: 'Gerar recomendação' }).first().click();
-    const careChain = page.locator('.card', { hasText: 'Care-Chain' });
-    const recomendacao = careChain.locator('.rec').first();
+    const recomendacoes = page.locator('.card', { hasText: 'O que a casa precisa' });
+    const recomendacao = recomendacoes.locator('.rec').first();
     await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
-
-    const pedidosAntes = await page.locator('.order').count();
 
     // RN-022 pelo navegador: a recusa é registrada e nenhum pedido nasce dela
     await recomendacao.getByRole('button', { name: 'Recusar' }).click();
     await expect(page.locator('.notice')).toContainText('Nenhum pedido');
-    await expect(careChain.locator('.rec').first().locator('.tag')).toHaveText('Recusado');
-    await expect(page.locator('.order')).toHaveCount(pedidosAntes);
+    await expect(recomendacoes.locator('.rec').first().locator('.tag')).toHaveText('Recusado');
   });
 
-  test('a reposição por consumo nasce do burn rate e entra na mesma esteira', async ({ page }) => {
+  test('a reposição por consumo nasce do burn rate e pede aprovação', async ({ page }) => {
     await entrar(page, CUIDADORA);
 
     const card = page.locator('.card', { hasText: 'Reposição por consumo' });
     await expect(card).toBeVisible();
-    await expect(card).toContainText('cerca de 5 dias');
+    await expect(card).toContainText('acaba em uns');
     await expect(card).toContainText('média simples');
     await expect(card).toContainText('rede parceira');
 
-    const pedidosAntes = await page.locator('.order').count();
-
     await card.getByRole('button', { name: 'Aprovar reposição' }).click();
-    await expect(page.locator('.notice')).toContainText('cadeia logística');
-    await expect(page.locator('.order')).toHaveCount(pedidosAntes + 1);
-    await expect(page.locator('.order').first()).toContainText('refil');
+    await expect(page.locator('.notice')).toContainText('site do parceiro');
+    // a aprovação fica registrada entre as recomendações da casa
+    const recomendacoes = page.locator('.card', { hasText: 'O que a casa precisa' });
+    await expect(recomendacoes.locator('.rec', { hasText: /refil/i }).locator('.tag', { hasText: 'Aprovado' }).first()).toBeVisible();
+    // Sem entrega própria (D-008) nada repõe o estoque depois da aprovação, então a régua volta
+    // a sugerir na próxima leitura. Comportamento conhecido, à espera de decisão de produto.
   });
 
-  test('o pedido avança pelos estágios da cadeia', async ({ page }) => {
+  test('fora do Oracle, avisos e consumo não fingem medição', async ({ page }) => {
+    // A suíte e2e sobe o backend em H2: a inteligência mora no Oracle, então o backend
+    // responde engine "indisponivel" e os cards somem em vez de mostrar zero.
     await entrar(page, CUIDADORA);
-    const pedido = page.locator('.order').first();
-    await expect(pedido).toBeVisible();
-
-    const estagioAtual = pedido.locator('.timeline li.current');
-    const antes = await estagioAtual.innerText();
-
-    await pedido.getByRole('button', { name: 'Avançar estágio' }).click();
-    await expect(page.locator('.notice')).toContainText('avançou');
-    await expect(page.locator('.order').first().locator('.timeline li.current')).not.toHaveText(antes);
-  });
-
-  test('a última milha aparece no mapa com o entregador em rota', async ({ page }) => {
-    await entrar(page, CUIDADORA);
-
-    // pelo estágio, nunca pelo primeiro da lista: o teste de estágios muta o pedido mais recente
-    const pedido = page
-      .locator('.order', { has: page.locator('.timeline li.current', { hasText: 'Em rota' }) })
-      .first();
-    await expect(pedido).toBeVisible();
-
-    await pedido.getByRole('button', { name: 'Ver entrega' }).click();
-    await expect(pedido.locator('svg.map__svg')).toBeVisible();
-    await expect(pedido.locator('.map__courier')).toBeVisible();
-
-    const legenda = pedido.locator('.map__legend');
-    await expect(legenda).toContainText('Saindo de: Loja Marginal');
-    await expect(legenda).toContainText('km');
-    await expect(legenda).toContainText('chega às');
+    await expect(page.locator('.score, .empty').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Avisos da casa' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Consumo do período' })).toHaveCount(0);
   });
 });
 
-test.describe('torre de controle', () => {
-  test('KPIs são exclusivos do admin', async ({ page }) => {
+test.describe('operação', () => {
+  test('indicadores são exclusivos do admin', async ({ page }) => {
     await entrar(page, CUIDADORA);
     await page.click('a[href="/admin"]');
-    // .empty também existe no catálogo enquanto a lista carrega — mirar só no aviso de KPIs
-    await expect(page.locator('.empty').filter({ hasText: 'KPIs' })).toContainText('admin');
+    // .empty também existe no catálogo enquanto a lista carrega — mirar só no aviso de papel
+    await expect(page.locator('.empty').filter({ hasText: 'exclusivos' })).toContainText('admin');
     await expect(page.locator('.kpis')).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Sair' }).click();
@@ -148,15 +124,10 @@ test.describe('torre de controle', () => {
     await expect(page).toHaveURL(/\/admin/);
 
     await expect(page.locator('.kpis')).toBeVisible();
-    await expect(page.locator('.kpi').first()).toContainText('OTIF');
-    await expect(page.locator('.stage')).toHaveCount(6);
-
-    // a carteira mostra os pedidos da operação, com estágio traduzido e situação de SLA
-    const carteira = page.locator('.carteira');
-    await expect(carteira).toContainText('Carteira de pedidos');
-    await expect(carteira.locator('tbody tr').first()).toBeVisible();
-    await expect(carteira).toContainText('Em rota');
-    await expect(carteira).toContainText('SLA estourado');
+    await expect(page.locator('.kpi').first()).toContainText('Casas monitoradas');
+    // a logística saiu (D-008): nada de carteira de pedidos nem métrica de frota na tela
+    await expect(page.locator('.carteira')).toHaveCount(0);
+    await expect(page.locator('body')).not.toContainText('OTIF');
   });
 
   test('admin administra o catálogo de acessibilidade', async ({ page }) => {
@@ -170,7 +141,6 @@ test.describe('torre de controle', () => {
     await page.getByRole('button', { name: 'Cadastrar item' }).click();
 
     await expect(page.locator('.notice')).toContainText('cadastrado');
-    // a Torre agora tem duas tabelas: mirar na do catálogo
     await expect(page.locator('.card', { hasText: 'Catálogo' }).locator('table')).toContainText(sku);
 
     // limpa o que criou
