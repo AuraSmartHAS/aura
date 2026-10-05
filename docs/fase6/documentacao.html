@@ -132,7 +132,7 @@ mudança de rotina e grava avisos. O Java aciona essa camada sozinho, a cada lei
       <td>16 tabelas (12 do produto + 4 de inteligência), FKs com regra de apagamento, CSV da pulseira importado por SQL*Loader, carga de 3 casas, DER</td>
       <td>§3 · <code>db/migration/oracle/V1</code>, <code>V2</code> · <code>database/oracle/</code></td></tr>
   <tr><td><strong>Parte 3</strong> · ≥ 2 functions, ≥ 2 procedures, uma acionada pelo back-end Java</td>
-      <td>3 functions + 3 procedures (+ 2 rotinas de apoio); <span class="obj">PRC_REGISTRAR_ALERTAS</span> roda a cada leitura recebida pela API (REST → Java → JDBC → Oracle)</td>
+      <td>3 functions + 3 procedures (+ 3 rotinas de apoio); <span class="obj">PRC_REGISTRAR_ALERTAS</span> roda a cada leitura recebida pela API (REST → Java → JDBC → Oracle)</td>
       <td>§4 · <code>db/migration/oracle/R__0*.sql</code> · pacote <code>intelligence</code></td></tr>
   <tr><td>Avaliação · documentação, código, slides, vídeo</td>
       <td>Este PDF, o repositório, 10 slides e o vídeo com o sistema rodando sobre Oracle</td>
@@ -181,7 +181,7 @@ evento de domínio publicado pelo Java depois que a leitura já foi gravada.
   <tr><td>Rótulos de tela centralizados (<code>core/labels.ts</code>)</td>
       <td>Vocabulário em português num lugar só, com teste; nenhum código cru (<code>fall_bathroom</code>) chega à tela</td></tr>
   <tr><td>CI com job do Oracle e varredura semanal</td>
-      <td>A suíte Oracle roda num container a cada mudança de schema; a varredura semanal pega quebra que o filtro de caminho escondia (§2.4)</td></tr>
+      <td>A suíte Oracle roda num container quando muda o schema, o PL/SQL, as entidades ou a integração; a varredura semanal pega quebra que o filtro de caminho escondia (§2.4)</td></tr>
 </table>
 
 <h3>2.3 Refatoração e padrões aplicados</h3>
@@ -198,7 +198,7 @@ evento de domínio publicado pelo Java depois que a leitura já foi gravada.
   <li><strong>Correções exigidas pelas FKs, feitas no Java para valerem em todos os bancos:</strong> excluir item do
       catálogo que já tem histórico responde <code>409</code> em vez de <code>500</code>; excluir uma medicação desvincula a
       recomendação de refil em vez de quebrar; excluir a conta de quem disparou ou atendeu um SOS mantém o registro do
-      socorro para a casa. Cada caso tem um teste escrito antes da correção, que falhava.</li>
+      socorro para a casa. Cada caso tem um teste que reproduz o problema.</li>
 </ul>
 
 <h3>2.4 Um problema que a fase revelou</h3>
@@ -328,6 +328,7 @@ em transação autônoma justamente para sobreviver ao rollback de quem falhou. 
   <tr><td class="obj">PRC_REGISTRAR_ALERTAS</td><td>procedure</td><td>Registra avisos a partir de leituras críticas · <strong>acionada pelo Java</strong></td></tr>
   <tr><td class="obj">PRC_RELATORIO_CONSUMO</td><td>procedure</td><td>Relatório resumido de consumo por casa</td></tr>
   <tr><td class="obj">PRC_CONSOLIDAR_INDICADORES</td><td>procedure</td><td>Rotina automatizada em lote (job diário)</td></tr>
+  <tr><td class="obj">FN_DOSES_ESPERADAS</td><td>apoio</td><td>Doses que a rotina pedia e já venceram, desde que o remédio começou a ser acompanhado</td></tr>
   <tr><td class="obj">FN_UUID_TEXTO · PRC_LOG_ERRO</td><td>apoio</td><td>Conversão RAW ↔ texto do Java · log em transação autônoma</td></tr>
 </table>
 
@@ -336,7 +337,7 @@ em transação autônoma justamente para sobreviver ao rollback de quem falhou. 
 <div class="card">
   <h3>FN_TAXA_ADESAO — o indicador</h3>
   <dl>
-    <dt>Objetivo</dt><dd>% de doses confirmadas sobre as esperadas pela rotina de remédios: horários do JSON × dias da janela, só das medicações que a família acompanha pelo app.</dd>
+    <dt>Objetivo</dt><dd>% de doses confirmadas sobre as esperadas pela rotina de remédios. Esperadas são os horários do JSON que <strong>já venceram</strong> na janela, contados por <span class="obj">FN_DOSES_ESPERADAS</span> a partir do dia em que o remédio começou a ser acompanhado: remédio cadastrado hoje não deve sete dias de doses. Só entram as medicações que a família acompanha pelo app.</dd>
     <dt>Parâmetros (IN)</dt><dd><code>p_home_id</code> · <code>p_medication_id</code> (NULL = todas) · <code>p_dias</code> (padrão 7) · <code>p_ate</code> (padrão agora)</dd>
     <dt>Retorno</dt><dd><code>NUMBER</code> de 0 a 100 com uma casa, ou <code>NULL</code> sem dado. Teto de 100: dose confirmada fora do horário não vira 110%.</dd>
     <dt>Exceções</dt><dd><code>NO_DATA_FOUND</code> e <code>ZERO_DIVIDE</code> → <code>NULL</code>; janela inválida → <code>ORA-20002</code>; inesperada → log e relança.</dd>
@@ -375,7 +376,7 @@ em transação autônoma justamente para sobreviver ao rollback de quem falhou. 
     <dt>Funcionamento</dt><dd>
       1. Confere se a casa existe (senão <code>ORA-20404</code>).<br>
       2. <strong>CURSOR</strong> nas regras ativas de <code>REGRA_ALERTA</code> e <strong>LOOP</strong> por elas.<br>
-      3. <strong>IF</strong> por regra: <code>QUASE_QUEDA</code> abre um segundo cursor e gera um aviso por leitura, com o texto de <span class="obj">FN_DESCREVER_LEITURA</span>; <code>DOSES_NEGADAS</code> conta doses não confirmadas na janela; <code>ADESAO_BAIXA</code> usa <span class="obj">FN_TAXA_ADESAO</span>; <code>ROTINA_PASSOS</code> usa <span class="obj">FN_VARIACAO_ROTINA</span>.<br>
+      3. <strong>IF</strong> por regra: <code>QUASE_QUEDA</code> abre um segundo cursor e gera um aviso por leitura, com o texto de <span class="obj">FN_DESCREVER_LEITURA</span>; <code>DOSES_NEGADAS</code> conta doses não confirmadas na janela e só avisa de novo quando há negação nova; <code>ADESAO_BAIXA</code> usa <span class="obj">FN_TAXA_ADESAO</span>; <code>ROTINA_PASSOS</code> usa <span class="obj">FN_VARIACAO_ROTINA</span>.<br>
       4. Grava com <code>INSERT</code>; a chave única (casa, regra, chave) faz a segunda execução não duplicar: <code>DUP_VAL_ON_INDEX</code> é tratado como "já avisado".</dd>
     <dt>Exceções</dt><dd>Negócio (<code>-20xxx</code>) sobe intacto; qualquer outra vai para <code>LOG_ERRO_PLSQL</code> e é relançada.</dd>
   </dl>
@@ -386,7 +387,7 @@ em transação autônoma justamente para sobreviver ao rollback de quem falhou. 
   <dl>
     <dt>Propósito</dt><dd>Por medicação: doses confirmadas, não confirmadas, esperadas, adesão e estoque no período; mais os totais da casa.</dd>
     <dt>Parâmetros</dt><dd><code>p_home_id</code>, <code>p_de</code>, <code>p_ate</code> (IN) · <code>p_total_doses</code>, <code>p_total_reais</code> (OUT) · <code>p_itens</code> (OUT <code>SYS_REFCURSOR</code>)</dd>
-    <dt>Funcionamento</dt><dd>Valida o período (<code>ORA-20001</code> se invertido ou maior que um ano) e a casa (<code>ORA-20404</code>); percorre as medicações num <strong>CURSOR + LOOP</strong> somando as doses confirmadas; soma a demanda encaminhada a parceiros; abre o cursor de saída com uma linha por medicação, usando <span class="obj">FN_TAXA_ADESAO</span> dentro do <code>SELECT</code>.</dd>
+    <dt>Funcionamento</dt><dd>Valida o período (<code>ORA-20001</code> se invertido ou maior que um ano) e a casa (<code>ORA-20404</code>); percorre as medicações num <strong>CURSOR + LOOP</strong> somando as doses confirmadas; soma a demanda encaminhada a parceiros; abre o cursor de saída com uma linha por medicação, usando <span class="obj">FN_DOSES_ESPERADAS</span> e <span class="obj">FN_TAXA_ADESAO</span> dentro do <code>SELECT</code> (dose de hoje que ainda não chegou não conta como esperada).</dd>
     <dt>Observação</dt><dd><code>p_total_reais</code> é a soma do <strong>preço de referência</strong> dos itens aprovados. Não é compra: a transação é do parceiro.</dd>
   </dl>
 </div>
@@ -436,7 +437,7 @@ this.registrarAlertas = new SimpleJdbcCall(jdbc)
 Rotas novas, todas atrás da mesma checagem de acesso das demais (só quem é da casa ou o administrador):
 <code>GET /homes/{id}/alertas</code>, <code>POST /homes/{id}/alertas/processar</code>, <code>POST /alertas/{id}/visto</code>,
 <code>GET /homes/{id}/relatorio-consumo</code> e, só para administrador, <code>GET /ops/indicadores</code> e
-<code>POST /ops/indicadores/consolidar</code>. Todo texto que sai do banco passa pelo mesmo guardrail de
+<code>POST /ops/indicadores/consolidar</code>. O texto de cada aviso passa pelo mesmo guardrail de
 não-prescrição do resto da API; um aviso que não passe é omitido da lista em vez de derrubá-la.
 </p>
 
@@ -459,10 +460,11 @@ não-prescrição do resto da API; um aviso que não passe é omitido da lista e
 <h3>5.1 Testes automatizados</h3>
 <table>
   <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
-  <tr><td>Back-end, suíte rápida (H2)</td><td><strong>85</strong></td><td><code>./mvnw test</code></td><td>Fluxos ponta a ponta, autorização, guardrail, os três caminhos de FK, adaptador indisponível</td></tr>
-  <tr><td>Back-end sobre Oracle</td><td><strong>50</strong></td><td><code>./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=</code></td><td>Schema validado, 0 objetos inválidos, cada function e procedure, REST → Java → JDBC → Oracle</td></tr>
+  <tr><td>Back-end, suíte rápida (H2)</td><td><strong>86</strong></td><td><code>./mvnw test</code></td><td>Fluxos ponta a ponta, autorização, guardrail, os três caminhos de FK, adaptador indisponível</td></tr>
+  <tr><td>Back-end sobre Oracle</td><td><strong>51</strong></td><td><code>./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=</code></td><td>Schema validado, 0 objetos inválidos, cada function e procedure, REST → Java → JDBC → Oracle</td></tr>
   <tr><td>Back-end sobre PostgreSQL</td><td><strong>2</strong></td><td><code>./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=</code></td><td>Migrations V1–V3 (inclui a renomeação de <code>level</code>) validadas contra as entidades; seed sem duplicar</td></tr>
   <tr><td>Painel Angular</td><td><strong>31</strong></td><td><code>npx ng test --no-watch</code></td><td>Serviço de API (rotas novas), rótulos, interceptor, autenticação</td></tr>
+  <tr><td>Painel ponta a ponta</td><td><strong>8</strong></td><td><code>npm run e2e</code></td><td>Navegador real contra a API: risco explicado, aprovação humana, recusa, reposição, Operação e catálogo</td></tr>
 </table>
 
 <h3>5.2 Saídas reais</h3>
@@ -505,7 +507,7 @@ Recusado pelo banco: ORA-20001: Período inválido: a data final vem antes da in
 -- BLOCO 7 · PRC_CONSOLIDAR_INDICADORES
 Casas consolidadas: 5
 
--- Conferência: os 8 objetos PL/SQL com STATUS = VALID</code></pre>
+-- Conferência: os 9 objetos PL/SQL (3 functions + 3 procedures + 3 de apoio) com STATUS = VALID</code></pre>
 
 
 <h3>5.3 Ponta a ponta pela API (REST → Java → JDBC → Oracle)</h3>

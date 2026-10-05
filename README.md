@@ -64,13 +64,14 @@ docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
 ./database/oracle/carregar-dados.sh   # CSV da pulseira (SQL*Loader) + carga simulada
 ```
 
-O Flyway cria 16 tabelas, 3 functions e 3 procedures; a cada leitura nova o back-end chama
+O Flyway cria 16 tabelas, 3 functions e 3 procedures (mais 3 rotinas de apoio); a cada leitura nova o back-end chama
 `PRC_REGISTRAR_ALERTAS` por JDBC, depois do commit, e o aviso aparece no painel da cuidadora.
 Detalhes, DER e consultas de demonstração: [`database/oracle/README.md`](database/oracle/README.md)
 e [`docs/fase6/documentacao.html`](docs/fase6/documentacao.html).
 
 Testes: `./mvnw test` (H2, rápido) · `./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=`
-(Oracle real via Testcontainers) · `-Dtest.groups=postgres` (PostgreSQL).
+(Oracle real via Testcontainers) · `./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=`
+(PostgreSQL).
 
 > A coluna `scores.level` virou `risk_level` (migration V3 no PostgreSQL). Um banco PostgreSQL
 > local migrado por esta versão não valida mais com o código anterior a ela.

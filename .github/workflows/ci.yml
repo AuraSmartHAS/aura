@@ -68,7 +68,11 @@ jobs:
             oracle:
               - 'backend-spring/src/main/resources/db/migration/oracle/**'
               - 'backend-spring/src/main/java/br/com/fiap/aura/intelligence/**'
+              # Entidade nova ou coluna mudada quebra o validate do Hibernate no Oracle.
+              - 'backend-spring/src/main/java/br/com/fiap/aura/domain/**'
+              - 'backend-spring/src/main/resources/application.yml'
               - 'backend-spring/src/test/java/br/com/fiap/aura/infra/**'
+              - 'backend-spring/src/test/java/br/com/fiap/aura/web/*OracleTest.java'
               - 'backend-spring/pom.xml'
               - 'database/oracle/**'
               - '.github/workflows/ci.yml'
