@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { CatalogItem, Home, Kpis, OpsOrder, Order, OrderDetail, Recommendation, ReplenishmentProjection, Score, Signal, TokenResponse } from './models';
+import { CatalogItem, Home, Kpis, Recommendation, ReplenishmentProjection, Score, Signal, TokenResponse } from './models';
 
 /** Todas as chamadas ao backend Spring Boot passam por aqui. */
 @Injectable({ providedIn: 'root' })
@@ -75,27 +75,12 @@ export class ApiService {
     );
   }
 
-  orders(homeId: string): Observable<Order[]> {
-    return this.http.get<Order[]>(`${this.baseUrl}/homes/${homeId}/orders`);
-  }
-
   /** Projeta o estoque contra o consumo confirmado; a régua disparada materializa recomendação. */
   replenishmentCheck(homeId: string): Observable<ReplenishmentProjection[]> {
     return this.http.post<ReplenishmentProjection[]>(
       `${this.baseUrl}/homes/${homeId}/replenishment/check`,
       {},
     );
-  }
-
-  advance(orderId: string): Observable<{ stage: string; slaBreached: boolean }> {
-    return this.http.post<{ stage: string; slaBreached: boolean }>(
-      `${this.baseUrl}/orders/${orderId}/advance`,
-      {},
-    );
-  }
-
-  orderDetail(orderId: string): Observable<OrderDetail> {
-    return this.http.get<OrderDetail>(`${this.baseUrl}/orders/${orderId}`);
   }
 
   catalog(riskTag?: string): Observable<CatalogItem[]> {
@@ -119,7 +104,4 @@ export class ApiService {
     return this.http.get<Kpis>(`${this.baseUrl}/ops/kpis`);
   }
 
-  opsOrders(): Observable<OpsOrder[]> {
-    return this.http.get<OpsOrder[]>(`${this.baseUrl}/ops/orders`);
-  }
 }

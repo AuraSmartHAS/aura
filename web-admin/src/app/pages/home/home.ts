@@ -14,16 +14,14 @@ import {
   SIGNAL_PLACE_LABELS,
   SIGNAL_SOURCE_LABELS,
   SIGNAL_TYPE_LABELS,
-  STAGE_LABELS,
 } from '../../core/labels';
-import { Home, Order, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
-import { OrderDeliveryComponent } from './order-delivery';
+import { Home, Recommendation, ReplenishmentProjection, Score, Signal } from '../../core/models';
 
-/** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → entrega. */
+/** Acompanhamento de uma casa: risco explicado → recomendação → aprovação → site do parceiro. */
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, OrderDeliveryComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './home.html',
 })
 export class HomePageComponent implements OnInit {
@@ -34,16 +32,12 @@ export class HomePageComponent implements OnInit {
   readonly scores = signal<Score[]>([]);
   readonly recommendations = signal<Recommendation[]>([]);
   readonly replenishment = signal<ReplenishmentProjection[]>([]);
-  readonly orders = signal<Order[]>([]);
   readonly signals = signal<Signal[]>([]);
 
   readonly loading = signal(false);
   readonly busy = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
-
-  /** Pedido com o mapa da entrega aberto — um por vez, recolhido ao trocar de casa. */
-  readonly expandedOrderId = signal<string | null>(null);
 
   /** Chaves do checklist ligadas por [(ngModel)] nos checkboxes. */
   checklist: Record<string, boolean> = {
@@ -56,9 +50,6 @@ export class HomePageComponent implements OnInit {
 
   readonly checklistLabels = CHECKLIST_LABELS;
 
-  readonly stages = ['approved', 'sourcing', 'in_route', 'delivered', 'installed'];
-
-  readonly stageLabels = STAGE_LABELS;
   readonly recStatusLabels = RECOMMENDATION_STATUS_LABELS;
   readonly dimensionLabels = DIMENSION_LABELS;
   readonly levelLabels = RISK_LEVEL_LABELS;
@@ -88,7 +79,6 @@ export class HomePageComponent implements OnInit {
 
   select(home: Home): void {
     this.selected.set(home);
-    this.expandedOrderId.set(null);
     this.checklist = { ...this.checklist, ...(home.safetyChecklist ?? {}) };
     this.refresh(home.id);
   }
@@ -102,7 +92,6 @@ export class HomePageComponent implements OnInit {
 
   private refresh(homeId: string): void {
     this.api.latestScores(homeId).subscribe({ next: (s) => this.scores.set(s) });
-    this.api.orders(homeId).subscribe({ next: (o) => this.orders.set(o) });
     this.api.signals(homeId, 8).subscribe({ next: (s) => this.signals.set(s) });
     // o check pode materializar recomendação nova — as recomendações carregam depois dele
     this.api.replenishmentCheck(homeId).subscribe({
@@ -183,7 +172,7 @@ export class HomePageComponent implements OnInit {
       return;
     }
     this.run('approve-' + rec.recommendationId, this.api.approve(rec.recommendationId), () => {
-      this.flash('Aprovado. O pedido entrou na cadeia logística.');
+      this.flash('Aprovado. A compra segue no site do parceiro.');
       this.refresh(home.id);
     });
   }
@@ -197,30 +186,6 @@ export class HomePageComponent implements OnInit {
       this.flash('Recomendação recusada. Nenhum pedido foi criado.');
       this.refresh(home.id);
     });
-  }
-
-  advance(order: Order): void {
-    const home = this.selected();
-    if (!home) {
-      return;
-    }
-    this.run('advance-' + order.id, this.api.advance(order.id), (res) => {
-      this.flash(`Pedido avançou para ${this.stageLabels[res.stage] ?? res.stage}.`);
-      this.refresh(home.id);
-    });
-  }
-
-  stageIndex(stage: string): number {
-    return this.stages.indexOf(stage);
-  }
-
-  /** Instalado e devolvido são finais: sem próximo estágio, sem botão que devolva por engano. */
-  canAdvance(order: Order): boolean {
-    return order.stage !== 'installed' && order.stage !== 'returned';
-  }
-
-  toggleDelivery(order: Order): void {
-    this.expandedOrderId.update((id) => (id === order.id ? null : order.id));
   }
 
   describeSignalType(signal: Signal): string {

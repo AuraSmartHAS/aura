@@ -2,7 +2,6 @@
 
 export type Role = 'paciente' | 'cuidadora' | 'profissional' | 'admin';
 export type RiskLevel = 'low' | 'medium' | 'high';
-export type OrderStage = 'approved' | 'sourcing' | 'in_route' | 'delivered' | 'installed' | 'returned';
 
 export interface TokenResponse {
   token: string;
@@ -55,47 +54,6 @@ export interface Recommendation {
   productUrl: string | null;
 }
 
-export interface Order {
-  id: string;
-  stage: OrderStage;
-  sku: string;
-  productName: string;
-  slaDueAt: string | null;
-  slaBreached: boolean;
-  createdAt: string;
-  recommendationId: string;
-}
-
-export interface OrderSla {
-  dueAt: string | null;
-  breached: boolean;
-  deliveredAt: string | null;
-  installedAt: string | null;
-}
-
-export interface OrderDelivery {
-  nodeName: string | null;
-  eta: string | null;
-  distanceM: number | null;
-  status: OrderStage;
-  durationS: number | null;
-  /** Percentual simulado já percorrido; teto de 97 enquanto "em rota". Nulo fora de in_route. */
-  progressPct: number | null;
-  /** Posição simulada do entregador, ordem [lng, lat] — a mesma da rota. */
-  currentPosition: [number, number] | null;
-  route: { type: string; coordinates: [number, number][] } | null;
-}
-
-export interface OrderDetail {
-  orderId: string;
-  stage: OrderStage;
-  sku: string;
-  productName: string;
-  sla: OrderSla;
-  delivery: OrderDelivery;
-  createdAt: string;
-}
-
 export interface CatalogItem {
   sku: string;
   name: string;
@@ -135,19 +93,6 @@ export interface ReplenishmentProjection {
   suggested: boolean;
   recommendationId: string | null;
   reason: string | null;
-}
-
-/** Uma linha da carteira de pedidos da Torre (GET /ops/orders, só admin). */
-export interface OpsOrder {
-  id: string;
-  sku: string;
-  productName: string;
-  stage: OrderStage;
-  nodeName: string | null;
-  slaDueAt: string | null;
-  slaBreached: boolean;
-  etaDelivery: string | null;
-  createdAt: string;
 }
 
 export interface Signal {

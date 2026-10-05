@@ -6,10 +6,10 @@ import { EMPTY, catchError, forkJoin, interval, startWith, switchMap } from 'rxj
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/error-message';
-import { RISK_TAG_LABELS, STAGE_LABELS, riskTagLabel } from '../../core/labels';
-import { CatalogItem, Kpis, OpsOrder } from '../../core/models';
+import { RISK_TAG_LABELS, riskTagLabel } from '../../core/labels';
+import { CatalogItem, Kpis } from '../../core/models';
 
-/** Torre de Controle: KPIs da operação + manutenção do catálogo de acessibilidade. */
+/** Operação: indicadores das casas + manutenção do catálogo de acessibilidade. */
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -22,7 +22,6 @@ export class AdminPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly kpis = signal<Kpis | null>(null);
-  readonly carteira = signal<OpsOrder[]>([]);
   readonly catalog = signal<CatalogItem[]>([]);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
@@ -40,20 +39,18 @@ export class AdminPageComponent implements OnInit {
     'accessibility_voice', 'hydration', 'medication_adherence',
   ];
 
-  readonly stageLabels = STAGE_LABELS;
-
   readonly riskTagLabels = RISK_TAG_LABELS;
 
   ngOnInit(): void {
     this.loadCatalog();
     if (this.isAdmin()) {
-      // NOC não espera F5: KPIs e carteira se renovam juntos a cada 10s. Num tick com erro
-      // o último valor fica na tela — o banner só aparece se nunca houve KPI carregado.
+      // A Operação não espera F5: os indicadores se renovam a cada 10s. Num tick com erro o
+      // último valor fica na tela — o banner só aparece se nunca houve KPI carregado.
       interval(10_000)
         .pipe(
           startWith(0),
           switchMap(() =>
-            forkJoin({ kpis: this.api.kpis(), carteira: this.api.opsOrders() }).pipe(
+            forkJoin({ kpis: this.api.kpis() }).pipe(
               catchError((err) => {
                 if (!this.kpis()) {
                   this.error.set(errorMessage(err));
@@ -64,10 +61,7 @@ export class AdminPageComponent implements OnInit {
           ),
           takeUntilDestroyed(this.destroyRef),
         )
-        .subscribe(({ kpis, carteira }) => {
-          this.kpis.set(kpis);
-          this.carteira.set(carteira);
-        });
+        .subscribe(({ kpis }) => this.kpis.set(kpis));
     }
   }
 
