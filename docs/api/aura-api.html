@@ -63,12 +63,12 @@
 <body>
 <div class="topo">
   <h1>AURA Care-Chain API <span style="color:var(--muted);font-size:13px">v1.0.0</span></h1>
-  <p>43 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
+  <p>51 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
      contas de demonstração: <code>ana@aura.com</code> · <code>admin@aura.com</code> — senha <code>aura1234</code></p>
   <input class="busca" id="busca" type="search" placeholder="Filtrar por rota, método ou descrição…" autocomplete="off">
 </div>
 <div class="layout">
-  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">9</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">1</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a></nav>
+  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">9</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#51-Reposição">5.1 Reposição<span class="cont">1</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">2</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a><a href="#9-Inteligência-no-banco-(Oracle)">9. Inteligência no banco (Oracle)<span class="cont">6</span></a></nav>
   <main>
     <section class="grupo" id="0-Meta">
       <h2>0. Meta</h2>
@@ -390,7 +390,7 @@
     &quot;factorLabels&quot;: [
       &quot;quase-queda relatada&quot;,
       &quot;ausência de barra de apoio&quot;,
-      &quot;ausência de piso anti-derrapante&quot;
+      &quot;ausência de piso antiderrapante&quot;
     ],
     &quot;explanation&quot;: &quot;Norma NBR 9050 → risco ALTO. Fatores: quase-queda relatada, ausência de barra de apoio.&quot;,
     &quot;configVersion&quot;: &quot;2026-06-14&quot;
@@ -426,7 +426,7 @@
     &quot;factorLabels&quot;: [
       &quot;quase-queda relatada&quot;,
       &quot;ausência de barra de apoio&quot;,
-      &quot;ausência de piso anti-derrapante&quot;
+      &quot;ausência de piso antiderrapante&quot;
     ],
     &quot;explanation&quot;: &quot;Norma NBR 9050 → risco ALTO. Fatores: quase-queda relatada, ausência de barra de apoio.&quot;,
     &quot;configVersion&quot;: &quot;2026-06-14&quot;
@@ -484,7 +484,7 @@
   &quot;factorLabels&quot;: [
     &quot;quase-queda relatada&quot;,
     &quot;ausência de barra de apoio&quot;,
-    &quot;ausência de piso anti-derrapante&quot;
+    &quot;ausência de piso antiderrapante&quot;
   ],
   &quot;explanation&quot;: &quot;Norma NBR 9050 → risco ALTO. Fatores: quase-queda relatada, ausência de barra de apoio.&quot;,
   &quot;configVersion&quot;: &quot;2026-06-14&quot;
@@ -537,6 +537,7 @@
     ],
     &quot;notes&quot;: &quot;string&quot;,
     &quot;active&quot;: true,
+    &quot;stockDoses&quot;: 0,
     &quot;createdAt&quot;: &quot;string&quot;
   }
 ]</pre></div>
@@ -558,7 +559,8 @@
     &quot;20:00&quot;
   ],
   &quot;notes&quot;: &quot;tomar com alimento&quot;,
-  &quot;active&quot;: true
+  &quot;active&quot;: true,
+  &quot;stockDoses&quot;: 60
 }</pre></div>
         <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
   &quot;id&quot;: &quot;string&quot;,
@@ -570,6 +572,7 @@
   ],
   &quot;notes&quot;: &quot;string&quot;,
   &quot;active&quot;: true,
+  &quot;stockDoses&quot;: 0,
   &quot;createdAt&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">400</span><code class="erro">VALIDATION_ERROR</code><span class="desc">Horário fora do formato &quot;HH:mm&quot;</span></li><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">CONSENT_REQUIRED</code><span class="desc">Consentimento LGPD não aceito (RN-001)</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
@@ -604,7 +607,8 @@
     &quot;20:00&quot;
   ],
   &quot;notes&quot;: &quot;string&quot;,
-  &quot;active&quot;: true
+  &quot;active&quot;: true,
+  &quot;stockDoses&quot;: 0
 }</pre></div>
         <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
   &quot;id&quot;: &quot;string&quot;,
@@ -616,6 +620,7 @@
   ],
   &quot;notes&quot;: &quot;string&quot;,
   &quot;active&quot;: true,
+  &quot;stockDoses&quot;: 0,
   &quot;createdAt&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">400</span><code class="erro">VALIDATION_ERROR</code><span class="desc">Horário fora do formato &quot;HH:mm&quot;</span></li><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
@@ -633,7 +638,8 @@
 }</pre></div>
         <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
   &quot;signalId&quot;: &quot;string&quot;,
-  &quot;taken&quot;: true
+  &quot;taken&quot;: true,
+  &quot;stockDoses&quot;: 0
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">CONSENT_REQUIRED</code><span class="desc">Consentimento LGPD não aceito (RN-001)</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
@@ -659,7 +665,9 @@
     &quot;installable&quot;: true,
     &quot;normRef&quot;: &quot;string&quot;,
     &quot;riskTag&quot;: &quot;string&quot;,
-    &quot;stockNearby&quot;: 0
+    &quot;stockNearby&quot;: 0,
+    &quot;partner&quot;: &quot;string&quot;,
+    &quot;productUrl&quot;: &quot;string&quot;
   }
 ]</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
@@ -695,7 +703,9 @@
   &quot;installable&quot;: true,
   &quot;normRef&quot;: &quot;string&quot;,
   &quot;riskTag&quot;: &quot;string&quot;,
-  &quot;stockNearby&quot;: 0
+  &quot;stockNearby&quot;: 0,
+  &quot;partner&quot;: &quot;string&quot;,
+  &quot;productUrl&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">SKU já existe</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
@@ -724,7 +734,9 @@
   &quot;installable&quot;: true,
   &quot;normRef&quot;: &quot;string&quot;,
   &quot;riskTag&quot;: &quot;string&quot;,
-  &quot;stockNearby&quot;: 0
+  &quot;stockNearby&quot;: 0,
+  &quot;partner&quot;: &quot;string&quot;,
+  &quot;productUrl&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">SKU já existe</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
@@ -753,7 +765,9 @@
   &quot;installable&quot;: true,
   &quot;normRef&quot;: &quot;string&quot;,
   &quot;riskTag&quot;: &quot;string&quot;,
-  &quot;stockNearby&quot;: 0
+  &quot;stockNearby&quot;: 0,
+  &quot;partner&quot;: &quot;string&quot;,
+  &quot;productUrl&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">409</span><code class="erro">CONFLICT</code><span class="desc">SKU já existe</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
@@ -814,7 +828,9 @@
     &quot;installable&quot;: true,
     &quot;installationIncluded&quot;: false,
     &quot;installationPrice&quot;: 149.9,
-    &quot;normRef&quot;: &quot;NBR 9050&quot;
+    &quot;normRef&quot;: &quot;NBR 9050&quot;,
+    &quot;partner&quot;: &quot;Leroy Merlin&quot;,
+    &quot;productUrl&quot;: &quot;https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567&quot;
   }
 ]</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
@@ -845,6 +861,11 @@
     &quot;distanceM&quot;: 0,
     &quot;status&quot;: &quot;string&quot;,
     &quot;durationS&quot;: 0,
+    &quot;progressPct&quot;: 62,
+    &quot;currentPosition&quot;: [
+      -46.6462,
+      -23.5527
+    ],
     &quot;route&quot;: {
       &quot;type&quot;: &quot;LineString&quot;,
       &quot;coordinates&quot;: [
@@ -912,7 +933,9 @@
   &quot;installable&quot;: true,
   &quot;installationIncluded&quot;: false,
   &quot;installationPrice&quot;: 149.9,
-  &quot;normRef&quot;: &quot;NBR 9050&quot;
+  &quot;normRef&quot;: &quot;NBR 9050&quot;,
+  &quot;partner&quot;: &quot;Leroy Merlin&quot;,
+  &quot;productUrl&quot;: &quot;https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">422</span><code class="erro">NO_PRODUCT</code><span class="desc">Escore não pertence à casa, sem produto para o risco, ou consentimento ausente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
@@ -960,8 +983,40 @@
   &quot;installable&quot;: true,
   &quot;installationIncluded&quot;: false,
   &quot;installationPrice&quot;: 149.9,
-  &quot;normRef&quot;: &quot;NBR 9050&quot;
+  &quot;normRef&quot;: &quot;NBR 9050&quot;,
+  &quot;partner&quot;: &quot;Leroy Merlin&quot;,
+  &quot;productUrl&quot;: &quot;https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567&quot;
 }</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+    </section>
+    <section class="grupo" id="51-Reposição">
+      <h2>5.1 Reposição</h2>
+      
+      <article class="op" data-busca="post /api/v1/homes/{homeid}/replenishment/check projeta o estoque de cada medicação contra o consumo confirmado e a régua da cadeia">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/homes/{homeId}/replenishment/check</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Projeta o estoque de cada medicação contra o consumo confirmado e a régua da cadeia</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>homeId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>[
+  {
+    &quot;medicationId&quot;: &quot;string&quot;,
+    &quot;medicationName&quot;: &quot;string&quot;,
+    &quot;stockDoses&quot;: 0,
+    &quot;avgDosesPerDay&quot;: 2.8,
+    &quot;daysOfSupply&quot;: 4.7,
+    &quot;leadTimeHours&quot;: 24,
+    &quot;safetyStockDays&quot;: 4,
+    &quot;thresholdDays&quot;: 5.0,
+    &quot;suggested&quot;: true,
+    &quot;recommendationId&quot;: &quot;string&quot;,
+    &quot;reason&quot;: &quot;string&quot;
+  }
+]</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
     </section>
@@ -994,6 +1049,30 @@
     }
   ]
 }</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="get /api/v1/ops/orders carteira de pedidos: os 20 mais recentes, com estágio, nó e sla">
+        <header>
+          <span class="metodo" style="background:#58a6ff22;color:#58a6ff;border-color:#58a6ff55">GET</span>
+          <code class="rota">/api/v1/ops/orders</code>
+          <span class="selo admin">admin</span>
+        </header>
+        <p class="resumo">Carteira de pedidos: os 20 mais recentes, com estágio, nó e SLA</p>
+        
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>[
+  {
+    &quot;id&quot;: &quot;string&quot;,
+    &quot;sku&quot;: &quot;string&quot;,
+    &quot;productName&quot;: &quot;string&quot;,
+    &quot;stage&quot;: &quot;string&quot;,
+    &quot;nodeName&quot;: &quot;string&quot;,
+    &quot;slaDueAt&quot;: &quot;string&quot;,
+    &quot;slaBreached&quot;: true,
+    &quot;etaDelivery&quot;: &quot;string&quot;,
+    &quot;createdAt&quot;: &quot;string&quot;
+  }
+]</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
     </section>
@@ -1120,6 +1199,132 @@
   &quot;spokenMessage&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Emergência inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+    </section>
+    <section class="grupo" id="9-Inteligência-no-banco-(Oracle)">
+      <h2>9. Inteligência no banco (Oracle)</h2>
+      
+      <article class="op" data-busca="post /api/v1/alertas/{alertaid}/visto marca o aviso como visto por quem cuida">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/alertas/{alertaId}/visto</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Marca o aviso como visto por quem cuida</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>alertaId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;id&quot;: &quot;string&quot;,
+  &quot;status&quot;: &quot;visto&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="get /api/v1/homes/{homeid}/alertas avisos que o banco gravou para a casa, mais recentes primeiro (máx. 20)">
+        <header>
+          <span class="metodo" style="background:#58a6ff22;color:#58a6ff;border-color:#58a6ff55">GET</span>
+          <code class="rota">/api/v1/homes/{homeId}/alertas</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Avisos que o banco gravou para a casa, mais recentes primeiro (máx. 20)</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>homeId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;engine&quot;: &quot;oracle&quot;,
+  &quot;alertas&quot;: [
+    {
+      &quot;id&quot;: &quot;string&quot;,
+      &quot;regra&quot;: &quot;QUASE_QUEDA&quot;,
+      &quot;severidade&quot;: &quot;alta&quot;,
+      &quot;mensagem&quot;: &quot;Quase-queda registrada · banheiro · por voz · 04/10 14:32&quot;,
+      &quot;status&quot;: &quot;aberto&quot;,
+      &quot;criadoEm&quot;: &quot;string&quot;
+    }
+  ]
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="post /api/v1/homes/{homeid}/alertas/processar roda prc_registrar_alertas agora; repetir não duplica aviso">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/homes/{homeId}/alertas/processar</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Roda PRC_REGISTRAR_ALERTAS agora; repetir não duplica aviso</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>homeId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;engine&quot;: &quot;oracle&quot;,
+  &quot;novos&quot;: 0
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="get /api/v1/homes/{homeid}/relatorio-consumo relatório de consumo por medicação (prc_relatorio_consumo); padrão: últimos 7 dias">
+        <header>
+          <span class="metodo" style="background:#58a6ff22;color:#58a6ff;border-color:#58a6ff55">GET</span>
+          <code class="rota">/api/v1/homes/{homeId}/relatorio-consumo</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Relatório de consumo por medicação (PRC_RELATORIO_CONSUMO); padrão: últimos 7 dias</p>
+        <div class="bloco"><span class="rotulo">parâmetros</span><ul class="params"><li><code>homeId</code><span class="tipo">string</span><span class="onde">path</span> <span class=obrig>obrigatório</span></li><li><code>de</code><span class="tipo">string</span><span class="onde">query</span></li><li><code>ate</code><span class="tipo">string</span><span class="onde">query</span></li></ul></div>
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;engine&quot;: &quot;oracle&quot;,
+  &quot;de&quot;: &quot;string&quot;,
+  &quot;ate&quot;: &quot;string&quot;,
+  &quot;totalDoses&quot;: 0,
+  &quot;demandaEncaminhadaReais&quot;: 0.0,
+  &quot;itens&quot;: [
+    {
+      &quot;medicamento&quot;: &quot;string&quot;,
+      &quot;dosesConfirmadas&quot;: 0,
+      &quot;dosesNegadas&quot;: 0,
+      &quot;dosesEsperadas&quot;: 0,
+      &quot;adesaoPct&quot;: 0.0,
+      &quot;estoqueDoses&quot;: 0
+    }
+  ]
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="get /api/v1/ops/indicadores indicadores por casa do último dia consolidado (somente admin)">
+        <header>
+          <span class="metodo" style="background:#58a6ff22;color:#58a6ff;border-color:#58a6ff55">GET</span>
+          <code class="rota">/api/v1/ops/indicadores</code>
+          <span class="selo admin">admin</span>
+        </header>
+        <p class="resumo">Indicadores por casa do último dia consolidado (somente admin)</p>
+        
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;engine&quot;: &quot;oracle&quot;,
+  &quot;dataRef&quot;: &quot;string&quot;,
+  &quot;casas&quot;: [
+    {
+      &quot;homeId&quot;: &quot;string&quot;,
+      &quot;casa&quot;: &quot;string&quot;,
+      &quot;adesaoPct&quot;: 0.0,
+      &quot;variacaoPassosPct&quot;: 0.0,
+      &quot;alertasAbertos&quot;: 0,
+      &quot;atualizadoEm&quot;: &quot;string&quot;
+    }
+  ]
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="post /api/v1/ops/indicadores/consolidar roda prc_consolidar_indicadores agora (somente admin)">
+        <header>
+          <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
+          <code class="rota">/api/v1/ops/indicadores/consolidar</code>
+          <span class="selo admin">admin</span>
+        </header>
+        <p class="resumo">Roda PRC_CONSOLIDAR_INDICADORES agora (somente admin)</p>
+        
+        
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;engine&quot;: &quot;oracle&quot;,
+  &quot;casasProcessadas&quot;: 0
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
     </section><p class="vazio" id="vazio" hidden>Nenhuma rota encontrada.</p></main>
 </div>
