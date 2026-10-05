@@ -55,6 +55,7 @@ describe('ApiService', () => {
     const corpo = {
       name: 'Barra 90cm', category: 'Barra de apoio', price: 99.9,
       installable: true, normRef: 'NBR 9050', riskTag: 'fall_bathroom', stockNearby: 3,
+      partner: null, productUrl: null,
     };
 
     api.saveProduct('LM-NOVO', corpo, true).subscribe();
