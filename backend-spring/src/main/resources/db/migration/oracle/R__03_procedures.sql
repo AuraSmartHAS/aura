@@ -46,6 +46,7 @@ CREATE OR REPLACE PROCEDURE prc_registrar_alertas (
     v_dias   NUMBER;
     v_desde  TIMESTAMP WITH TIME ZONE;
     v_valor  NUMBER;
+    v_chave  VARCHAR2(64);
 
     -- Grava um aviso; se a mesma regra já avisou sobre a mesma chave, não faz nada.
     PROCEDURE registrar (
@@ -83,8 +84,10 @@ BEGIN
             END LOOP;
 
         ELSIF r.codigo = 'DOSES_NEGADAS' THEN
-            SELECT COUNT(*)
-              INTO v_valor
+            -- A chave é a dose negada mais recente: o aviso só se repete quando há negação nova,
+            -- e não a cada dia em que as mesmas doses de ontem continuam dentro da janela.
+            SELECT COUNT(*), MAX(RAWTOHEX(id)) KEEP (DENSE_RANK LAST ORDER BY captured_at)
+              INTO v_valor, v_chave
               FROM signals
              WHERE home_id = p_home_id
                AND type = 'ADHERENCE'
@@ -94,7 +97,7 @@ BEGIN
             IF v_valor >= r.limiar THEN
                 registrar(r.codigo, r.severidade,
                           v_valor || ' doses não confirmadas nas últimas ' || v_janela || ' h',
-                          v_hoje);
+                          v_chave);
             END IF;
 
         ELSIF r.codigo = 'ADESAO_BAIXA' THEN
@@ -214,9 +217,8 @@ BEGIN
                    AND JSON_VALUE(s.signal_value, '$.taken') = 'false'
                    AND s.captured_at >= v_inicio
                    AND s.captured_at < v_fim) AS doses_negadas,
-               (SELECT COUNT(*)
-                  FROM JSON_TABLE(m.schedule, '$[*]' COLUMNS (hora VARCHAR2(5) PATH '$'))) * v_dias
-                   AS doses_esperadas,
+               -- Só os horários que já venceram, desde que a medicação começou a ser acompanhada.
+               fn_doses_esperadas(m.id, v_inicio, v_fim) AS doses_esperadas,
                fn_taxa_adesao(p_home_id, m.id, v_dias, v_fim) AS adesao_pct,
                m.stock_doses AS estoque_doses
           FROM medications m

@@ -61,6 +61,36 @@ class OraclePlsqlTest extends OracleTestSupport {
     }
 
     @Test
+    void adesaoNaoCobraDiasAntesDeAMedicacaoComecar() {
+        // Remédio cadastrado hoje, com as duas doses do dia (00:00 e 00:01, já vencidas a qualquer
+        // hora do dia) confirmadas. Cobrar 7 dias de doses daria 2/14 = 14,3% e um aviso de adesão
+        // baixa no primeiro dia de uso; o certo é 100%.
+        byte[] casa = casa("Antônio R.");
+        byte[] remedio = jdbc.queryForObject("SELECT SYS_GUID() FROM dual", byte[].class);
+        try {
+            jdbc.update("""
+                    INSERT INTO medications (id, home_id, name, dosage, schedule, notes, stock_doses, active, created_at)
+                    VALUES (?, ?, 'Remedio novo (teste)', NULL, '["00:00","00:01"]', NULL, 10, 1, SYSTIMESTAMP)""",
+                    remedio, casa);
+            for (int i = 0; i < 2; i++) {
+                jdbc.update("""
+                        INSERT INTO signals (id, home_id, type, source, signal_value, captured_at)
+                        VALUES (SYS_GUID(), ?, 'ADHERENCE', 'SELF_REPORT',
+                                '{"medicationId":"' || fn_uuid_texto(?) || '","taken":true}', SYSTIMESTAMP)""",
+                        casa, remedio);
+            }
+            BigDecimal adesao = jdbc.queryForObject(
+                    "SELECT fn_taxa_adesao(?, ?, 7) FROM dual", BigDecimal.class, casa, remedio);
+            assertThat(adesao).isEqualByComparingTo("100");
+        } finally {
+            jdbc.update("""
+                    DELETE FROM signals WHERE type = 'ADHERENCE'
+                       AND JSON_VALUE(signal_value, '$.medicationId') = fn_uuid_texto(?)""", (Object) remedio);
+            jdbc.update("DELETE FROM medications WHERE id = ?", (Object) remedio);
+        }
+    }
+
+    @Test
     void descreveLeituraEmPortuguesSemVerboDeDose() {
         String texto = jdbc.queryForObject("""
                 SELECT fn_descrever_leitura(s.id) FROM signals s JOIN homes h ON h.id = s.home_id
@@ -89,6 +119,10 @@ class OraclePlsqlTest extends OracleTestSupport {
         assertThat(passos).isNegative();
         assertThatThrownBy(() -> jdbc.queryForObject(
                 "SELECT fn_variacao_rotina(id, 'pressao') FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class))
+                .hasMessageContaining("ORA-20003");
+        // Métrica nula não pode cair calada no ramo da frequência cardíaca.
+        assertThatThrownBy(() -> jdbc.queryForObject(
+                "SELECT fn_variacao_rotina(id, NULL) FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class))
                 .hasMessageContaining("ORA-20003");
     }
 

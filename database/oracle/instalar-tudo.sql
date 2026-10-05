@@ -442,11 +442,85 @@ PROMPT == R__02_functions.sql ==
 -- A autorização (quem pode ver qual casa) é do Java, antes da chamada: o PL/SQL recebe só o id.
 
 /*
+ * FN_DOSES_ESPERADAS — quantas doses a rotina declarada pedia num período (apoio)
+ * Objetivo : contar os horários do schedule (JSON) que JÁ VENCERAM entre p_de e p_ate, a partir do
+ *            dia em que a medicação passou a ser acompanhada (cadastro ou primeira confirmação no
+ *            app, o que vier antes). Remédio cadastrado ontem não deve sete dias de doses, e a dose
+ *            das 20h não está atrasada às 10h.
+ * Parâmetros (IN):
+ *   p_medication_id  medicação
+ *   p_de, p_ate      período; o fim é limitado a agora
+ * Retorno  : NUMBER >= 0, ou NULL se a medicação não existe.
+ * Exceções : NO_DATA_FOUND -> NULL; falha inesperada -> LOG_ERRO_PLSQL e relança.
+ * Exemplo  : SELECT name, fn_doses_esperadas(id, SYSTIMESTAMP - 7, SYSTIMESTAMP) FROM medications;
+ */
+CREATE OR REPLACE FUNCTION fn_doses_esperadas (
+    p_medication_id IN RAW,
+    p_de            IN TIMESTAMP WITH TIME ZONE,
+    p_ate           IN TIMESTAMP WITH TIME ZONE
+) RETURN NUMBER
+AS
+    v_schedule medications.schedule%TYPE;
+    v_criada   medications.created_at%TYPE;
+    v_primeira TIMESTAMP WITH TIME ZONE;
+    v_inicio   TIMESTAMP WITH TIME ZONE;
+    v_fim      TIMESTAMP WITH TIME ZONE := LEAST(p_ate, SYSTIMESTAMP);
+    v_dia      DATE;
+    v_ultimo   DATE;
+    v_horario  TIMESTAMP WITH TIME ZONE;
+    v_total    NUMBER := 0;
+BEGIN
+    SELECT schedule, created_at
+      INTO v_schedule, v_criada
+      FROM medications
+     WHERE id = p_medication_id;
+
+    SELECT MIN(captured_at)
+      INTO v_primeira
+      FROM signals
+     WHERE type = 'ADHERENCE'
+       AND JSON_VALUE(signal_value, '$.medicationId') = fn_uuid_texto(p_medication_id);
+
+    -- O acompanhamento começa no início do dia (Brasília) do cadastro ou da primeira confirmação.
+    v_inicio := FROM_TZ(CAST(TRUNC(CAST(LEAST(v_criada, NVL(v_primeira, v_criada))
+                        AT TIME ZONE 'America/Sao_Paulo' AS DATE)) AS TIMESTAMP), 'America/Sao_Paulo');
+    v_inicio := GREATEST(v_inicio, p_de);
+    IF v_fim <= v_inicio THEN
+        RETURN 0;
+    END IF;
+
+    -- Um horário por dia, de cada linha do schedule, no relógio de quem toma o remédio.
+    v_dia    := TRUNC(CAST(v_inicio AT TIME ZONE 'America/Sao_Paulo' AS DATE));
+    v_ultimo := TRUNC(CAST(v_fim AT TIME ZONE 'America/Sao_Paulo' AS DATE));
+    WHILE v_dia <= v_ultimo LOOP
+        FOR h IN (SELECT hora FROM JSON_TABLE(v_schedule, '$[*]' COLUMNS (hora VARCHAR2(5) PATH '$'))) LOOP
+            v_horario := FROM_TZ(CAST(v_dia AS TIMESTAMP)
+                                 + NUMTODSINTERVAL(TO_NUMBER(SUBSTR(h.hora, 1, 2)), 'HOUR')
+                                 + NUMTODSINTERVAL(TO_NUMBER(SUBSTR(h.hora, 4, 2)), 'MINUTE'),
+                                 'America/Sao_Paulo');
+            IF v_horario >= v_inicio AND v_horario <= v_fim THEN
+                v_total := v_total + 1;
+            END IF;
+        END LOOP;
+        v_dia := v_dia + 1;
+    END LOOP;
+    RETURN v_total;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN NULL;
+    WHEN OTHERS THEN
+        prc_log_erro('FN_DOSES_ESPERADAS', SQLCODE, SQLERRM);
+        RAISE;
+END fn_doses_esperadas;
+/
+
+/*
  * FN_TAXA_ADESAO — o indicador
  * Objetivo : % de doses confirmadas sobre as doses esperadas pela rotina declarada de remédios.
- *            Esperadas = horários do schedule (JSON) × dias da janela, só para as medicações
- *            acompanhadas pelo app (com ao menos uma confirmação registrada). Uma medicação que
- *            nunca foi marcada no app não é "baixa adesão"; é ausência de dado.
+ *            Esperadas = horários do schedule (JSON) que já venceram na janela, contados por
+ *            FN_DOSES_ESPERADAS a partir do dia em que cada medicação começou a ser acompanhada,
+ *            só para as medicações acompanhadas pelo app (com ao menos uma confirmação registrada).
+ *            Uma medicação que nunca foi marcada no app não é "baixa adesão"; é ausência de dado.
  * Parâmetros (IN):
  *   p_home_id        casa (RAW(16))
  *   p_medication_id  uma medicação específica; NULL = todas as acompanhadas da casa
@@ -467,7 +541,6 @@ CREATE OR REPLACE FUNCTION fn_taxa_adesao (
 AS
     v_ate          TIMESTAMP WITH TIME ZONE := NVL(p_ate, SYSTIMESTAMP);
     v_desde        TIMESTAMP WITH TIME ZONE;
-    v_doses_dia    NUMBER;
     v_esperadas    NUMBER;
     v_confirmadas  NUMBER;
 BEGIN
@@ -476,11 +549,10 @@ BEGIN
     END IF;
     v_desde := v_ate - NUMTODSINTERVAL(p_dias, 'DAY');
 
-    -- Doses por dia das medicações acompanhadas: uma linha por horário do schedule.
-    SELECT COUNT(*)
-      INTO v_doses_dia
-      FROM medications m,
-           JSON_TABLE(m.schedule, '$[*]' COLUMNS (hora VARCHAR2(5) PATH '$')) h
+    -- Doses esperadas das medicações acompanhadas, só as que já venceram na janela.
+    SELECT NVL(SUM(fn_doses_esperadas(m.id, v_desde, v_ate)), 0)
+      INTO v_esperadas
+      FROM medications m
      WHERE m.home_id = p_home_id
        AND m.active = 1
        AND (p_medication_id IS NULL OR m.id = p_medication_id)
@@ -490,7 +562,6 @@ BEGIN
                       AND s.type = 'ADHERENCE'
                       AND JSON_VALUE(s.signal_value, '$.medicationId') = fn_uuid_texto(m.id));
 
-    v_esperadas := v_doses_dia * p_dias;
     IF v_esperadas = 0 THEN
         RETURN NULL;
     END IF;
@@ -663,8 +734,9 @@ AS
     v_recente  NUMBER;
     v_base     NUMBER;
 BEGIN
-    IF p_metrica NOT IN ('steps', 'sleepHours', 'restingHeartRate') THEN
-        RAISE_APPLICATION_ERROR(-20003, 'Métrica da pulseira desconhecida: ' || p_metrica);
+    -- Sem o IS NULL, uma métrica nula passaria pelo NOT IN (que dá NULL) e cairia calada no ramo da FC.
+    IF p_metrica IS NULL OR p_metrica NOT IN ('steps', 'sleepHours', 'restingHeartRate') THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Métrica da pulseira desconhecida: ' || NVL(p_metrica, '(vazia)'));
     END IF;
     v_corte  := v_agora - NUMTODSINTERVAL(p_dias_recentes, 'DAY');
     v_inicio := v_corte - NUMTODSINTERVAL(p_dias_base, 'DAY');
@@ -752,6 +824,7 @@ CREATE OR REPLACE PROCEDURE prc_registrar_alertas (
     v_dias   NUMBER;
     v_desde  TIMESTAMP WITH TIME ZONE;
     v_valor  NUMBER;
+    v_chave  VARCHAR2(64);
 
     -- Grava um aviso; se a mesma regra já avisou sobre a mesma chave, não faz nada.
     PROCEDURE registrar (
@@ -789,8 +862,10 @@ BEGIN
             END LOOP;
 
         ELSIF r.codigo = 'DOSES_NEGADAS' THEN
-            SELECT COUNT(*)
-              INTO v_valor
+            -- A chave é a dose negada mais recente: o aviso só se repete quando há negação nova,
+            -- e não a cada dia em que as mesmas doses de ontem continuam dentro da janela.
+            SELECT COUNT(*), MAX(RAWTOHEX(id)) KEEP (DENSE_RANK LAST ORDER BY captured_at)
+              INTO v_valor, v_chave
               FROM signals
              WHERE home_id = p_home_id
                AND type = 'ADHERENCE'
@@ -800,7 +875,7 @@ BEGIN
             IF v_valor >= r.limiar THEN
                 registrar(r.codigo, r.severidade,
                           v_valor || ' doses não confirmadas nas últimas ' || v_janela || ' h',
-                          v_hoje);
+                          v_chave);
             END IF;
 
         ELSIF r.codigo = 'ADESAO_BAIXA' THEN
@@ -920,9 +995,8 @@ BEGIN
                    AND JSON_VALUE(s.signal_value, '$.taken') = 'false'
                    AND s.captured_at >= v_inicio
                    AND s.captured_at < v_fim) AS doses_negadas,
-               (SELECT COUNT(*)
-                  FROM JSON_TABLE(m.schedule, '$[*]' COLUMNS (hora VARCHAR2(5) PATH '$'))) * v_dias
-                   AS doses_esperadas,
+               -- Só os horários que já venceram, desde que a medicação começou a ser acompanhada.
+               fn_doses_esperadas(m.id, v_inicio, v_fim) AS doses_esperadas,
                fn_taxa_adesao(p_home_id, m.id, v_dias, v_fim) AS adesao_pct,
                m.stock_doses AS estoque_doses
           FROM medications m
