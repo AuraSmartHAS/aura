@@ -1,0 +1,195 @@
+erDiagram
+    ALERTA {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        VARCHAR2(30) regra FK "NOT NULL"
+        VARCHAR2(10) severidade "NOT NULL"
+        VARCHAR2(400) mensagem "NOT NULL"
+        RAW(16) signal_id FK
+        VARCHAR2(64) chave_dedup "NOT NULL"
+        VARCHAR2(10) status "NOT NULL"
+        TIMESTAMP_TZ criado_em "NOT NULL"
+        TIMESTAMP_TZ visto_em
+    }
+    CONSENTS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) user_id FK "NOT NULL"
+        VARCHAR2(255) version "NOT NULL"
+        TIMESTAMP_TZ accepted_at "NOT NULL"
+    }
+    EMERGENCIES {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        RAW(16) triggered_by_user_id FK
+        VARCHAR2(20) channel "NOT NULL"
+        VARCHAR2(30) state "NOT NULL"
+        TIMESTAMP_TZ created_at "NOT NULL"
+        TIMESTAMP_TZ dispatch_due_at "NOT NULL"
+        TIMESTAMP_TZ dispatched_at
+        TIMESTAMP_TZ escalate_due_at
+        TIMESTAMP_TZ escalated_at
+        TIMESTAMP_TZ cancelled_at
+        TIMESTAMP_TZ acknowledged_at
+        RAW(16) acknowledged_by_user_id FK
+        TIMESTAMP_TZ state_changed_at "NOT NULL"
+        NUMBER(1) transport_real "NOT NULL"
+        NUMBER(10) notified_count "NOT NULL"
+        NUMBER(10) escalated_count "NOT NULL"
+        NUMBER(1) retraction_sent "NOT NULL"
+        FLOAT lat
+        FLOAT lng
+    }
+    HOMES {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) owner_user_id FK "NOT NULL"
+        VARCHAR2(255) patient_name "NOT NULL"
+        DATE birth_date
+        VARCHAR2(255) label
+        VARCHAR2(255) cep
+        VARCHAR2(255) address
+        FLOAT lat
+        FLOAT lng
+        VARCHAR2(2000) safety_checklist
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    HOME_MEMBERS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        RAW(16) user_id FK "NOT NULL"
+        VARCHAR2(20) role "NOT NULL"
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    INDICADOR_DIARIO {
+        RAW(16) home_id PK,FK "NOT NULL"
+        DATE data_ref PK "NOT NULL"
+        NUMBER(5,1) adesao_pct
+        NUMBER(6,1) variacao_passos_pct
+        NUMBER(5) alertas_abertos "NOT NULL"
+        NUMBER(5) quase_quedas "NOT NULL"
+        TIMESTAMP_TZ atualizado_em "NOT NULL"
+    }
+    LOG_ERRO_PLSQL {
+        NUMBER id PK "NOT NULL"
+        VARCHAR2(60) origem "NOT NULL"
+        NUMBER(10) codigo
+        VARCHAR2(1000) mensagem
+        TIMESTAMP_TZ registrado_em "NOT NULL"
+    }
+    MEDICATIONS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        VARCHAR2(255) name "NOT NULL"
+        VARCHAR2(255) dosage
+        VARCHAR2(500) schedule
+        VARCHAR2(500) notes
+        NUMBER(10) stock_doses
+        NUMBER(1) active "NOT NULL"
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    ORDERS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        RAW(16) recommendation_id FK "NOT NULL"
+        VARCHAR2(255) sku FK "NOT NULL"
+        VARCHAR2(255) stage "NOT NULL"
+        VARCHAR2(255) node_name
+        NUMBER(10) distance_m
+        TIMESTAMP_TZ sla_due_at
+        NUMBER(1) sla_breached "NOT NULL"
+        TIMESTAMP_TZ eta_delivery
+        TIMESTAMP_TZ delivered_at
+        TIMESTAMP_TZ install_at
+        TIMESTAMP_TZ installed_at
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    PRODUCTS {
+        VARCHAR2(255) sku PK "NOT NULL"
+        VARCHAR2(255) name "NOT NULL"
+        VARCHAR2(255) category "NOT NULL"
+        NUMBER(10,2) price "NOT NULL"
+        NUMBER(1) installable "NOT NULL"
+        VARCHAR2(255) norm_ref
+        VARCHAR2(255) risk_tag
+        NUMBER(1) featured "NOT NULL"
+        VARCHAR2(255) partner
+        VARCHAR2(500) product_url
+        NUMBER(10) stock_nearby "NOT NULL"
+    }
+    RECOMMENDATIONS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        RAW(16) score_id FK
+        RAW(16) medication_id FK
+        VARCHAR2(255) sku FK "NOT NULL"
+        VARCHAR2(500) reason "NOT NULL"
+        VARCHAR2(255) status "NOT NULL"
+        VARCHAR2(1000) factors
+        VARCHAR2(500) weights
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    REGRA_ALERTA {
+        VARCHAR2(30) codigo PK "NOT NULL"
+        VARCHAR2(200) descricao "NOT NULL"
+        VARCHAR2(10) severidade "NOT NULL"
+        NUMBER(8,2) limiar "NOT NULL"
+        NUMBER(5) janela_horas "NOT NULL"
+        NUMBER(1) ativa "NOT NULL"
+        VARCHAR2(20) versao "NOT NULL"
+    }
+    SCORES {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        VARCHAR2(255) dimension "NOT NULL"
+        VARCHAR2(1000) factors
+        VARCHAR2(500) weights
+        FLOAT score_value "NOT NULL"
+        VARCHAR2(255) risk_level "NOT NULL"
+        VARCHAR2(1000) explanation
+        VARCHAR2(255) config_version
+        TIMESTAMP_TZ explained_at "NOT NULL"
+    }
+    SIGNALS {
+        RAW(16) id PK "NOT NULL"
+        RAW(16) home_id FK "NOT NULL"
+        VARCHAR2(255) type "NOT NULL"
+        VARCHAR2(255) source "NOT NULL"
+        VARCHAR2(2000) signal_value
+        TIMESTAMP_TZ captured_at "NOT NULL"
+    }
+    STOCK_NODES {
+        RAW(16) id PK "NOT NULL"
+        VARCHAR2(255) name
+        VARCHAR2(255) type
+        FLOAT lat "NOT NULL"
+        FLOAT lng "NOT NULL"
+    }
+    USERS {
+        RAW(16) id PK "NOT NULL"
+        VARCHAR2(255) email "NOT NULL"
+        VARCHAR2(255) password_hash "NOT NULL"
+        VARCHAR2(255) role "NOT NULL"
+        VARCHAR2(255) name
+        VARCHAR2(255) fcm_token
+        TIMESTAMP_TZ created_at "NOT NULL"
+    }
+    HOMES ||--o{ ALERTA : "recebe aviso (CASCADE)"
+    REGRA_ALERTA ||--o{ ALERTA : "dispara"
+    SIGNALS |o--o{ ALERTA : "origina (SET NULL)"
+    USERS ||--o{ CONSENTS : "aceita"
+    USERS |o--o{ EMERGENCIES : "atende (SET NULL)"
+    HOMES ||--o{ EMERGENCIES : "pede socorro"
+    USERS |o--o{ EMERGENCIES : "dispara (SET NULL)"
+    USERS ||--o{ HOMES : "é dona de"
+    HOMES ||--o{ HOME_MEMBERS : "tem membros"
+    USERS ||--o{ HOME_MEMBERS : "participa"
+    HOMES ||--o{ INDICADOR_DIARIO : "fecha o dia (CASCADE)"
+    HOMES ||--o{ MEDICATIONS : "usa"
+    HOMES ||--o{ ORDERS : "encaminha"
+    RECOMMENDATIONS ||--o{ ORDERS : "vira"
+    PRODUCTS ||--o{ ORDERS : "pedido em"
+    HOMES ||--o{ RECOMMENDATIONS : "recebe"
+    MEDICATIONS |o--o{ RECOMMENDATIONS : "repõe (SET NULL)"
+    SCORES |o--o{ RECOMMENDATIONS : "motiva"
+    PRODUCTS ||--o{ RECOMMENDATIONS : "sugerido em"
+    HOMES ||--o{ SCORES : "tem risco"
+    HOMES ||--o{ SIGNALS : "registra"

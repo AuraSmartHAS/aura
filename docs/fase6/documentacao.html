@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AURA — Documentação Fase 6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Sistema visual do próprio produto (web-admin/src/styles.css): documento e tela são a mesma empresa. */
+  :root {
+    --petrol: #1A5276; --petrol-escuro: #123C56; --verde: #0E7561; --ambar: #9A6109;
+    --tinta: #10303C; --texto: #4E5D63; --apoio: #657076; --papel: #F7F5F1; --borda: #E3DED5;
+    --vermelho: #C0392B;
+  }
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
+    color: var(--texto); font-size: 10.5pt; line-height: 1.55; background: #fff;
+  }
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Segoe UI', Arial, sans-serif; color: var(--tinta); }
+  h1 { font-size: 22pt; margin: 0 0 2mm; letter-spacing: -0.01em; }
+  h2 { font-size: 14pt; margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--petrol); }
+  h3 { font-size: 11.5pt; margin: 6mm 0 2mm; color: var(--petrol); }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  strong { color: var(--tinta); }
+  code { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 8.8pt; background: var(--papel);
+         padding: 0.3mm 1.2mm; border-radius: 1.5mm; color: var(--petrol-escuro); }
+  pre { background: var(--tinta); color: #E8EEF0; padding: 4mm; border-radius: 3mm; font-size: 8.3pt;
+        line-height: 1.45; overflow: hidden; white-space: pre-wrap; font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+        page-break-inside: avoid; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm; font-size: 9.4pt; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  h2, h3 { page-break-after: avoid; break-after: avoid; }
+  /* Os DERs ganham página em paisagem: 16 tabelas em retrato viram letra miúda. */
+  @page paisagem { size: A4 landscape; margin: 12mm; }
+  .paisagem { page: paisagem; page-break-before: always; }
+  .paisagem figure { margin: 0; }
+  .paisagem figure img { max-height: 172mm; max-width: 100%; border: none; }
+  th { background: var(--papel); text-align: left; padding: 2mm 2.5mm; border-bottom: 1.5px solid var(--borda);
+       font-size: 8.3pt; text-transform: uppercase; letter-spacing: 0.04em; color: var(--apoio); }
+  td { padding: 2mm 2.5mm; border-bottom: 1px solid var(--borda); vertical-align: top; }
+  .cover { padding: 26mm 0 10mm; }
+  .cover img { width: 24mm; height: 24mm; border-radius: 6mm; margin-bottom: 8mm; }
+  .cover .kicker { color: var(--ambar); font-size: 9pt; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 3mm; font-weight: 700; }
+  .cover h1 { font-size: 34pt; color: var(--petrol-escuro); }
+  .cover .sub { font-size: 13pt; margin-top: 2mm; color: var(--tinta); }
+  .cover .ctx { color: var(--apoio); font-size: 9.5pt; margin-top: 8mm; }
+  .callout { background: var(--papel); border-left: 3px solid var(--petrol); padding: 3mm 4mm; margin: 4mm 0;
+             font-size: 9.6pt; page-break-inside: avoid; }
+  .callout--ambar { border-left-color: var(--ambar); }
+  .note { color: var(--apoio); font-size: 9pt; font-style: italic; }
+  .pendente { background: #FBF3E4; color: var(--ambar); border: 1px dashed var(--ambar); border-radius: 1.5mm;
+              padding: 0.2mm 1.5mm; font-weight: 700; font-size: 9pt; }
+  figure { margin: 4mm 0 6mm; page-break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 120mm; width: auto; display: block; margin: 0 auto;
+               border: 1px solid var(--borda); border-radius: 2mm; }
+  figcaption { font-size: 8.5pt; color: var(--apoio); margin-top: 1.5mm; text-align: center; }
+  .break { page-break-before: always; }
+  .avoid { page-break-inside: avoid; }
+  .ok { color: var(--verde); font-weight: 700; }
+  .tag { display: inline-block; background: #E6F2EF; color: var(--verde); border-radius: 999px;
+         padding: 0.2mm 2mm; font-size: 7.8pt; font-weight: 700; margin-left: 1mm; }
+  .obj { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-weight: 500; color: var(--petrol-escuro); }
+  .card { border: 1px solid var(--borda); border-radius: 3mm; padding: 3.5mm 4.5mm; margin: 4mm 0; page-break-inside: avoid; }
+  .card h3 { margin-top: 0; }
+  .card dl { display: grid; grid-template-columns: 30mm 1fr; gap: 1.2mm 4mm; margin: 0; font-size: 9.6pt; }
+  .card dt { color: var(--apoio); font-weight: 700; }
+  .card dd { margin: 0; }
+  .fluxo { display: flex; align-items: stretch; gap: 1.5mm; margin: 4mm 0; font-size: 8.6pt; page-break-inside: avoid; }
+  .fluxo div { flex: 1; border: 1px solid var(--borda); border-radius: 2mm; padding: 2mm; background: #fff; text-align: center; }
+  .fluxo div b { display: block; color: var(--petrol-escuro); font-size: 9pt; margin-bottom: 0.8mm; }
+  .fluxo span { align-self: center; color: var(--petrol); font-weight: 700; }
+  .footer-note { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--borda); color: var(--apoio); font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <img src="img/aura-logo.png" alt="AURA">
+  <p class="kicker">Documentação do projeto · Fase 6</p>
+  <h1>O banco que avisa</h1>
+  <p class="sub">Oracle PL/SQL integrado ao AURA: functions e procedures acionadas pelo back-end Java</p>
+  <p class="ctx">
+    AURA · Assistente Ubíquo de Resposta Ativa<br>
+    Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · FIAP
+  </p>
+</section>
+
+<h2 style="margin-top:4mm">Equipe</h2>
+<table>
+  <tr><th>Nome completo</th><th>RM</th><th>Papel</th></tr>
+  <tr><td>Vinícius Miranda Baptista</td><td>555081</td><td>Tech Lead</td></tr>
+  <tr><td>João Domingos Góes Filho</td><td>564465</td><td>Dev Senior Mobile</td></tr>
+  <tr><td>Pedro Henrique Arenas Negri</td><td>554971</td><td>Dev Pleno</td></tr>
+  <tr><td>Júlia Alves Dias</td><td>557151</td><td>Infra</td></tr>
+</table>
+
+<table>
+  <tr><th>Entregável</th><th>Onde</th></tr>
+  <tr><td>Código-fonte</td><td><code>github.com/AuraSmartHAS/aura</code>, branch <code>fase6</code> (também na pasta <code>codigo-fonte/</code> do ZIP)</td></tr>
+  <tr><td>Vídeo de até 5 min (YouTube, não listado)</td><td>«inserir link do YouTube (não listado)»</td></tr>
+  <tr><td>Apresentação (10 slides)</td><td><code>AURA - Apresentacao Fase 6.pdf</code></td></tr>
+  <tr><td>Scripts do banco (DDL, PL/SQL, carga, consultas)</td><td><code>banco-oracle/</code> no ZIP · <code>database/oracle/</code> e <code>backend-spring/src/main/resources/db/migration/oracle/</code> no repositório</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2>1. Onde o projeto está e o que esta fase entrega</h2>
+
+<p>
+O AURA acompanha idosos em casa por <strong>voz e pulseira</strong> e ajuda a família a cuidar da casa antes que
+falte alguma coisa. Duas pessoas usam: <strong>Maria</strong>, 74 anos, com Parkinson, que fala com o app; e
+<strong>Ana</strong>, a filha, que acompanha pelo painel e aprova toda compra. Até a Fase 5 o sistema já tinha o app
+do idoso (Flutter), o app da família (React Native), a API em Spring Boot e o painel em Angular, todos falando com
+o mesmo contrato REST. O banco era H2 nos testes e PostgreSQL no ensaio, e servia só para guardar.
+</p>
+<p>
+Na Fase 6 o banco passa a <strong>trabalhar</strong>. O mesmo back-end sobe sobre Oracle trocando apenas o perfil, o
+schema ganha chaves e regras que antes existiam só na cabeça do time, e uma camada de PL/SQL mede adesão, percebe
+mudança de rotina e grava avisos. O Java aciona essa camada sozinho, a cada leitura nova que chega pela API.
+</p>
+
+<table>
+  <tr><th style="width:24%">Pedido do enunciado</th><th>O que entregamos</th><th style="width:30%">Onde</th></tr>
+  <tr><td><strong>Parte 1</strong> · aprimorar, novas funcionalidades, refatorar, documentar</td>
+      <td>Back-end multi-banco (H2, PostgreSQL e Oracle), avisos e relatório de consumo nas telas, código morto da logística removido, CI com job do Oracle</td>
+      <td>§2 · <code>backend-spring/</code>, <code>web-admin/</code>, <code>.github/workflows/ci.yml</code></td></tr>
+  <tr><td><strong>Parte 2</strong> · modelo lógico/físico, tabelas implantadas, dados simulados, DER</td>
+      <td>16 tabelas (12 do produto + 4 de inteligência), FKs com regra de apagamento, CSV da pulseira importado por SQL*Loader, carga de 3 casas, DER</td>
+      <td>§3 · <code>db/migration/oracle/V1</code>, <code>V2</code> · <code>database/oracle/</code></td></tr>
+  <tr><td><strong>Parte 3</strong> · ≥ 2 functions, ≥ 2 procedures, uma acionada pelo back-end Java</td>
+      <td>3 functions + 3 procedures (+ 2 rotinas de apoio); <span class="obj">PRC_REGISTRAR_ALERTAS</span> roda a cada leitura recebida pela API (REST → Java → JDBC → Oracle)</td>
+      <td>§4 · <code>db/migration/oracle/R__0*.sql</code> · pacote <code>intelligence</code></td></tr>
+  <tr><td>Avaliação · documentação, código, slides, vídeo</td>
+      <td>Este PDF, o repositório, 10 slides e o vídeo com o sistema rodando sobre Oracle</td>
+      <td>ZIP da entrega</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2 class="break">2. Parte 1 · Aprimoramento da solução</h2>
+
+<h3>2.1 A decisão: um terceiro banco, não um terceiro back-end</h3>
+<p>
+O caminho mais curto para "usar Oracle" seria um projeto à parte, com JDBC puro, só para a disciplina. Descartamos:
+duplicaria regra de negócio e deixaria o Oracle desligado do produto. Também descartamos colocar toda a lógica em
+<em>triggers</em>: um trigger roda dentro do <code>INSERT</code> da leitura, então uma falha na regra de aviso
+derrubaria a gravação do dado de saúde, e a lógica ficaria invisível para quem lê o Java.
+</p>
+<p>
+A escolha foi tratar o Oracle como <strong>mais um perfil do mesmo back-end</strong>. O perfil <code>oracle</code>
+liga o Flyway com uma pasta de migrations própria (<code>db/migration/{vendor}</code>), o Hibernate apenas
+<em>confere</em> o schema na subida (<code>ddl-auto: validate</code>), e a inteligência em PL/SQL é acionada por um
+evento de domínio publicado pelo Java depois que a leitura já foi gravada.
+</p>
+<table>
+  <tr><th>Alternativa</th><th>Por que não</th></tr>
+  <tr><td>Projeto Oracle separado, só para a disciplina</td><td>Regra duplicada; o Oracle não participaria do produto nem da demo</td></tr>
+  <tr><td>Toda a lógica em triggers</td><td>Falha da regra derruba a gravação da leitura; lógica escondida do Java; difícil de testar ponta a ponta</td></tr>
+  <tr><td>Toda a lógica em Java (Oracle só como depósito)</td><td>Não atende ao enunciado e desperdiça o que o banco faz melhor: agregar perto do dado</td></tr>
+  <tr><td><strong>Perfil + Flyway por banco + PL/SQL acionado por evento</strong></td><td class="ok">Escolhida: mesmo código Java nos três bancos, schema versionado, chamada explícita e testável</td></tr>
+</table>
+
+<h3>2.2 O que foi feito e o valor que agrega</h3>
+<table>
+  <tr><th style="width:36%">Melhoria</th><th>Valor agregado</th></tr>
+  <tr><td>Migrations separadas por banco (<code>db/migration/postgresql</code> e <code>/oracle</code>)</td>
+      <td>O SQL de cada banco evolui sem vazar para o outro; bancos PostgreSQL existentes continuam válidos (move puro, mesmo checksum)</td></tr>
+  <tr><td>Coluna <code>scores.level</code> renomeada para <code>risk_level</code> em todos os bancos</td>
+      <td><code>LEVEL</code> é palavra reservada no Oracle; renomear por migration manteve o mesmo nome físico em todos os bancos, sem aspas em nenhum SQL</td></tr>
+  <tr><td>Chaves estrangeiras reais no Oracle, com regra de apagamento caso a caso</td>
+      <td>O banco recusa órfão sozinho. Três caminhos que a FK quebraria foram corrigidos no Java, com teste que reproduz o problema antes da correção (§2.3)</td></tr>
+  <tr><td>Porta <code>CareIntelligence</code> com dois adaptadores</td>
+      <td>No Oracle, chama o PL/SQL; nos outros bancos, responde "indisponível" sem erro. A suíte rápida (H2) continua rodando sem Oracle</td></tr>
+  <tr><td>Avisos da casa, consumo do período e indicadores por casa no painel</td>
+      <td>A cuidadora vê o aviso que o banco gravou sem recarregar a página; a Operação fecha os indicadores do dia com um clique</td></tr>
+  <tr><td>Remoção do código morto da logística no painel</td>
+      <td>A tela de Operação buscava a cada 10 s uma carteira de pedidos que não mostrava desde que a entrega própria saiu do produto (D-008)</td></tr>
+  <tr><td>Rótulos de tela centralizados (<code>core/labels.ts</code>)</td>
+      <td>Vocabulário em português num lugar só, com teste; nenhum código cru (<code>fall_bathroom</code>) chega à tela</td></tr>
+  <tr><td>CI com job do Oracle e varredura semanal</td>
+      <td>A suíte Oracle roda num container a cada mudança de schema; a varredura semanal pega quebra que o filtro de caminho escondia (§2.4)</td></tr>
+</table>
+
+<h3>2.3 Refatoração e padrões aplicados</h3>
+<ul>
+  <li><strong>Portas e adaptadores.</strong> O serviço de domínio depende da interface <code>CareIntelligence</code>, não do
+      Oracle. <code>OracleCareIntelligence</code> (perfil <code>oracle</code>) chama as rotinas por
+      <code>SimpleJdbcCall</code>; <code>CareIntelligenceUnavailable</code> atende os demais perfis.</li>
+  <li><strong>Evento de domínio após o commit.</strong> Quem grava a leitura publica <code>LeituraRegistrada</code>; um
+      <code>@TransactionalEventListener(AFTER_COMMIT)</code> chama a procedure numa transação própria
+      (<code>REQUIRES_NEW</code>). Sem transação própria, o <code>INSERT</code> do aviso cairia numa transação que ninguém
+      confirma e sumiria em silêncio. Se o Oracle falhar, a leitura já está salva: o aviso nunca derruba a coleta.</li>
+  <li><strong>O socorro (SOS) não entra nesse caminho.</strong> O disparo do SOS responde antes de qualquer chamada de
+      rede e já tem aviso próprio por notificação; esperar o banco ali seria piorar o caminho mais crítico do produto.</li>
+  <li><strong>Correções exigidas pelas FKs, feitas no Java para valerem em todos os bancos:</strong> excluir item do
+      catálogo que já tem histórico responde <code>409</code> em vez de <code>500</code>; excluir uma medicação desvincula a
+      recomendação de refil em vez de quebrar; excluir a conta de quem disparou ou atendeu um SOS mantém o registro do
+      socorro para a casa. Cada caso tem um teste escrito antes da correção, que falhava.</li>
+</ul>
+
+<h3>2.4 Um problema que a fase revelou</h3>
+<p>
+Ao mexer no painel, a suíte unitária não compilava: o tipo do catálogo tinha ganhado dois campos (parceiro e link) e
+o teste de salvar produto não acompanhou. A <code>main</code> estava verde mesmo assim, porque o filtro de caminho do
+CI pulava o job do painel quando o commit só tocava o back-end, e "pulado" contava como sucesso. Corrigimos o teste
+e acrescentamos ao CI uma <strong>varredura semanal</strong> que roda todos os projetos sem filtro.
+</p>
+
+<!-- ============================================================================================ -->
+<h2 class="break">3. Parte 2 · Integração do banco Oracle</h2>
+
+<h3>3.1 Modelo lógico</h3>
+<p>
+A <strong>casa</strong> é o centro do modelo. Uma pessoa (<code>USERS</code>) é dona de casas e se vincula a outras por
+<code>HOME_MEMBERS</code>, com papel de dono, cuidadora ou paciente. Cada casa acumula <strong>leituras</strong>
+(<code>SIGNALS</code>: voz, relato pelo app, uso do app e pulseira), <strong>medicações</strong> com seus horários,
+<strong>escores de risco</strong> explicados por dimensão e <strong>recomendações</strong> de itens do catálogo, que só
+viram pedido (<code>ORDERS</code>) com aprovação humana. Os pedidos de socorro (<code>EMERGENCIES</code>) guardam quem
+disparou e quem atendeu. As quatro tabelas novas da Fase 6 se penduram na casa: as <strong>regras de aviso</strong>, os
+<strong>avisos</strong> que elas geram, o <strong>indicador diário</strong> e o <strong>log de erro</strong> das rotinas.
+</p>
+
+<h3>3.2 DER (modelo relacional)</h3>
+<p>As duas figuras a seguir estão em páginas paisagem. Os arquivos em resolução cheia vão na pasta <code>banco-oracle/der/</code> do ZIP.</p>
+<section class="paisagem">
+<figure>
+  <img src="img/der-logico.png" alt="DER lógico do AURA">
+  <figcaption>Figura 1 · Modelo lógico: entidades e cardinalidades (notação pé-de-galinha). Gerado do dicionário de dados do Oracle implantado.</figcaption>
+</figure>
+</section>
+<section class="paisagem">
+<figure>
+  <img src="img/der-fisico.png" alt="DER físico do AURA">
+  <figcaption>Figura 2 · Modelo físico: as 16 tabelas com tipos Oracle, PK, FK, obrigatoriedade e regra de apagamento nas relações.
+  Gerado de <code>USER_TAB_COLUMNS</code> e <code>USER_CONSTRAINTS</code>; a fonte Mermaid está em <code>docs/fase6/der/</code>.</figcaption>
+</figure>
+</section>
+
+<h3 class="break">3.3 Modelo físico: como os tipos do Java viram tipos Oracle</h3>
+<table>
+  <tr><th>No Java</th><th>No Oracle</th><th>Por quê</th></tr>
+  <tr><td><code>UUID</code></td><td><code>RAW(16)</code></td><td>O Oracle não tem tipo UUID; <code>RAW(16)</code> é o que o Hibernate espera e o mesmo formato de <code>SYS_GUID()</code></td></tr>
+  <tr><td><code>Instant</code></td><td><code>TIMESTAMP(6) WITH TIME ZONE</code></td><td>Instante absoluto; o dia da família é calculado em <code>America/Sao_Paulo</code> no PL/SQL</td></tr>
+  <tr><td><code>boolean</code></td><td><code>NUMBER(1)</code> + <code>CHECK (x IN (0,1))</code></td><td>O <code>BOOLEAN</code> de SQL só existe no 23ai; o servidor da FIAP pode ser 19c</td></tr>
+  <tr><td><code>double</code> · <code>BigDecimal</code></td><td><code>FLOAT(53)</code> · <code>NUMBER(10,2)</code></td><td>Mapeamento padrão do dialeto Oracle do Hibernate</td></tr>
+  <tr><td>JSON livre (<code>Map</code>, listas)</td><td><code>VARCHAR2(n CHAR)</code> + <code>CHECK (col IS JSON)</code></td><td>O banco recusa JSON malformado; o PL/SQL lê com <code>JSON_VALUE</code> e <code>JSON_TABLE</code></td></tr>
+</table>
+
+<h3>3.4 Tabelas criadas</h3>
+<table>
+  <tr><th style="width:24%">Tabela</th><th>Guarda</th><th style="width:30%">Chaves</th></tr>
+  <tr><td><code>USERS</code></td><td>Contas: cuidadora, paciente, profissional, administrador</td><td>PK id · UK email</td></tr>
+  <tr><td><code>HOMES</code></td><td>Casa acompanhada e checklist de segurança (JSON)</td><td>FK dono → USERS</td></tr>
+  <tr><td><code>HOME_MEMBERS</code></td><td>Vínculo pessoa-casa e papel</td><td>FK casa, FK pessoa · UK (casa, pessoa)</td></tr>
+  <tr><td><code>CONSENTS</code></td><td>Aceite do termo LGPD por versão</td><td>FK pessoa</td></tr>
+  <tr><td><code>SIGNALS</code></td><td>Leituras da casa (JSON)</td><td>FK casa · índice (casa, data)</td></tr>
+  <tr><td><code>SCORES</code></td><td>Escore de risco explicável por dimensão</td><td>FK casa · CHECK 0–1</td></tr>
+  <tr><td><code>PRODUCTS</code></td><td>Catálogo multi-fornecedor</td><td>PK sku · CHECK preço ≥ 0</td></tr>
+  <tr><td><code>STOCK_NODES</code></td><td>Lojas e centros de distribuição</td><td>PK id</td></tr>
+  <tr><td><code>MEDICATIONS</code></td><td>Medicações, horários (JSON) e estoque de doses</td><td>FK casa · CHECK estoque ≥ 0</td></tr>
+  <tr><td><code>RECOMMENDATIONS</code></td><td>Item sugerido e o motivo</td><td>FK casa, escore, medicação (SET NULL), produto</td></tr>
+  <tr><td><code>ORDERS</code></td><td>Demanda aprovada e encaminhada ao parceiro</td><td>FK casa, recomendação, produto</td></tr>
+  <tr><td><code>EMERGENCIES</code></td><td>Pedidos de socorro e seu ciclo</td><td>FK casa · FK quem disparou/atendeu (SET NULL)</td></tr>
+  <tr><td><code>REGRA_ALERTA</code> <span class="tag">nova</span></td><td>Limiares versionados das regras de aviso</td><td>PK código · CHECK severidade</td></tr>
+  <tr><td><code>ALERTA</code> <span class="tag">nova</span></td><td>Avisos gravados pela procedure</td><td>FK casa (CASCADE), regra, leitura (SET NULL) · UK (casa, regra, chave)</td></tr>
+  <tr><td><code>INDICADOR_DIARIO</code> <span class="tag">nova</span></td><td>Fechamento diário por casa</td><td>PK (casa, data) · FK casa (CASCADE)</td></tr>
+  <tr><td><code>LOG_ERRO_PLSQL</code> <span class="tag">nova</span></td><td>Falhas das rotinas, sem dado de saúde</td><td>PK identity</td></tr>
+</table>
+
+<h3>3.5 Regras de apagamento (por que cada FK é como é)</h3>
+<ul>
+  <li><strong><code>home_id</code> → <code>HOMES</code>, NO ACTION</strong> nas tabelas do produto: a exclusão LGPD apaga os filhos antes da casa; a FK garante que ninguém pule essa ordem.</li>
+  <li><strong><code>ALERTA</code> e <code>INDICADOR_DIARIO</code>, CASCADE:</strong> são dado derivado da casa e saem junto com ela.</li>
+  <li><strong>Medicação e autores do SOS, SET NULL:</strong> a recomendação de refil e o registro do socorro sobrevivem à exclusão da medicação ou da conta de quem agiu.</li>
+  <li><strong><code>sku</code> → <code>PRODUCTS</code>, NO ACTION:</strong> item com histórico não some do catálogo; a API responde <code>409</code> antes de tentar.</li>
+</ul>
+
+<h3>3.6 Implantação</h3>
+<p>
+O schema e o PL/SQL são migrations do Flyway: <code>V1__esquema_aura.sql</code> (12 tabelas),
+<code>V2__inteligencia_cuidado.sql</code> (4 tabelas + carga das regras) e as repetíveis <code>R__01_apoio</code>,
+<code>R__02_functions</code> e <code>R__03_procedures</code>, reaplicadas sempre que mudam. O back-end, ao subir no perfil
+<code>oracle</code>, cria tudo num schema vazio e o Hibernate confere tabela por tabela. Para quem quer instalar sem o app
+(SQL Developer ou o servidor Oracle da FIAP), <code>database/oracle/instalar-tudo.sql</code> é gerado das mesmas
+migrations e <strong>para antes de criar qualquer coisa</strong> se o usuário já tiver uma tabela com nome do AURA: ele
+nunca apaga trabalho de outra disciplina. Nada usa recurso exclusivo do 23ai (BOOLEAN em SQL, <code>IF NOT EXISTS</code>,
+<code>VALUES</code> com várias linhas, <code>SELECT</code> sem <code>FROM</code>).
+</p>
+
+<h3>3.7 Dados simulados importados</h3>
+<p>
+Além das contas e da casa da Maria que o app cria, a carga traz <strong>três casas com perfis opostos</strong>, para que
+os indicadores e os avisos tenham o que mostrar:
+</p>
+<table>
+  <tr><th>Casa</th><th>Perfil simulado</th><th>O que o banco deve perceber</th></tr>
+  <tr><td>Dona Lúcia</td><td>Toma quase tudo no horário; rotina estável</td><td>Adesão alta, nenhum aviso</td></tr>
+  <tr><td>Seu Jorge</td><td>Esquece cerca de 4 em 10 doses; nada confirmado nas últimas 48 h</td><td>Avisos de doses não confirmadas e de adesão baixa</td></tr>
+  <tr><td>Dona Celina</td><td>Passos da pulseira caem pela metade nos últimos 3 dias</td><td>Aviso de mudança de rotina</td></tr>
+</table>
+<ul>
+  <li><strong>Importação de arquivo:</strong> 21 dias de leituras da pulseira (<code>dados/leituras-pulseira.csv</code>,
+      63 linhas) entram por <strong>SQL*Loader</strong> numa tabela de preparo e viram leituras com um <code>MERGE</code>.</li>
+  <li><strong>Script de carga</strong> (<code>carga-simulada.sql</code>): familiares, casas, medicações, 21 dias de doses
+      geradas por um bloco PL/SQL com cursor e loop, relatos e histórico de socorro.</li>
+  <li><strong>Datas relativas a hoje</strong> (fuso de São Paulo) e <strong>chaves fixas</strong> (UUID fixo ou hash MD5,
+      que tem exatamente 16 bytes): no dia da correção os dados ainda são recentes, e rodar duas vezes não duplica.</li>
+</ul>
+
+<!-- ============================================================================================ -->
+<h2 class="break">4. Parte 3 · Procedures e functions em PL/SQL</h2>
+
+<p>
+Todas as rotinas recebem só o identificador da casa: <strong>quem pode ver qual casa é decidido no Java</strong>, antes da
+chamada. Nenhuma procedure faz <code>COMMIT</code>, porque a transação é do Spring; a exceção é o log de erro, que roda
+em transação autônoma justamente para sobreviver ao rollback de quem falhou. Erros de negócio usam a faixa
+<code>-20xxx</code>, que o Java traduz em resposta HTTP.
+</p>
+
+<table>
+  <tr><th>Objeto</th><th>Tipo</th><th>Papel no enunciado</th></tr>
+  <tr><td class="obj">FN_TAXA_ADESAO</td><td>function</td><td>Calcula um indicador relevante</td></tr>
+  <tr><td class="obj">FN_DESCREVER_LEITURA</td><td>function</td><td>Retorna dado formatado</td></tr>
+  <tr><td class="obj">FN_VARIACAO_ROTINA</td><td>function</td><td>Segundo indicador (rotina da própria pessoa)</td></tr>
+  <tr><td class="obj">PRC_REGISTRAR_ALERTAS</td><td>procedure</td><td>Registra avisos a partir de leituras críticas · <strong>acionada pelo Java</strong></td></tr>
+  <tr><td class="obj">PRC_RELATORIO_CONSUMO</td><td>procedure</td><td>Relatório resumido de consumo por casa</td></tr>
+  <tr><td class="obj">PRC_CONSOLIDAR_INDICADORES</td><td>procedure</td><td>Rotina automatizada em lote (job diário)</td></tr>
+  <tr><td class="obj">FN_UUID_TEXTO · PRC_LOG_ERRO</td><td>apoio</td><td>Conversão RAW ↔ texto do Java · log em transação autônoma</td></tr>
+</table>
+
+<h3>4.1 Functions</h3>
+
+<div class="card">
+  <h3>FN_TAXA_ADESAO — o indicador</h3>
+  <dl>
+    <dt>Objetivo</dt><dd>% de doses confirmadas sobre as esperadas pela rotina de remédios: horários do JSON × dias da janela, só das medicações que a família acompanha pelo app.</dd>
+    <dt>Parâmetros (IN)</dt><dd><code>p_home_id</code> · <code>p_medication_id</code> (NULL = todas) · <code>p_dias</code> (padrão 7) · <code>p_ate</code> (padrão agora)</dd>
+    <dt>Retorno</dt><dd><code>NUMBER</code> de 0 a 100 com uma casa, ou <code>NULL</code> sem dado. Teto de 100: dose confirmada fora do horário não vira 110%.</dd>
+    <dt>Exceções</dt><dd><code>NO_DATA_FOUND</code> e <code>ZERO_DIVIDE</code> → <code>NULL</code>; janela inválida → <code>ORA-20002</code>; inesperada → log e relança.</dd>
+    <dt>Uso em SQL</dt><dd><code>SELECT label, fn_taxa_adesao(id, NULL, 7) FROM homes;</code> · também dentro do cursor do relatório e da regra <code>ADESAO_BAIXA</code></dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h3>FN_DESCREVER_LEITURA — o dado formatado</h3>
+  <dl>
+    <dt>Objetivo</dt><dd>Transformar a leitura crua (tipo + JSON) numa frase "o quê · onde · como · quando". É o texto dos avisos.</dd>
+    <dt>Parâmetro (IN)</dt><dd><code>p_signal_id</code></dd>
+    <dt>Retorno</dt><dd><code>VARCHAR2</code> até 300 caracteres, no horário de Brasília. Ex.: "Quase-queda registrada · banheiro · pelo app · 04/10 14:32"; "Pulseira: 1.800 passos · sono 5,6 h · FC em repouso 79 bpm · pela pulseira · 04/10 07:00".</dd>
+    <dt>Exceções</dt><dd>Leitura inexistente → "Leitura não encontrada"; qualquer outra falha devolve o tipo cru, para um JSON inesperado nunca derrubar a lista de avisos.</dd>
+    <dt>Guardrail</dt><dd>Descreve o que foi observado. Nunca orienta dose nem diagnostica.</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h3>FN_VARIACAO_ROTINA — mudança de rotina percebida pela pulseira</h3>
+  <dl>
+    <dt>Objetivo</dt><dd>Comparar a média recente de uma métrica (passos, sono, FC de repouso) com a linha de base da <strong>própria pessoa</strong>. 1.800 passos pode ser normal para alguém e queda forte para outra pessoa: não há faixa clínica.</dd>
+    <dt>Parâmetros (IN)</dt><dd><code>p_home_id</code> · <code>p_metrica</code> · <code>p_dias_recentes</code> (3) · <code>p_dias_base</code> (14)</dd>
+    <dt>Retorno</dt><dd><code>NUMBER</code>, % de variação (−45,2 = 45,2% abaixo da rotina), ou <code>NULL</code> sem dado nas duas janelas.</dd>
+    <dt>Exceções</dt><dd>Métrica desconhecida → <code>ORA-20003</code>; <code>ZERO_DIVIDE</code> → <code>NULL</code>.</dd>
+  </dl>
+</div>
+
+<h3>4.2 Procedures</h3>
+
+<div class="card">
+  <h3>PRC_REGISTRAR_ALERTAS — acionada pelo back-end a cada leitura nova</h3>
+  <dl>
+    <dt>Propósito</dt><dd>Olhar a casa contra as regras ativas e gravar em <code>ALERTA</code> o que disparou.</dd>
+    <dt>Parâmetros</dt><dd><code>p_home_id</code> (IN) · <code>p_janela_horas</code> (IN, NULL = a de cada regra) · <code>p_novos</code> (OUT, avisos novos)</dd>
+    <dt>Funcionamento</dt><dd>
+      1. Confere se a casa existe (senão <code>ORA-20404</code>).<br>
+      2. <strong>CURSOR</strong> nas regras ativas de <code>REGRA_ALERTA</code> e <strong>LOOP</strong> por elas.<br>
+      3. <strong>IF</strong> por regra: <code>QUASE_QUEDA</code> abre um segundo cursor e gera um aviso por leitura, com o texto de <span class="obj">FN_DESCREVER_LEITURA</span>; <code>DOSES_NEGADAS</code> conta doses não confirmadas na janela; <code>ADESAO_BAIXA</code> usa <span class="obj">FN_TAXA_ADESAO</span>; <code>ROTINA_PASSOS</code> usa <span class="obj">FN_VARIACAO_ROTINA</span>.<br>
+      4. Grava com <code>INSERT</code>; a chave única (casa, regra, chave) faz a segunda execução não duplicar: <code>DUP_VAL_ON_INDEX</code> é tratado como "já avisado".</dd>
+    <dt>Exceções</dt><dd>Negócio (<code>-20xxx</code>) sobe intacto; qualquer outra vai para <code>LOG_ERRO_PLSQL</code> e é relançada.</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h3>PRC_RELATORIO_CONSUMO — relatório resumido de consumo da casa</h3>
+  <dl>
+    <dt>Propósito</dt><dd>Por medicação: doses confirmadas, não confirmadas, esperadas, adesão e estoque no período; mais os totais da casa.</dd>
+    <dt>Parâmetros</dt><dd><code>p_home_id</code>, <code>p_de</code>, <code>p_ate</code> (IN) · <code>p_total_doses</code>, <code>p_total_reais</code> (OUT) · <code>p_itens</code> (OUT <code>SYS_REFCURSOR</code>)</dd>
+    <dt>Funcionamento</dt><dd>Valida o período (<code>ORA-20001</code> se invertido ou maior que um ano) e a casa (<code>ORA-20404</code>); percorre as medicações num <strong>CURSOR + LOOP</strong> somando as doses confirmadas; soma a demanda encaminhada a parceiros; abre o cursor de saída com uma linha por medicação, usando <span class="obj">FN_TAXA_ADESAO</span> dentro do <code>SELECT</code>.</dd>
+    <dt>Observação</dt><dd><code>p_total_reais</code> é a soma do <strong>preço de referência</strong> dos itens aprovados. Não é compra: a transação é do parceiro.</dd>
+  </dl>
+</div>
+
+<div class="card">
+  <h3>PRC_CONSOLIDAR_INDICADORES — rotina diária em lote</h3>
+  <dl>
+    <dt>Propósito</dt><dd>Gravar em <code>INDICADOR_DIARIO</code>, para cada casa, adesão de 7 dias, variação de passos, avisos em aberto e quase-quedas do dia.</dd>
+    <dt>Parâmetros</dt><dd><code>p_data_ref</code> (IN, NULL = hoje) · <code>p_casas</code> (OUT, casas consolidadas)</dd>
+    <dt>Funcionamento</dt><dd><strong>CURSOR</strong> nas casas → <strong>LOOP</strong> → <code>SAVEPOINT</code> por casa → <code>MERGE</code> (rodar de novo no mesmo dia atualiza). Se uma casa falha, só o trabalho dela é desfeito (<code>ROLLBACK TO SAVEPOINT</code>), o erro vai para o log e o lote segue. Casa sem dado grava <code>NULL</code>, não zero.</dd>
+    <dt>Acionamento</dt><dd>Agendada no back-end (perfil <code>oracle</code>) e sob demanda pelo botão "Consolidar agora" da Operação.</dd>
+  </dl>
+</div>
+
+<h3>4.3 A procedure acionada pelo back-end: REST → Java → JDBC → Oracle</h3>
+<div class="fluxo">
+  <div><b>App da família</b>"Registrar quase-queda"</div><span>→</span>
+  <div><b>REST</b><code>POST /signals</code></div><span>→</span>
+  <div><b>Java</b>grava a leitura e publica <code>LeituraRegistrada</code></div><span>→</span>
+  <div><b>Após o commit</b><code>SimpleJdbcCall</code> (JDBC)</div><span>→</span>
+  <div><b>Oracle</b><span class="obj">PRC_REGISTRAR_ALERTAS</span></div><span>→</span>
+  <div><b>Painel</b>card "Avisos da casa"</div>
+</div>
+<p>O evento e a chamada, como estão no código (<code>backend-spring/src/main/java/br/com/fiap/aura/intelligence/</code>):</p>
+<pre><code>// AlertasAoRegistrarLeitura.java — o evento de backend que aciona o PL/SQL
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)  // a leitura já foi gravada
+@Transactional(propagation = Propagation.REQUIRES_NEW)               // o aviso tem transação própria
+public void aoRegistrarLeitura(LeituraRegistrada evento) {
+    if (!CareIntelligence.ORACLE.equals(intelligence.engine())) return;
+    try {
+        int novos = intelligence.registrarAlertas(evento.homeId());
+        ...
+    } catch (RuntimeException e) {
+        log.warn("Avisos da casa {} não foram processados agora: {}", evento.homeId(), e.getMessage());
+    }
+}
+
+// OracleCareIntelligence.java — JDBC puro, parâmetros declarados (sem ler metadados do banco)
+this.registrarAlertas = new SimpleJdbcCall(jdbc)
+        .withProcedureName("PRC_REGISTRAR_ALERTAS")
+        .withoutProcedureColumnMetaDataAccess()
+        .declareParameters(
+                new SqlParameter("p_home_id", Types.BINARY),        // UUID -> RAW(16)
+                new SqlParameter("p_janela_horas", Types.NUMERIC),
+                new SqlOutParameter("p_novos", Types.NUMERIC));</code></pre>
+<p>
+Rotas novas, todas atrás da mesma checagem de acesso das demais (só quem é da casa ou o administrador):
+<code>GET /homes/{id}/alertas</code>, <code>POST /homes/{id}/alertas/processar</code>, <code>POST /alertas/{id}/visto</code>,
+<code>GET /homes/{id}/relatorio-consumo</code> e, só para administrador, <code>GET /ops/indicadores</code> e
+<code>POST /ops/indicadores/consolidar</code>. Todo texto que sai do banco passa pelo mesmo guardrail de
+não-prescrição do resto da API; um aviso que não passe é omitido da lista em vez de derrubá-la.
+</p>
+
+<h3>4.4 Requisito do enunciado → onde está</h3>
+<table>
+  <tr><th style="width:30%">Requisito</th><th>Onde</th></tr>
+  <tr><td>Parâmetros <code>IN</code> e <code>RETURN</code></td><td>As três functions (<code>R__02_functions.sql</code>)</td></tr>
+  <tr><td><code>EXCEPTION</code></td><td><code>NO_DATA_FOUND</code>, <code>ZERO_DIVIDE</code>, <code>DUP_VAL_ON_INDEX</code>, <code>VALUE_ERROR</code>, erros de negócio <code>-20001</code>, <code>-20002</code>, <code>-20003</code>, <code>-20404</code></td></tr>
+  <tr><td><code>IF</code></td><td>Uma regra por ramo em <span class="obj">PRC_REGISTRAR_ALERTAS</span>; validações de período e casa</td></tr>
+  <tr><td><code>LOOP</code> + <code>CURSOR</code></td><td>Regras ativas e quase-quedas (alertas), medicações (relatório), casas (consolidação), doses da carga simulada</td></tr>
+  <tr><td>Resultado em cursor</td><td><code>SYS_REFCURSOR</code> em <span class="obj">PRC_RELATORIO_CONSUMO</span></td></tr>
+  <tr><td>Function integrada a consulta SQL</td><td><code>database/oracle/consultas-demo.sql</code>, blocos 1 a 4; <span class="obj">FN_TAXA_ADESAO</span> dentro do cursor do relatório</td></tr>
+  <tr><td>Procedure acionada por evento de back-end</td><td><span class="obj">PRC_REGISTRAR_ALERTAS</span> a cada <code>POST /signals</code> e confirmação de dose (§4.3)</td></tr>
+  <tr><td>Rotina automatizada</td><td><span class="obj">PRC_CONSOLIDAR_INDICADORES</span>, agendada e sob demanda</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2 class="break">5. Evidências</h2>
+
+<h3>5.1 Testes automatizados</h3>
+<table>
+  <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
+  <tr><td>Back-end, suíte rápida (H2)</td><td><strong>85</strong></td><td><code>./mvnw test</code></td><td>Fluxos ponta a ponta, autorização, guardrail, os três caminhos de FK, adaptador indisponível</td></tr>
+  <tr><td>Back-end sobre Oracle</td><td><strong>50</strong></td><td><code>./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=</code></td><td>Schema validado, 0 objetos inválidos, cada function e procedure, REST → Java → JDBC → Oracle</td></tr>
+  <tr><td>Back-end sobre PostgreSQL</td><td><strong>2</strong></td><td><code>./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=</code></td><td>Migrations V1–V3 (inclui a renomeação de <code>level</code>) validadas contra as entidades; seed sem duplicar</td></tr>
+  <tr><td>Painel Angular</td><td><strong>31</strong></td><td><code>npx ng test --no-watch</code></td><td>Serviço de API (rotas novas), rótulos, interceptor, autenticação</td></tr>
+</table>
+
+<h3>5.2 Saídas reais</h3>
+<p>Saída real de <code>database/oracle/consultas-demo.sql</code> no Oracle Free 23.26, num banco recém-criado pelo <code>docker compose</code> da demo, logo após a carga simulada (04/10/2026).</p>
+<pre><code>-- BLOCO 1 · FN_TAXA_ADESAO dentro de um SELECT comum
+CASA                   ADESAO_7_DIAS_PCT
+Casa da Dona Lúcia                   100
+Casa da Dona Celina                  100
+Casa da Maria                       95.2
+Casa do Seu Jorge                   33.3
+Casa do seu Antônio                          &lt;- sem medicação acompanhada: NULL, não 0%
+
+-- BLOCO 2 · FN_DESCREVER_LEITURA: o JSON gravado e a frase que a família lê
+{"event":"near_fall","place":"bathroom"}               Quase-queda registrada · banheiro · por voz · 04/10 22:52
+{"steps":1800,"heartRateResting":79,"sleepHours":5.6}  Pulseira: 1.800 passos · sono 5,6 h · FC em repouso 79 bpm · pela pulseira · 03/10 22:40
+
+-- BLOCO 3 · FN_VARIACAO_ROTINA (últimos 3 dias contra os 14 anteriores)
+CASA                   PASSOS_VAR_PCT SONO_VAR_PCT FC_REPOUSO_VAR_PCT
+Casa da Dona Celina             -55.8        -21.9               12.4
+Casa da Maria                     -34        -11.4                5.6
+
+-- BLOCO 5 · avisos gravados por PRC_REGISTRAR_ALERTAS, com a regra que disparou
+Casa do Seu Jorge    DOSES_NEGADAS  atencao  6 doses não confirmadas nas últimas 48 h
+Casa do Seu Jorge    ADESAO_BAIXA   atencao  Adesão de 33,3% nos últimos 7 dias, pelas doses confirmadas no app
+Casa da Maria        ROTINA_PASSOS  info     Passos 34% abaixo da rotina da própria pessoa nos últimos 3 dias
+Casa da Maria        QUASE_QUEDA    alta     Quase-queda registrada · banheiro · por voz · 04/10 22:52
+Casa da Dona Celina  ROTINA_PASSOS  info     Passos 56% abaixo da rotina da própria pessoa nos últimos 3 dias
+1ª chamada, avisos novos: 0
+2ª chamada, avisos novos: 0  (não duplica)
+
+-- BLOCO 6 · PRC_RELATORIO_CONSUMO (totais por OUT + SYS_REFCURSOR)
+Consumo da Casa do Seu Jorge, 28/09 a 04/10
+Medicação       Conf.  Não   Esper.  Adesão   Estoque
+Losartana       2      5     7       28.6%    18
+Metformina      5      9     14      35.7%    6
+Doses confirmadas no período: 7
+Demanda encaminhada a parceiros (preço de referência): R$ 189,80
+Recusado pelo banco: ORA-20001: Período inválido: a data final vem antes da inicial
+
+-- BLOCO 7 · PRC_CONSOLIDAR_INDICADORES
+Casas consolidadas: 5
+
+-- Conferência: os 8 objetos PL/SQL com STATUS = VALID</code></pre>
+
+
+<h3>5.3 Ponta a ponta pela API (REST → Java → JDBC → Oracle)</h3>
+<pre><code>POST /api/v1/signals  {"type":"mobility","value":{"event":"near_fall","place":"kitchen"}}   -> 201
+GET  /api/v1/homes/{casa}/alertas   (requisição separada)
+  alta  aberto  Quase-queda registrada · cozinha · pelo app · 04/10 22:53     &lt;- gravado pela procedure
+  info  aberto  Passos 34% abaixo da rotina da própria pessoa nos últimos 3 dias
+GET  /api/v1/homes/{casa}/relatorio-consumo?de=2026-10-04&amp;ate=2026-09-01   -> 422 (ORA-20001)
+GET  /api/v1/ops/indicadores  com conta de cuidadora                          -> 403</code></pre>
+
+<h3>5.4 Telas (painel rodando sobre o Oracle)</h3>
+<figure>
+  <img src="img/painel-avisos.png" alt="Card Avisos da casa" style="max-height:150mm">
+  <figcaption>Figura 3 · "Avisos da casa": a quase-queda registrada no app aparece em até 10 s, com o texto montado por FN_DESCREVER_LEITURA. Aviso visto fica esmaecido.</figcaption>
+</figure>
+<figure>
+  <img src="img/painel-consumo.png" alt="Card Consumo do período">
+  <figcaption>Figura 4 · "Consumo do período", vindo de PRC_RELATORIO_CONSUMO. Medicação sem confirmação no app mostra "sem dados", não 0%.</figcaption>
+</figure>
+<figure>
+  <img src="img/operacao-indicadores.png" alt="Indicadores por casa na Operação">
+  <figcaption>Figura 5 · Operação (administrador): "Consolidar agora" roda PRC_CONSOLIDAR_INDICADORES nas 5 casas.</figcaption>
+</figure>
+
+<!-- ============================================================================================ -->
+<h2 class="break">6. Como executar</h2>
+<pre><code># Requer Docker. Na raiz do repositório:
+export AURA_DB_PASSWORD='uma-senha-sua'
+docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
+#   Oracle Free na 1521 (só local), API na 8080, painel na 4200
+./database/oracle/carregar-dados.sh     # CSV da pulseira (SQL*Loader) + carga simulada
+
+# SQL Developer: usuário aura, a senha acima, localhost:1521, serviço FREEPDB1
+#   abra database/oracle/consultas-demo.sql e rode bloco a bloco
+
+# Painel: http://localhost:4200
+#   ana@aura.com / aura1234    casa da Maria: avisos e consumo
+#   admin@aura.com / aura1234  Operação: indicadores por casa</code></pre>
+<p>
+Sem Docker, o back-end continua subindo em H2 (<code>./mvnw spring-boot:run</code>); nesse modo os cards de avisos e
+consumo não aparecem, porque a inteligência mora no Oracle. Para instalar só o banco num Oracle existente, use
+<code>database/oracle/instalar-tudo.sql</code> (§3.6).
+</p>
+
+<!-- ============================================================================================ -->
+<h2>7. O que mantivemos das entregas anteriores</h2>
+<ul>
+  <li><strong>Jornada antes de arquitetura.</strong> O feedback da primeira atividade pediu para mostrar como a inteligência
+      aparece para quem usa. Por isso cada rotina desta fase tem uma tela: o aviso que a procedure grava é o que a Ana
+      lê no painel, e o vídeo mostra esse caminho do toque no app até a linha no banco.</li>
+  <li><strong>Números medidos, não metas.</strong> O feedback da segunda atividade pediu evidência quantitativa. Os
+      indicadores desta fase saem de consultas que qualquer pessoa pode rodar (§5), e as contagens de teste vêm do
+      comando, não de estimativa.</li>
+  <li><strong>Checklist do enunciado item a item</strong> (§1 e §4.4), com o arquivo onde cada requisito está.</li>
+  <li><strong>O que ainda devemos:</strong> os limiares das regras de aviso foram definidos pelo grupo, não validados com
+      cuidadoras. Está declarado em §8, e não escondido.</li>
+</ul>
+
+<h2>8. Limites e próximos passos</h2>
+<ul>
+  <li>Os avisos seguem <strong>regras declaradas e versionadas</strong> numa tabela, não um modelo preditivo.</li>
+  <li>O AURA <strong>não diagnostica nem prescreve</strong>: um aviso pede um olhar da família, não uma conduta.</li>
+  <li>Os dados das três casas extras são <strong>simulados</strong>; a casa da Maria é a de demonstração do app.</li>
+  <li>A versão do servidor Oracle da FIAP não foi confirmada; o script único evita recursos exclusivos do 23ai para rodar num 19c.</li>
+  <li><strong>Próximo passo:</strong> validar os limiares das regras com cuidadoras reais e levar os avisos ao app da família por notificação.</li>
+</ul>
+
+<p class="footer-note">
+AURA · Fase 6 · FIAP Smart HAS. O AURA nunca prescreve nem diagnostica; avisos descrevem o que foi observado e
+pedem um olhar humano. Leroy Merlin é mentora e avaliadora do Enterprise Challenge, não parceira comercial.
+</p>
+
+</body>
+</html>
