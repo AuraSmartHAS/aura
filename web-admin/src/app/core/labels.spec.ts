@@ -6,8 +6,10 @@ import {
   STAGE_LABELS,
   recommendationStatusLabel,
   diaMes,
+  percentualOuSemDados,
   riskTagLabel,
   stageLabel,
+  variacaoComSinal,
 } from './labels';
 
 describe('labels', () => {
@@ -56,5 +58,18 @@ describe('labels', () => {
     expect(diaMes('2026-10-04')).toBe('04/10');
     expect(diaMes('2026-10-01')).toBe('01/10');
     expect(diaMes(null)).toBe('');
+  });
+
+  it('indicador sem leitura aparece como "sem dados", nunca como 0%', () => {
+    expect(percentualOuSemDados(null)).toBe('sem dados');
+    expect(percentualOuSemDados(0)).toBe('0%');
+    expect(percentualOuSemDados(87.6)).toBe('88%');
+  });
+
+  it('variação da rotina sempre mostra o sinal', () => {
+    expect(variacaoComSinal(-48.2)).toBe('−48%');
+    expect(variacaoComSinal(5)).toBe('+5%');
+    expect(variacaoComSinal(0.3)).toBe('0%');
+    expect(variacaoComSinal(null)).toBe('sem dados');
   });
 });

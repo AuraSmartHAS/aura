@@ -27,10 +27,41 @@
     </div>
   </div>
 
-  <!-- "Pedidos por estágio" e "Carteira de pedidos" saíram com a logística (D-008). O Aura
-       entrega demanda qualificada ao parceiro; acompanhar caminhão de terceiro não é o que ele
-       resolve, e a própria Leroy apontou isso na 3ª mentoria. Os parceiros estão em /parceiros. -->
+  <!-- "Pedidos por estágio" e "Carteira de pedidos" saíram com a logística (D-008). No lugar
+       entram os indicadores de cuidado que o próprio Oracle consolida (PRC_CONSOLIDAR_INDICADORES). -->
+  <article class="card indicadores" *ngIf="indicadores() as ind">
+    <div class="card__head">
+      <div>
+        <h2>Indicadores por casa</h2>
+        <p class="muted small">
+          Calculados dentro do banco: adesão à medicação nos últimos 7 dias e passos da pulseira
+          comparados à rotina da própria pessoa.
+          <ng-container *ngIf="ind.dataRef"> Fechamento de {{ diaMes(ind.dataRef) }}.</ng-container>
+        </p>
+      </div>
+      <button class="btn btn--primary" (click)="consolidar()" [disabled]="consolidando()">
+        {{ consolidando() ? 'Consolidando…' : 'Consolidar agora' }}
+      </button>
+    </div>
 
+    <p class="empty" *ngIf="ind.casas.length === 0">
+      Nenhum fechamento ainda. Use “Consolidar agora” para rodar a rotina do banco.
+    </p>
+    <table *ngIf="ind.casas.length > 0">
+      <thead>
+        <tr><th>Casa</th><th>Adesão (7 dias)</th><th>Passos x rotina</th><th>Avisos abertos</th><th>Atualizado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let casa of ind.casas">
+          <td>{{ casa.casa }}</td>
+          <td>{{ pct(casa.adesaoPct) }}</td>
+          <td>{{ variacao(casa.variacaoPassosPct) }}</td>
+          <td [class.low]="casa.alertasAbertos > 0">{{ casa.alertasAbertos }}</td>
+          <td>{{ casa.atualizadoEm | date: 'dd/MM HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
 
   <div class="grid grid--2">
     <article class="card">

@@ -17,6 +17,7 @@ import {
   SIGNAL_SOURCE_LABELS,
   SIGNAL_TYPE_LABELS,
   diaMes,
+  percentualOuSemDados,
 } from '../../core/labels';
 import { Alerta, Home, Recommendation, RelatorioConsumo, ReplenishmentProjection, Score, Signal } from '../../core/models';
 
@@ -162,9 +163,7 @@ export class HomePageComponent implements OnInit {
   }
 
   /** Adesão vem de FN_TAXA_ADESAO; nulo é "sem dose esperada no período", nunca 0%. */
-  adesao(pct: number | null): string {
-    return pct === null ? 'sem dados' : `${Math.round(pct)}%`;
-  }
+  readonly adesao = percentualOuSemDados;
 
   /** Só as projeções em que a régua disparou — o card não existe sem motivo. */
   suggestedReplenishments(): ReplenishmentProjection[] {

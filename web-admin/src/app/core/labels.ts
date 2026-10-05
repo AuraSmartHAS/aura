@@ -144,3 +144,20 @@ export function diaMes(isoDate: string | null | undefined): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate ?? '');
   return m ? `${m[3]}/${m[2]}` : '';
 }
+
+/** Percentual de uma function do banco; nulo é "sem dados" (ausência de leitura não é 0%). */
+export function percentualOuSemDados(value: number | null | undefined): string {
+  return value === null || value === undefined ? 'sem dados' : `${Math.round(value)}%`;
+}
+
+/** Variação contra a rotina da própria pessoa, sempre com sinal: "−48%", "+5%", "0%". */
+export function variacaoComSinal(value: number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return 'sem dados';
+  }
+  const arredondado = Math.round(value);
+  if (arredondado > 0) {
+    return `+${arredondado}%`;
+  }
+  return arredondado < 0 ? `−${Math.abs(arredondado)}%` : '0%';
+}

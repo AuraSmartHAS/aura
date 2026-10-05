@@ -2,12 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EMPTY, catchError, forkJoin, interval, startWith, switchMap } from 'rxjs';
+import { EMPTY, catchError, forkJoin, interval, of, startWith, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
 import { errorMessage } from '../../core/error-message';
-import { RISK_TAG_LABELS, riskTagLabel } from '../../core/labels';
-import { CatalogItem, Kpis } from '../../core/models';
+import { RISK_TAG_LABELS, diaMes, percentualOuSemDados, riskTagLabel, variacaoComSinal } from '../../core/labels';
+import { CatalogItem, IndicadoresResponse, Kpis } from '../../core/models';
 
 /** Operação: indicadores das casas + manutenção do catálogo de acessibilidade. */
 @Component({
@@ -22,6 +22,9 @@ export class AdminPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly kpis = signal<Kpis | null>(null);
+  /** Indicadores por casa consolidados no Oracle; nulo fora do perfil oracle (o card some). */
+  readonly indicadores = signal<IndicadoresResponse | null>(null);
+  readonly consolidando = signal(false);
   readonly catalog = signal<CatalogItem[]>([]);
   readonly error = signal<string | null>(null);
   readonly notice = signal<string | null>(null);
@@ -50,7 +53,11 @@ export class AdminPageComponent implements OnInit {
         .pipe(
           startWith(0),
           switchMap(() =>
-            forkJoin({ kpis: this.api.kpis() }).pipe(
+            forkJoin({
+              kpis: this.api.kpis(),
+              // O card de indicadores é acessório: se a rota falhar, os KPIs continuam chegando.
+              indicadores: this.api.indicadores().pipe(catchError(() => of(null))),
+            }).pipe(
               catchError((err) => {
                 if (!this.kpis()) {
                   this.error.set(errorMessage(err));
@@ -61,9 +68,40 @@ export class AdminPageComponent implements OnInit {
           ),
           takeUntilDestroyed(this.destroyRef),
         )
-        .subscribe(({ kpis }) => this.kpis.set(kpis));
+        .subscribe(({ kpis, indicadores }) => {
+          this.kpis.set(kpis);
+          this.indicadores.set(indicadores?.engine === 'oracle' ? indicadores : null);
+        });
     }
   }
+
+  /** Roda a rotina diária do banco agora, em vez de esperar o agendamento. */
+  consolidar(): void {
+    this.consolidando.set(true);
+    this.error.set(null);
+    this.api
+      .consolidarIndicadores()
+      .pipe(switchMap((res) => this.api.indicadores().pipe(switchMap((ind) => of({ res, ind })))))
+      .subscribe({
+        next: ({ res, ind }) => {
+          this.consolidando.set(false);
+          this.indicadores.set(ind.engine === 'oracle' ? ind : null);
+          this.flash(
+            res.casasProcessadas === 1
+              ? '1 casa consolidada pelo banco.'
+              : `${res.casasProcessadas} casas consolidadas pelo banco.`,
+          );
+        },
+        error: (err) => {
+          this.consolidando.set(false);
+          this.error.set(errorMessage(err));
+        },
+      });
+  }
+
+  readonly pct = percentualOuSemDados;
+  readonly variacao = variacaoComSinal;
+  readonly diaMes = diaMes;
 
   loadCatalog(): void {
     this.api.catalog(this.riskFilter || undefined).subscribe({
