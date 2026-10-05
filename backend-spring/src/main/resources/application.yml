@@ -138,3 +138,37 @@ server:
 aura:
   seed:
     enabled: ${AURA_SEED:false}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: oracle
+  datasource:
+    # FREEPDB1 é o banco plugável do Oracle Free (docker-compose.oracle.yml). No servidor da FIAP
+    # a URL e o usuário (RM) vêm por variável de ambiente.
+    url: ${AURA_DB_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
+    username: ${AURA_DB_USER:aura}
+    # Sem default, pelo mesmo motivo do perfil postgres.
+    password: ${AURA_DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    hibernate:
+      # O schema e o PL/SQL vêm de db/migration/oracle; o Hibernate só confere.
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    # false, ao contrário do postgres: num schema que já tem tabelas (o usuário RM da FIAP costuma
+    # ter as de outras disciplinas) o baseline marcaria a V1 como aplicada e pularia o esquema
+    # inteiro. Aqui o Flyway exige schema vazio e falha alto se não estiver.
+    baseline-on-migrate: false
+    # O Flyway trocaria qualquer "${" por placeholder; desligado para que o texto das procedures
+    # chegue ao banco exatamente como está no arquivo.
+    placeholder-replacement: false
+
+server:
+  address: ${AURA_BIND_ADDRESS:0.0.0.0}
+
+aura:
+  seed:
+    enabled: ${AURA_SEED:false}

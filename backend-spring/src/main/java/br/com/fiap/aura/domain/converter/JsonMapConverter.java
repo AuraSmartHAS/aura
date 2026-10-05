@@ -9,7 +9,8 @@ import java.util.Map;
 
 /**
  * Guarda JSON livre (checklist de segurança, valor do sinal) como texto.
- * Texto em vez do tipo JSON nativo para o mesmo mapeamento valer em H2 e PostgreSQL.
+ * Texto em vez do tipo JSON nativo para o mesmo mapeamento valer em H2, PostgreSQL e Oracle
+ * (no Oracle a coluna ganha {@code CHECK (... IS JSON)}, que recusa texto malformado no banco).
  */
 @Converter
 public class JsonMapConverter implements AttributeConverter<Map<String, Object>, String> {
