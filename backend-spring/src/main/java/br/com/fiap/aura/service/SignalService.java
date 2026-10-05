@@ -2,6 +2,7 @@ package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalType;
+import br.com.fiap.aura.intelligence.LeituraRegistrada;
 import br.com.fiap.aura.repository.SignalRepository;
 import br.com.fiap.aura.security.AuthPrincipal;
 import br.com.fiap.aura.web.dto.SignalDtos;
@@ -9,6 +10,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +21,14 @@ public class SignalService {
     private final SignalRepository signals;
     private final HomeService homeService;
     private final AuthService auth;
+    private final ApplicationEventPublisher events;
 
-    public SignalService(SignalRepository signals, HomeService homeService, AuthService auth) {
+    public SignalService(SignalRepository signals, HomeService homeService, AuthService auth,
+                         ApplicationEventPublisher events) {
         this.signals = signals;
         this.homeService = homeService;
         this.auth = auth;
+        this.events = events;
     }
 
     @Transactional
@@ -37,6 +42,8 @@ public class SignalService {
                 .source(req.source())
                 .value(req.value() == null ? new LinkedHashMap<>() : new LinkedHashMap<>(req.value()))
                 .build());
+        // os avisos do banco rodam depois do commit (AlertasAoRegistrarLeitura), não aqui dentro
+        events.publishEvent(new LeituraRegistrada(signal.getHomeId()));
         return new SignalDtos.SignalCreatedResponse(signal.getId());
     }
 

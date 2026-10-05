@@ -4,6 +4,7 @@ import br.com.fiap.aura.domain.Medication;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
+import br.com.fiap.aura.intelligence.LeituraRegistrada;
 import br.com.fiap.aura.repository.MedicationRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.SignalRepository;
@@ -15,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,15 +34,17 @@ public class MedicationService {
     private final RecommendationRepository recommendations;
     private final HomeService homeService;
     private final AuthService auth;
+    private final ApplicationEventPublisher events;
 
     public MedicationService(MedicationRepository medications, SignalRepository signals,
                              RecommendationRepository recommendations, HomeService homeService,
-                             AuthService auth) {
+                             AuthService auth, ApplicationEventPublisher events) {
         this.medications = medications;
         this.signals = signals;
         this.recommendations = recommendations;
         this.homeService = homeService;
         this.auth = auth;
+        this.events = events;
     }
 
     @Transactional
@@ -131,6 +135,8 @@ public class MedicationService {
                 .source(SignalSource.SELF_REPORT)
                 .value(value)
                 .build());
+        // dose negada também é leitura: é dela que nasce o aviso de doses não confirmadas
+        events.publishEvent(new LeituraRegistrada(med.getHomeId()));
         return new MedicationDtos.ConfirmMedicationResponse(signal.getId(), tomou, med.getStockDoses());
     }
 
