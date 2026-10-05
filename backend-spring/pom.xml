@@ -192,6 +192,12 @@
                sobrescreve e o teste do Postgres nunca chega a rodar. -->
           <groups>${test.groups}</groups>
           <excludedGroups>${test.excludedGroups}</excludedGroups>
+          <systemPropertyVariables>
+            <!-- O docker-java do Testcontainers 1.20 abre a conversa pela API 1.32, que o Docker
+                 Desktop 29 responde com 400 ("Could not find a valid Docker environment"). Fixar
+                 a 1.47 (Docker 27+, inclusive o runner do CI) dispensa o -DargLine manual. -->
+            <api.version>1.47</api.version>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
