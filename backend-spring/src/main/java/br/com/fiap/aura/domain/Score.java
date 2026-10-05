@@ -57,8 +57,12 @@ public class Score {
     @Column(name = "score_value", nullable = false)
     private double score;
 
+    /**
+     * Coluna {@code risk_level}, e não {@code level}: LEVEL é reservada no Oracle. O nome do campo
+     * fica, porque é ele que vira {@code "level"} no JSON que os apps já leem.
+     */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "risk_level", nullable = false)
     private RiskLevel level;
 
     @Column(length = 1000)
