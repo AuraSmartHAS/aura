@@ -17,4 +17,6 @@ public interface DeliveryOrderRepository extends JpaRepository<DeliveryOrder, UU
     List<DeliveryOrder> findTop20ByOrderByCreatedAtDesc();
 
     void deleteByHomeId(UUID homeId);
+
+    boolean existsBySku(String sku);
 }

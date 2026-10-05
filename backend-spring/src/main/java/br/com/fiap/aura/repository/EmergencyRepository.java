@@ -70,4 +70,18 @@ public interface EmergencyRepository extends JpaRepository<Emergency, UUID> {
                                                   @Param("limite") Instant limite);
 
     void deleteByHomeId(UUID homeId);
+
+    /**
+     * Exclusão de conta (LGPD): o SOS que a pessoa disparou ou confirmou numa casa que não é dela
+     * continua sendo registro do dono da casa; só o vínculo com quem saiu é apagado. Nulo aqui passa
+     * a significar também "titular excluído", e não apenas "SOS sem sessão". É a regra do
+     * {@code ON DELETE SET NULL} do esquema Oracle, aplicada no Java para valer em todo banco.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Emergency e set e.triggeredByUserId = null where e.triggeredByUserId = :userId")
+    int detachTriggeredBy(@Param("userId") UUID userId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Emergency e set e.acknowledgedByUserId = null where e.acknowledgedByUserId = :userId")
+    int detachAcknowledgedBy(@Param("userId") UUID userId);
 }

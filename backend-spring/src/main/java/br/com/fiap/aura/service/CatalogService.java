@@ -1,7 +1,9 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.domain.Product;
+import br.com.fiap.aura.repository.DeliveryOrderRepository;
 import br.com.fiap.aura.repository.ProductRepository;
+import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.web.dto.CatalogDtos;
 import br.com.fiap.aura.web.error.ApiException;
 import java.util.Comparator;
@@ -14,9 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class CatalogService {
 
     private final ProductRepository products;
+    private final RecommendationRepository recommendations;
+    private final DeliveryOrderRepository orders;
 
-    public CatalogService(ProductRepository products) {
+    public CatalogService(ProductRepository products, RecommendationRepository recommendations,
+                          DeliveryOrderRepository orders) {
         this.products = products;
+        this.recommendations = recommendations;
+        this.orders = orders;
     }
 
     @Transactional(readOnly = true)
@@ -62,7 +69,14 @@ public class CatalogService {
 
     @Transactional
     public void delete(String sku) {
-        products.delete(require(sku));
+        Product product = require(sku);
+        // Item que já foi recomendado ou encaminhado é histórico de alguma casa. Apagá-lo deixaria
+        // recomendação e pedido apontando para o nada (no Oracle, a FK recusaria com erro 500).
+        if (recommendations.existsBySku(sku) || orders.existsBySku(sku)) {
+            throw ApiException.conflict("O produto " + sku + " já foi recomendado a uma casa e não pode"
+                    + " ser excluído. Edite o item em vez de excluir.");
+        }
+        products.delete(product);
     }
 
     private Product require(String sku) {

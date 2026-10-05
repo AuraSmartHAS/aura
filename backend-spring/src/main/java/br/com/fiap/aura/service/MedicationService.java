@@ -5,6 +5,7 @@ import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.repository.MedicationRepository;
+import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.SignalRepository;
 import br.com.fiap.aura.security.AuthPrincipal;
 import br.com.fiap.aura.web.dto.MedicationDtos;
@@ -28,13 +29,16 @@ public class MedicationService {
 
     private final MedicationRepository medications;
     private final SignalRepository signals;
+    private final RecommendationRepository recommendations;
     private final HomeService homeService;
     private final AuthService auth;
 
     public MedicationService(MedicationRepository medications, SignalRepository signals,
-                             HomeService homeService, AuthService auth) {
+                             RecommendationRepository recommendations, HomeService homeService,
+                             AuthService auth) {
         this.medications = medications;
         this.signals = signals;
+        this.recommendations = recommendations;
         this.homeService = homeService;
         this.auth = auth;
     }
@@ -99,7 +103,10 @@ public class MedicationService {
 
     @Transactional
     public void delete(AuthPrincipal principal, UUID medId) {
-        medications.delete(requireAccess(principal, medId));
+        Medication med = requireAccess(principal, medId);
+        // a recomendação de refil é histórico da casa: fica, só deixa de apontar para a medicação
+        recommendations.detachMedication(med.getId());
+        medications.delete(med);
     }
 
     /** Confirma (ou nega) a dose: nada é prescrito, só se registra o sinal de adesão. */

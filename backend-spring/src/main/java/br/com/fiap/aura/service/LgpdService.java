@@ -22,7 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Direito de exclusão (LGPD, art. 18): apagar de verdade, não marcar como inativo.
  * A ordem respeita as dependências — pedidos e recomendações antes da casa,
- * casas antes do usuário — porque o schema não usa cascata no banco.
+ * casas antes do usuário. O Java é o dono dessa ordem em todos os bancos; no Oracle as chaves
+ * estrangeiras só conferem que ninguém a pulou (e os avisos e indicadores da casa saem por cascata).
  */
 @Service
 public class LgpdService {
@@ -77,6 +78,9 @@ public class LgpdService {
         // o titular também é membro de casas que não são dele (a paciente, por exemplo):
         // o vínculo vai junto, senão sobra uma linha apontando para uma conta que não existe mais
         members.deleteByUserId(principal.userId());
+        // SOS disparado ou confirmado em casa alheia fica com o dono da casa, sem o nome de quem saiu
+        emergencies.detachTriggeredBy(principal.userId());
+        emergencies.detachAcknowledgedBy(principal.userId());
         consents.deleteByUserId(principal.userId());
         users.deleteById(principal.userId());
         log.info("Conta {} excluída a pedido do titular ({} casas)", principal.userId(), owned.size());
