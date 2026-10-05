@@ -117,7 +117,11 @@ export class HomePageComponent implements OnInit {
     this.api.signals(homeId, 8).subscribe({ next: (s) => this.signals.set(s) });
     this.loadAlertas(homeId);
     this.api.relatorioConsumo(homeId).subscribe({
-      next: (r) => this.consumo.set(r.engine === 'oracle' ? r : null),
+      next: (r) => {
+        if (this.selected()?.id === homeId) {
+          this.consumo.set(r.engine === 'oracle' ? r : null);
+        }
+      },
       error: () => this.consumo.set(null),
     });
     // o check pode materializar recomendação nova — as recomendações carregam depois dele
@@ -138,6 +142,10 @@ export class HomePageComponent implements OnInit {
   private loadAlertas(homeId: string): void {
     this.api.alertas(homeId).subscribe({
       next: (r) => {
+        // Resposta atrasada de outra casa (troca de casa no meio do polling) é descartada.
+        if (this.selected()?.id !== homeId) {
+          return;
+        }
         this.oracleAtivo.set(r.engine === 'oracle');
         this.alertas.set(r.alertas);
       },
