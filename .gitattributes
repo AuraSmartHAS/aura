@@ -1,0 +1,5 @@
+# Fora do `git archive` (o código que vai no ZIP das entregas acadêmicas), dentro do repositório.
+# Screenshots de QA soltas na raiz e a memória de processo do time não são código do produto.
+/*.png    export-ignore
+/tasks/   export-ignore
+/journal/ export-ignore
