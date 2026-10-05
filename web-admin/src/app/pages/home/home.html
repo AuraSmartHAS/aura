@@ -104,7 +104,7 @@
             <span [class]="severityClass(alerta.severidade)">{{ severityLabels[alerta.severidade] || alerta.severidade }}</span>
           </div>
           <p class="small muted">
-            {{ alerta.criadoEm | date: 'dd/MM HH:mm' }}
+            Avisado em {{ alerta.criadoEm | date: 'dd/MM HH:mm' }}
             <ng-container *ngIf="alerta.status === 'visto'"> · já visto</ng-container>
           </p>
           <div class="actions" *ngIf="alerta.status === 'aberto'">
