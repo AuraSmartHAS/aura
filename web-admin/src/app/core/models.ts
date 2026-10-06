@@ -32,6 +32,12 @@ export interface Score {
   configVersion: string;
 }
 
+/** Pedido que já cobre o item: enquanto existir, o servidor não recomenda nem aprova outro igual. */
+export interface OrderInProgress {
+  orderId: string;
+  stage: string;
+}
+
 export interface Recommendation {
   recommendationId: string;
   sku: string;
@@ -52,6 +58,8 @@ export interface Recommendation {
   partner: string | null;
   /** Endereço do item no site do parceiro. Nulo = sem link, e a tela não promete um. */
   productUrl: string | null;
+  /** Pedido a caminho deste item; nulo quando ninguém o pediu ainda ou ele já foi instalado. */
+  orderInProgress?: OrderInProgress | null;
 }
 
 export interface CatalogItem {
@@ -93,6 +101,8 @@ export interface ReplenishmentProjection {
   suggested: boolean;
   recommendationId: string | null;
   reason: string | null;
+  /** Reposição já pedida e ainda não entregue: a régua não sugere outra até o estoque subir. */
+  orderInProgress?: OrderInProgress | null;
 }
 
 export interface Signal {

@@ -173,9 +173,12 @@ export class HomePageComponent implements OnInit {
   /** Adesão vem de FN_TAXA_ADESAO; nulo é "sem dose esperada no período", nunca 0%. */
   readonly adesao = percentualOuSemDados;
 
-  /** Só as projeções em que a régua disparou — o card não existe sem motivo. */
+  /**
+   * Projeções que merecem o card: a régua disparou, ou a reposição já foi pedida e está a caminho
+   * (aí o card avisa em vez de oferecer o mesmo pedido de novo). O card não existe sem um dos dois.
+   */
   suggestedReplenishments(): ReplenishmentProjection[] {
-    return this.replenishment().filter((p) => p.suggested);
+    return this.replenishment().filter((p) => p.suggested || p.orderInProgress);
   }
 
   /** A recomendação materializada pelo check, se ainda aguarda decisão humana. */
@@ -226,8 +229,13 @@ export class HomePageComponent implements OnInit {
     if (!home) {
       return;
     }
-    this.run('rec', this.api.recommend(home.id, score.scoreId), () => {
-      this.flash('Recomendação gerada — aguarda aprovação da cuidadora.');
+    this.run('rec', this.api.recommend(home.id, score.scoreId), (rec) => {
+      // o servidor devolve o que já existe: item pedido e a caminho não vira recomendação nova
+      this.flash(
+        rec.orderInProgress
+          ? 'Este item já foi pedido e está a caminho.'
+          : 'Recomendação gerada — aguarda aprovação da cuidadora.',
+      );
       this.refresh(home.id);
     });
   }

@@ -65,6 +65,13 @@ test.describe('painel da cuidadora', () => {
     const aprovada = page.locator('.card', { hasText: 'O que a casa precisa' }).locator('.rec', { hasText: 'Barras de Apoio' }).first();
     await expect(aprovada.locator('.tag')).toHaveText('Aprovado');
     await expect(aprovada.getByRole('link', { name: /Ver no site de/ })).toBeVisible();
+
+    // item já pedido não vira recomendação nova: o servidor devolve a aprovada, com o pedido
+    await gerar.click();
+    await expect(page.locator('.notice')).toContainText('já foi pedido');
+    await expect(
+      page.locator('.card', { hasText: 'O que a casa precisa' }).locator('.rec', { hasText: 'Barras de Apoio' }),
+    ).toHaveCount(1);
   });
 
   test('recusar uma recomendação não cria pedido', async ({ page }) => {
@@ -72,7 +79,9 @@ test.describe('painel da cuidadora', () => {
     await page.getByRole('button', { name: 'Atualizar leituras' }).click();
     await expect(page.locator('.score').first()).toBeVisible();
 
-    await page.getByRole('button', { name: 'Gerar recomendação' }).first().click();
+    // Cognição, não Mobilidade: o teste anterior pediu o item de Mobilidade, que agora fica
+    // "em andamento" e não gera recomendação nova. O item de Cognição segue livre no seed.
+    await page.locator('.score', { hasText: 'Cognição' }).getByRole('button', { name: 'Gerar recomendação' }).click();
     const recomendacoes = page.locator('.card', { hasText: 'O que a casa precisa' });
     const recomendacao = recomendacoes.locator('.rec').first();
     await expect(recomendacao.locator('.tag')).toHaveText('Recomendado');
@@ -97,8 +106,14 @@ test.describe('painel da cuidadora', () => {
     // a aprovação fica registrada entre as recomendações da casa
     const recomendacoes = page.locator('.card', { hasText: 'O que a casa precisa' });
     await expect(recomendacoes.locator('.rec', { hasText: /refil/i }).locator('.tag', { hasText: 'Aprovado' }).first()).toBeVisible();
-    // Sem entrega própria (D-008) nada repõe o estoque depois da aprovação, então a régua volta
-    // a sugerir na próxima leitura. Comportamento conhecido, à espera de decisão de produto.
+
+    // Com a reposição a caminho a régua não sugere de novo: o estoque só sobe na entrega, e
+    // pedir o mesmo pacote duas vezes era o defeito. O card avisa em vez de oferecer o botão.
+    await page.reload();
+    const cardPedido = page.locator('.card', { hasText: 'Reposição por consumo' });
+    await expect(cardPedido).toContainText('reposição pedida');
+    await expect(cardPedido).toContainText('já foi aprovada');
+    await expect(cardPedido.getByRole('button', { name: 'Aprovar reposição' })).toHaveCount(0);
   });
 
   test('fora do Oracle, avisos e consumo não fingem medição', async ({ page }) => {

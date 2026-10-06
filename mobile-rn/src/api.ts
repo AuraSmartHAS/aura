@@ -81,6 +81,8 @@ export interface Recommendation {
   /** Rótulos em português dos fatores, na mesma ordem de `factors`. */
   factorLabels?: string[];
   weights: number[];
+  /** Pedido a caminho deste item: enquanto existir, o servidor não recomenda nem aprova outro igual. */
+  orderInProgress?: { orderId: string; stage: string } | null;
 }
 
 export interface Order {

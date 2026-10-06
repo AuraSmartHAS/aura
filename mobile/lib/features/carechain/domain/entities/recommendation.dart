@@ -22,6 +22,8 @@ class Recommendation {
     this.installable,
     this.installationIncluded,
     this.installationPrice,
+    this.orderInProgressId,
+    this.orderInProgressStage,
   });
 
   final String recommendationId;
@@ -55,6 +57,14 @@ class Recommendation {
 
   /// Quanto se paga a mais pela instalação; zero (ou nulo) quando inclusa.
   final double? installationPrice;
+
+  /// Pedido a caminho deste item (`orderInProgress` do servidor), ou nulo. Enquanto
+  /// existir, o servidor não recomenda nem aprova outro igual: a tela leva ao
+  /// acompanhamento em vez de oferecer "Aprovar".
+  final String? orderInProgressId;
+  final String? orderInProgressStage;
+
+  bool get hasOrderInProgress => orderInProgressId != null;
 
   /// Enquanto verdadeiro, nenhum pedido nasceu desta recomendação (RN-022).
   bool get isPending => status == 'recommended';

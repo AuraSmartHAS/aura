@@ -42,7 +42,16 @@ public final class CareChainDtos {
                                          String partner,
                                          @Schema(example = "https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567",
                                                  description = "Endereço do item no site do parceiro; nulo quando não há link, e a interface não deve prometer um")
-                                         String productUrl) { }
+                                         String productUrl,
+                                         @Schema(description = """
+                                                 Pedido em andamento deste item para a casa, ou nulo. Enquanto existir,
+                                                 nenhuma recomendação nova do item é criada e a aprovação responde
+                                                 409 ORDER_IN_PROGRESS. Remédio de reposição: até a entrega; item
+                                                 durável: até a instalação.""")
+                                         OrderInProgress orderInProgress) { }
+
+    @Schema(description = "Pedido que já cobre o item recomendado.")
+    public record OrderInProgress(UUID orderId, OrderStage stage) { }
 
     public record ApproveResponse(UUID orderId, OrderStage stage) { }
 

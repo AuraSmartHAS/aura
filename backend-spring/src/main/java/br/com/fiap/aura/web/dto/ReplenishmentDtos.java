@@ -11,7 +11,8 @@ public final class ReplenishmentDtos {
             Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:
             burn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando
             `daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.
-            `suggested=false` quando falta história (`min-history-days`) ou o estoque está folgado.
+            `suggested=false` quando falta história (`min-history-days`), o estoque está folgado ou já há um
+            pedido de reposição a caminho (`orderInProgress`).
             Nada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022).""")
     public record Projection(UUID medicationId, String medicationName, Integer stockDoses,
                              @Schema(example = "2.8") Double avgDosesPerDay,
@@ -23,5 +24,9 @@ public final class ReplenishmentDtos {
                              boolean suggested,
                              @Schema(description = "Recomendação criada ou reusada quando a régua dispara")
                              UUID recommendationId,
-                             String reason) { }
+                             String reason,
+                             @Schema(description = """
+                                     Pedido de reposição desta medicação ainda a caminho (aprovado, separando ou em
+                                     rota). Com ele a régua não sugere de novo: o estoque só sobe na entrega.""")
+                             CareChainDtos.OrderInProgress orderInProgress) { }
 }

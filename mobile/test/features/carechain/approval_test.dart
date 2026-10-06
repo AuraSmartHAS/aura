@@ -5,7 +5,6 @@ import 'package:aura/features/carechain/domain/entities/recommendation.dart';
 import 'package:aura/features/carechain/domain/repositories/carechain_repository.dart';
 import 'package:aura/features/carechain/domain/usecases/approve_recommendation_usecase.dart';
 import 'package:aura/features/carechain/domain/usecases/create_recommendation_usecase.dart';
-import 'package:aura/features/carechain/domain/usecases/find_pending_recommendation_usecase.dart';
 import 'package:aura/features/carechain/presentation/approval_copy.dart';
 import 'package:aura/features/carechain/presentation/bloc/carechain_bloc.dart';
 import 'package:aura/features/carechain/presentation/widgets/carechain_body.dart';
@@ -194,7 +193,8 @@ void main() {
       // Nada foi comprado ainda.
       expect(repository.approved, isEmpty);
 
-      await _tap(tester, find.widgetWithText(FilledButton, 'Confirmar e pedir'));
+      await _tap(
+          tester, find.widgetWithText(FilledButton, 'Confirmar e pedir'));
       await _settle(tester);
 
       expect(repository.approved, ['rec-1']);
@@ -231,9 +231,49 @@ void main() {
     }
 
     // O app disparava POST /recommendations a cada abertura e duplicava a
-    // recomendação no painel da cuidadora.
-    expect(repository.createCalls, 1);
-    expect(repository.listCalls, 5);
+    // recomendação no painel da cuidadora. Agora ele sempre pergunta ao
+    // servidor, e a unicidade é garantia do servidor (idempotência por item).
+    expect(repository.createCalls, 5);
+    expect(repository.stored, hasLength(1));
+  });
+
+  group('pedido em andamento', () {
+    testWidgets(
+        'item já pedido: sem "Aprovar", com o motivo e o caminho para o pedido',
+        (tester) async {
+      final repository = _FakeCareChainRepository(
+        recommendation: (id) => _reco(
+          id: id,
+          status: 'approved',
+          orderInProgressId: 'order-9',
+          orderInProgressStage: 'in_route',
+        ),
+      );
+      final bloc = await _pumpCareChain(tester, repository);
+      addTearDown(bloc.close);
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Aprovar e pedir'),
+      );
+      expect(button.onPressed, isNull);
+      expect(find.text(ApprovalCopy.itemAlreadyOrdered), findsOneWidget);
+      // não é falha de preço: a mensagem do preço não aparece
+      expect(find.text(ApprovalCopy.approveBlockedWithoutPrice), findsNothing);
+      // o atalho vem abaixo do card: a lista é preguiçosa, então rola até ele
+      await tester.scrollUntilVisible(find.text('Acompanhar pedido'), 200);
+      expect(find.text('Acompanhar pedido'), findsOneWidget);
+    });
+
+    testWidgets('sem pedido a caminho, não há atalho de acompanhamento',
+        (tester) async {
+      final repository =
+          _FakeCareChainRepository(recommendation: (id) => _reco(id: id));
+      final bloc = await _pumpCareChain(tester, repository);
+      addTearDown(bloc.close);
+
+      expect(find.text('Acompanhar pedido'), findsNothing);
+      expect(find.text(ApprovalCopy.itemAlreadyOrdered), findsNothing);
+    });
   });
 }
 
@@ -246,6 +286,8 @@ Recommendation _reco({
   bool installationIncluded = false,
   double? installationPrice = 149.90,
   String status = 'recommended',
+  String? orderInProgressId,
+  String? orderInProgressStage,
   List<String> factors = const ['near_fall_reported', 'no_grab_bar'],
   List<String> factorLabels = const [
     'quase-queda relatada',
@@ -268,6 +310,8 @@ Recommendation _reco({
     installable: installable,
     installationIncluded: installationIncluded,
     installationPrice: installationPrice,
+    orderInProgressId: orderInProgressId,
+    orderInProgressStage: orderInProgressStage,
   );
 }
 
@@ -278,8 +322,6 @@ CareChainBloc _buildBloc(
   return CareChainBloc(
     recomputeScoreUseCase: RecomputeScoreUseCase(_FakeScoresRepository()),
     createRecommendationUseCase: CreateRecommendationUseCase(repository),
-    findPendingRecommendationUseCase:
-        FindPendingRecommendationUseCase(repository),
     approveRecommendationUseCase: ApproveRecommendationUseCase(repository),
     getHomeUseCase: GetHomeUseCase(homeRepository ?? _FakeHomeRepository()),
     session: AuthSession(TokenStore(const FlutterSecureStorage()))
@@ -332,7 +374,6 @@ class _FakeCareChainRepository implements CareChainRepository {
   final List<Recommendation> stored = [];
   final List<String> approved = [];
   int createCalls = 0;
-  int listCalls = 0;
 
   @override
   Future<Result<Recommendation>> createRecommendation({
@@ -341,22 +382,14 @@ class _FakeCareChainRepository implements CareChainRepository {
     required SeverityLevel level,
   }) async {
     createCalls++;
-    final reco = recommendation('rec-$createCalls');
-    stored.add(reco);
-    return Success(reco);
-  }
-
-  @override
-  Future<Result<Recommendation?>> findPendingRecommendation({
-    required String homeId,
-    required SeverityLevel level,
-  }) async {
-    listCalls++;
-    // Espelha o servidor: da mais recente para a mais antiga.
+    // Espelha o servidor: idempotente por item. Devolve a pendente se houver
+    // (a tela não decide isso), senão cria.
     for (final reco in stored.reversed) {
       if (reco.isPending) return Success(reco);
     }
-    return const Success(null);
+    final reco = recommendation('rec-${stored.length + 1}');
+    stored.add(reco);
+    return Success(reco);
   }
 
   @override

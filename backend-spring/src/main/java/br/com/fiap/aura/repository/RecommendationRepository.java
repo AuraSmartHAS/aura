@@ -17,6 +17,14 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     Optional<Recommendation> findFirstByHomeIdAndMedicationIdAndStatus(UUID homeId, UUID medicationId,
                                                                        String status);
 
+    /** Recomendações da reposição de uma medicação, em qualquer status. */
+    List<Recommendation> findByHomeIdAndMedicationId(UUID homeId, UUID medicationId);
+
+    /** Pendentes do mesmo item: base do dedupe e da limpeza das que ficaram obsoletas. */
+    List<Recommendation> findByHomeIdAndSkuAndStatus(UUID homeId, String sku, String status);
+
+    List<Recommendation> findByHomeIdAndMedicationIdAndStatus(UUID homeId, UUID medicationId, String status);
+
     void deleteByHomeId(UUID homeId);
 
     /** Produto com histórico de recomendação não pode sair do catálogo (ver CatalogService.delete). */

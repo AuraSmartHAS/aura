@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/async_state_views.dart';
@@ -84,11 +86,14 @@ class _RecommendationView extends StatelessWidget {
           level: reco.level,
           isApproving: state.isApproving,
           canApprove: state.canApprove,
-          approveBlockedReason:
-              state.canApprove ? null : ApprovalCopy.approveBlockedWithoutPrice,
+          approveBlockedReason: state.canApprove
+              ? null
+              : reco.hasOrderInProgress
+                  ? ApprovalCopy.itemAlreadyOrdered
+                  : ApprovalCopy.approveBlockedWithoutPrice,
           moneySlot: RecommendationPriceBlock(
             recommendation: reco,
-            onRetry: state.canApprove
+            onRetry: reco.hasPrice
                 ? null
                 : () => bloc.add(const LoadRecommendationEvent()),
           ),
@@ -98,6 +103,18 @@ class _RecommendationView extends StatelessWidget {
           ),
           onApprove: () => _confirmAndApprove(context, state),
         ),
+        if (reco.hasOrderInProgress) ...[
+          const SizedBox(height: AppDimensions.md),
+          SizedBox(
+            height: AppDimensions.minTouchTarget,
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  context.push(AppRoutes.orderDetail(reco.orderInProgressId!)),
+              icon: const Icon(Icons.local_shipping_outlined),
+              label: const Text('Acompanhar pedido'),
+            ),
+          ),
+        ],
       ],
     );
   }

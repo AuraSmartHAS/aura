@@ -1,6 +1,7 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.config.AuraProperties;
+import br.com.fiap.aura.domain.DeliveryOrder;
 import br.com.fiap.aura.domain.Medication;
 import br.com.fiap.aura.domain.Product;
 import br.com.fiap.aura.domain.Recommendation;
@@ -18,6 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -43,11 +45,12 @@ public class ReplenishmentService {
     private final HomeService homeService;
     private final GuardrailService guardrails;
     private final AuraProperties props;
+    private final InFlightOrderService inFlight;
 
     public ReplenishmentService(MedicationRepository medications, SignalRepository signals,
                                 RecommendationRepository recommendations, ProductRepository products,
                                 HomeService homeService, GuardrailService guardrails,
-                                AuraProperties props) {
+                                AuraProperties props, InFlightOrderService inFlight) {
         this.medications = medications;
         this.signals = signals;
         this.recommendations = recommendations;
@@ -55,6 +58,7 @@ public class ReplenishmentService {
         this.homeService = homeService;
         this.guardrails = guardrails;
         this.props = props;
+        this.inFlight = inFlight;
     }
 
     @Transactional
@@ -97,8 +101,16 @@ public class ReplenishmentService {
         double avg = round1((double) confirmadas / cfg.windowDays());
         Double daysOfSupply = avg > 0 ? round1(med.getStockDoses() / avg) : null;
 
-        boolean suggested = historyDays >= cfg.minHistoryDays()
+        boolean belowRule = historyDays >= cfg.minHistoryDays()
                 && daysOfSupply != null && daysOfSupply < thresholdDays;
+
+        // O estoque só sobe na entrega. Com pedido de reposição a caminho, estoque baixo é esperado:
+        // sugerir de novo seria pedir o mesmo pacote duas vezes.
+        Optional<DeliveryOrder> open = inFlight.ofMedication(med.getHomeId(), med.getId());
+        boolean suggested = belowRule && open.isEmpty();
+        if (open.isPresent()) {
+            retirePending(med);
+        }
 
         // a frase fala de estoque, ritmo e prazo — nunca de tratamento; e passa no guardrail como
         // qualquer texto que sai da API
@@ -113,7 +125,14 @@ public class ReplenishmentService {
 
         return new ReplenishmentDtos.Projection(med.getId(), med.getName(), med.getStockDoses(),
                 avg, daysOfSupply, leadTimeHours, cfg.safetyStockDays(), thresholdDays,
-                suggested, suggested ? materialize(med, reason) : null, reason);
+                suggested, suggested ? materialize(med, reason) : null, reason,
+                open.map(InFlightOrderService::toDto).orElse(null));
+    }
+
+    /** Recomendações abertas desta medicação que o pedido a caminho já cobre: saem das listas. */
+    private void retirePending(Medication med) {
+        recommendations.findByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
+                .forEach(r -> r.setStatus("superseded"));
     }
 
     /**

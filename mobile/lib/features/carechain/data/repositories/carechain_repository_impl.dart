@@ -28,26 +28,6 @@ class CareChainRepositoryImpl implements CareChainRepository {
   }
 
   @override
-  Future<Result<Recommendation?>> findPendingRecommendation({
-    required String homeId,
-    required SeverityLevel level,
-  }) async {
-    try {
-      final list = await _remoteDataSource.listRecommendations(homeId);
-      // O servidor devolve da mais recente para a mais antiga: a primeira que
-      // ainda espera decisão é a que a cuidadora viu por último.
-      for (final raw in list) {
-        final json = raw as Map<String, dynamic>;
-        final reco = _toRecommendation(json, level);
-        if (reco.isPending) return Success(reco);
-      }
-      return const Success(null);
-    } catch (e) {
-      return Failure(mapDioError(e));
-    }
-  }
-
-  @override
   Future<Result<String>> approve(String recommendationId) async {
     try {
       final data = await _remoteDataSource.approve(recommendationId);
@@ -82,6 +62,10 @@ class CareChainRepositoryImpl implements CareChainRepository {
       installable: json['installable'] as bool?,
       installationIncluded: json['installationIncluded'] as bool?,
       installationPrice: (json['installationPrice'] as num?)?.toDouble(),
+      orderInProgressId:
+          (json['orderInProgress'] as Map?)?['orderId'] as String?,
+      orderInProgressStage:
+          (json['orderInProgress'] as Map?)?['stage'] as String?,
     );
   }
 

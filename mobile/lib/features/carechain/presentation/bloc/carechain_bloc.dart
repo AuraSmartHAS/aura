@@ -11,7 +11,6 @@ import 'package:aura/features/wellbeing360/domain/usecases/recompute_score_useca
 import '../../domain/entities/recommendation.dart';
 import '../../domain/usecases/approve_recommendation_usecase.dart';
 import '../../domain/usecases/create_recommendation_usecase.dart';
-import '../../domain/usecases/find_pending_recommendation_usecase.dart';
 
 part 'carechain_event.dart';
 part 'carechain_state.dart';
@@ -20,13 +19,11 @@ class CareChainBloc extends Bloc<CareChainEvent, CareChainState> {
   CareChainBloc({
     required RecomputeScoreUseCase recomputeScoreUseCase,
     required CreateRecommendationUseCase createRecommendationUseCase,
-    required FindPendingRecommendationUseCase findPendingRecommendationUseCase,
     required ApproveRecommendationUseCase approveRecommendationUseCase,
     required GetHomeUseCase getHomeUseCase,
     required AuthSession session,
   })  : _recomputeScoreUseCase = recomputeScoreUseCase,
         _createRecommendationUseCase = createRecommendationUseCase,
-        _findPendingRecommendationUseCase = findPendingRecommendationUseCase,
         _approveRecommendationUseCase = approveRecommendationUseCase,
         _getHomeUseCase = getHomeUseCase,
         _session = session,
@@ -37,7 +34,6 @@ class CareChainBloc extends Bloc<CareChainEvent, CareChainState> {
 
   final RecomputeScoreUseCase _recomputeScoreUseCase;
   final CreateRecommendationUseCase _createRecommendationUseCase;
-  final FindPendingRecommendationUseCase _findPendingRecommendationUseCase;
   final ApproveRecommendationUseCase _approveRecommendationUseCase;
   final GetHomeUseCase _getHomeUseCase;
   final AuthSession _session;
@@ -70,25 +66,10 @@ class CareChainBloc extends Bloc<CareChainEvent, CareChainState> {
     }
     final score = (scoreResult as Success<Score>).data;
 
-    // 3. Reaproveita a recomendação que ainda espera decisão. Sem isto, cada
-    //    vez que a tela abre nasce uma recomendação nova e o painel enche de
-    //    duplicatas do mesmo item.
-    final pendingResult = await _findPendingRecommendationUseCase(
-      homeId: homeId,
-      level: score.level,
-    );
-    if (pendingResult is Success<Recommendation?>) {
-      final pending = pendingResult.data;
-      if (pending != null) {
-        emit(CareChainState.ready(
-          recommendation: pending,
-          homeDetail: homeDetail,
-        ));
-        return;
-      }
-    }
-
-    // 4. Nenhuma pendente: cria a recomendação explicável para o escore.
+    // 3. A recomendação do risco. O servidor é idempotente por item: devolve a
+    //    pendente, ou a já aprovada com o pedido em andamento, ou cria. Antes a
+    //    tela escolhia uma pendente da casa pelo nível de severidade — regra de
+    //    negócio no cliente, que duplicava o item e ignorava pedidos a caminho.
     final recoResult = await _createRecommendationUseCase(
       homeId: homeId,
       scoreId: score.scoreId,

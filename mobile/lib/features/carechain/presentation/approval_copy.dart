@@ -27,6 +27,10 @@ class ApprovalCopy {
   static const String approveBlockedWithoutPrice =
       'Aprovação bloqueada até o preço carregar.';
 
+  /// O servidor não recomenda de novo, nem aprova, um item cujo pedido está a caminho.
+  static const String itemAlreadyOrdered =
+      'Este item já foi pedido e está a caminho. Acompanhe o pedido.';
+
   static const String payer =
       'Você paga. A compra fica no seu nome — a pessoa que você cuida não '
       'recebe cobrança.';
