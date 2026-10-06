@@ -12,9 +12,14 @@ cd aura
 docker compose up --build
 ```
 
-A `main` já traz tudo: a Fase 5, o mapa da última milha (botão **Ver entrega** no pedido em
-rota), a **carteira de pedidos** na Torre, o card de **reposição por consumo** no painel da
-Ana e o **catálogo curado de 105 produtos**, que nasce no boot — nenhum import manual.
+A `main` já traz tudo: a Fase 5, o card de **reposição por consumo** no painel da Ana, a página de
+**parceiros** e o **catálogo curado** (Leroy Merlin e rede parceira), que nasce no boot — nenhum
+import manual. A entrega (pedido, estágios e mapa da última milha) vive nos apps, não no painel
+web: saiu dele na D-008. Quem avança o estágio é a conta da Operação, no app React Native.
+
+A conversa por voz da Maria (app Flutter) é opcional e usa o ElevenLabs: exporte
+`ELEVENLABS_API_KEY` e `ELEVENLABS_AGENT_ID` antes do `docker compose up`. Sem elas o resto da demo
+funciona, e o app responde "Não consegui me conectar agora" ao tocar no microfone.
 
 A primeira execução baixa dependências e **demora alguns minutos** — faça isso em casa,
 nunca na sala da apresentação. Das vezes seguintes sobe em segundos.
@@ -32,7 +37,7 @@ A janela C exige subir com o perfil extra: `docker compose --profile rn up --bui
 ## O botão de reset (T-15 min antes do palco)
 
 O banco é em memória: **reiniciar o backend recompõe o cenário limpo**, com todos os
-prazos relativos ao relógio (OTIF volta a 75%, o pedido apertado volta a "vence na
+prazos relativos ao relógio (os pedidos voltam ao seed, o pedido apertado volta a "vence na
 próxima hora"):
 
 ```bash
