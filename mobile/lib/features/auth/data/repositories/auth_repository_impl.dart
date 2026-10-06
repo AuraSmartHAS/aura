@@ -30,7 +30,8 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: creds.refreshToken,
         role: creds.role,
       );
-      if (!role.isPatient) await _adoptExistingHome();
+      await _adoptExistingHome();
+      await _adoptServerConsent();
       await _session.onLoggedIn(role);
       return Success(UserEntity(role: role, email: email));
     } catch (e) {
@@ -39,10 +40,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// O `homeId` vive só no aparelho, mas a casa vive no backend. Num aparelho
-  /// novo (ou depois de reinstalar) o armazenamento local está vazio e o app
-  /// mandaria quem já tem casa para o onboarding, duplicando o cadastro. Aqui
-  /// adotamos a casa que a API já conhece. Falha de rede não derruba o login:
-  /// sem o id, o fluxo cai no onboarding como antes.
+  /// novo (ou depois de reinstalar) o armazenamento local está vazio: a cuidadora
+  /// cairia no onboarding, duplicando o cadastro, e a Maria ficaria com o SOS sem
+  /// saber a quem avisar (ele usa a casa pareada ao aparelho). Aqui adotamos a
+  /// casa que a API já conhece, para qualquer papel. Falha de rede não derruba o
+  /// login: sem o id, o fluxo cai no onboarding como antes.
   Future<void> _adoptExistingHome() async {
     if (await _tokenStore.homeId != null) return;
     try {
@@ -50,6 +52,23 @@ class AuthRepositoryImpl implements AuthRepository {
       if (homeId != null) await _tokenStore.saveHomeId(homeId);
     } catch (e) {
       debugPrint('[AURA-AUTH] não consegui listar as casas: $e');
+    }
+  }
+
+  /// O aceite dos termos é fato do servidor (`POST /consent` grava, `GET
+  /// /auth/me` devolve). A flag local é só cache para o guard de rotas: a cada
+  /// login ela é refeita a partir do servidor, então outro aparelho não pede o
+  /// aceite de novo e um servidor sem o registro volta a pedir. Sem resposta
+  /// (rede), a flag local fica como estava.
+  Future<void> _adoptServerConsent() async {
+    try {
+      if (await _remoteDataSource.consentAccepted()) {
+        await _tokenStore.setConsentAccepted();
+      } else {
+        await _tokenStore.clearConsentAccepted();
+      }
+    } catch (e) {
+      debugPrint('[AURA-AUTH] não consegui consultar o aceite no servidor: $e');
     }
   }
 

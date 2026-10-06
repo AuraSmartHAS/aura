@@ -61,6 +61,8 @@ class TokenStore {
       (await _storage.read(key: _kConsentAccepted)) == 'true';
   Future<void> setConsentAccepted() =>
       _storage.write(key: _kConsentAccepted, value: 'true');
+  Future<void> clearConsentAccepted() =>
+      _storage.delete(key: _kConsentAccepted);
 
   Future<void> clear() async {
     final pairedHome = await pairedHomeId;

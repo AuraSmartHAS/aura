@@ -10,6 +10,9 @@ abstract class AuthRemoteDataSource {
   /// Id da primeira casa que o usuário já tem no backend (`GET /homes`), ou
   /// `null` quando ele ainda não cadastrou nenhuma.
   Future<String?> firstHomeId();
+
+  /// Se o servidor já tem o aceite dos termos deste usuário (`GET /auth/me`).
+  Future<bool> consentAccepted();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -41,5 +44,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final homes = res.data as List<dynamic>;
     if (homes.isEmpty) return null;
     return (homes.first as Map<String, dynamic>)['id'] as String?;
+  }
+
+  @override
+  Future<bool> consentAccepted() async {
+    final res = await _dio.get('/auth/me');
+    return (res.data as Map<String, dynamic>)['consentAccepted'] == true;
   }
 }

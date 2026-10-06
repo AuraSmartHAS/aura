@@ -8,11 +8,19 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeRemote implements AuthRemoteDataSource {
-  _FakeRemote({this.role = 'cuidadora', this.homeId, this.homesFail = false});
+  _FakeRemote({
+    this.role = 'cuidadora',
+    this.homeId,
+    this.homesFail = false,
+    this.consent = false,
+    this.consentFail = false,
+  });
 
   final String role;
   final String? homeId;
   final bool homesFail;
+  final bool consent;
+  final bool consentFail;
   int homesCalls = 0;
 
   @override
@@ -27,6 +35,12 @@ class _FakeRemote implements AuthRemoteDataSource {
     homesCalls++;
     if (homesFail) throw Exception('sem rede');
     return homeId;
+  }
+
+  @override
+  Future<bool> consentAccepted() async {
+    if (consentFail) throw Exception('sem rede');
+    return consent;
   }
 }
 
@@ -59,16 +73,14 @@ void main() {
   });
 
   test('falha ao listar casas não derruba o login', () async {
-    final result =
-        await repo(_FakeRemote(homesFail: true)).login('a@a', 'x');
+    final result = await repo(_FakeRemote(homesFail: true)).login('a@a', 'x');
 
     expect(result, isA<Success>());
     expect(session.isAuthenticated, isTrue);
     expect(session.homeId, isNull);
   });
 
-  test('homeId local existente não é sobrescrito nem consulta a API',
-      () async {
+  test('homeId local existente não é sobrescrito nem consulta a API', () async {
     await store.saveHomeId('local');
     final remote = _FakeRemote(homeId: 'backend');
 
@@ -78,12 +90,44 @@ void main() {
     expect(remote.homesCalls, 0);
   });
 
-  test('paciente não consulta as casas', () async {
+  test('paciente também adota a casa: é ela que o SOS do aparelho avisa',
+      () async {
     final remote = _FakeRemote(role: 'paciente', homeId: 'casa-1');
 
     await repo(remote).login('m@a', 'x');
 
-    expect(remote.homesCalls, 0);
-    expect(session.homeId, isNull);
+    expect(remote.homesCalls, 1);
+    expect(session.homeId, 'casa-1');
+    expect(await store.pairedHomeId, 'casa-1');
+  });
+
+  group('aceite dos termos vem do servidor', () {
+    test('servidor com aceite: o aparelho novo não pede de novo', () async {
+      final result = await repo(_FakeRemote(consent: true)).login('a@a', 'x');
+
+      expect(result, isA<Success>());
+      expect(session.consentAccepted, isTrue);
+      expect(await store.consentAccepted, isTrue);
+    });
+
+    test('servidor sem aceite: o app volta a pedir, mesmo com flag local',
+        () async {
+      await store.setConsentAccepted();
+
+      await repo(_FakeRemote(consent: false)).login('a@a', 'x');
+
+      expect(session.consentAccepted, isFalse);
+      expect(await store.consentAccepted, isFalse);
+    });
+
+    test('sem resposta do servidor, a flag local fica como estava', () async {
+      await store.setConsentAccepted();
+
+      final result =
+          await repo(_FakeRemote(consentFail: true)).login('a@a', 'x');
+
+      expect(result, isA<Success>());
+      expect(session.consentAccepted, isTrue);
+    });
   });
 }
