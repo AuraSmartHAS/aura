@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { api, setToken } from '../api';
+import { api, setRole, setToken } from '../api';
 import AuraButton from '../components/AuraButton';
 import type { ScreenProps } from '../navigation';
 import { fontFamily, radius, spacing, theme } from '../theme';
@@ -20,6 +20,7 @@ export default function LoginScreen({ navigation }: Props) {
     try {
       const session = await api.login(email, password);
       setToken(session.token);
+      setRole(session.role);
       navigation.replace('Dashboard');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível entrar.');

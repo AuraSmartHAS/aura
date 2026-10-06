@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { api, Order, Recommendation } from '../api';
+import { api, isAdmin, Order, Recommendation } from '../api';
 import AuraButton from '../components/AuraButton';
 import { pesoBr } from '../format';
 import type { ScreenProps } from '../navigation';
@@ -132,7 +132,7 @@ export default function CareChainScreen({ route }: Props) {
             {order.slaBreached ? 'Entrega atrasada' : 'Entrega no prazo'}
           </Text>
 
-          {order.stage !== 'returned' && (
+          {isAdmin() && order.stage !== 'returned' && (
             <View style={styles.button}>
               <AuraButton title="Avançar estágio" onPress={() => advance(order)} disabled={busy} variant="secondary" />
             </View>

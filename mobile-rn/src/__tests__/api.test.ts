@@ -2,7 +2,7 @@
  * Contrato do cliente da API: rota, método, Bearer e tradução do envelope de erro.
  * O fetch é dublado — aqui se testa o cliente, não o servidor.
  */
-import { api, BASE_URL, setToken } from '../api';
+import { api, BASE_URL, isAdmin, setRole, setToken } from '../api';
 
 const respostaOk = (corpo: unknown) =>
   Promise.resolve({ ok: true, text: () => Promise.resolve(JSON.stringify(corpo)) } as Response);
@@ -21,6 +21,7 @@ describe('cliente da API', () => {
     fetchMock = jest.fn();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     setToken(null);
+    setRole(null);
   });
 
   it('aponta para o backend Spring em /api/v1', () => {
@@ -95,5 +96,21 @@ describe('cliente da API', () => {
 
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE_URL}/orders/pedido-1/advance`);
     expect(resultado.stage).toBe('in_route');
+  });
+
+  it('só o papel admin pode avançar a cadeia (o backend nega aos demais)', () => {
+    expect(isAdmin()).toBe(false);
+
+    setRole('cuidadora');
+    expect(isAdmin()).toBe(false);
+
+    setRole('paciente');
+    expect(isAdmin()).toBe(false);
+
+    setRole('admin');
+    expect(isAdmin()).toBe(true);
+
+    setRole(null);
+    expect(isAdmin()).toBe(false);
   });
 });

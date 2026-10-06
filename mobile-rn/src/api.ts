@@ -10,9 +10,23 @@ const HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? `http://${HOST}:8080/api/v1`;
 
 let token: string | null = null;
+let role: string | null = null;
 
 export function setToken(value: string | null): void {
   token = value;
+}
+
+/** Papel devolvido pelo login (`admin`, `cuidadora`, `paciente`). */
+export function setRole(value: string | null): void {
+  role = value;
+}
+
+/**
+ * Só a Operação move a cadeia logística: o backend responde 403 para qualquer outro papel
+ * em `/orders/{id}/advance`. A tela esconde o botão em vez de oferecer uma ação que sempre falha.
+ */
+export function isAdmin(): boolean {
+  return role === 'admin';
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
