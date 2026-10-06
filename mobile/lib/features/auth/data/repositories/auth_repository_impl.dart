@@ -30,10 +30,26 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: creds.refreshToken,
         role: creds.role,
       );
+      if (!role.isPatient) await _adoptExistingHome();
       await _session.onLoggedIn(role);
       return Success(UserEntity(role: role, email: email));
     } catch (e) {
       return Failure(mapDioError(e));
+    }
+  }
+
+  /// O `homeId` vive só no aparelho, mas a casa vive no backend. Num aparelho
+  /// novo (ou depois de reinstalar) o armazenamento local está vazio e o app
+  /// mandaria quem já tem casa para o onboarding, duplicando o cadastro. Aqui
+  /// adotamos a casa que a API já conhece. Falha de rede não derruba o login:
+  /// sem o id, o fluxo cai no onboarding como antes.
+  Future<void> _adoptExistingHome() async {
+    if (await _tokenStore.homeId != null) return;
+    try {
+      final homeId = await _remoteDataSource.firstHomeId();
+      if (homeId != null) await _tokenStore.saveHomeId(homeId);
+    } catch (e) {
+      debugPrint('[AURA-AUTH] não consegui listar as casas: $e');
     }
   }
 
