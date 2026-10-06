@@ -1,6 +1,6 @@
 import 'package:aura/core/database/app_database.dart';
+import 'package:aura/core/network/api_client.dart';
 import 'package:get_it/get_it.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/datasources/conversation_remote_datasource.dart';
 import '../data/datasources/conversation_session_datasource.dart';
 import '../data/repositories/conversation_repository_impl.dart';
@@ -13,14 +13,12 @@ import '../domain/usecases/toggle_mute_usecase.dart';
 import '../presentation/bloc/home_bloc.dart';
 
 void setupHomeModule(GetIt sl) {
-  final supabaseClient = Supabase.instance.client;
-
   // Database
   sl.registerSingleton<AppDatabase>(AppDatabase());
 
   // Datasources
   sl.registerLazySingleton<ConversationRemoteDataSource>(
-    () => ConversationRemoteDataSourceImpl(supabaseClient),
+    () => ConversationRemoteDataSourceImpl(sl<ApiClient>()),
   );
 
   sl.registerLazySingleton<ConversationSessionDataSource>(

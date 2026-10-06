@@ -26,11 +26,6 @@ class AppConfig {
 
   static String get googleMapsApiKey => _get('GOOGLE_MAPS_API_KEY');
 
-  static String get supabaseUrl =>
-      _get('SUPABASE_URL', fallback: 'https://pcdezajyayljowwgrksr.supabase.co');
-
-  static String get supabaseKey => _get('SUPABASE_KEY');
-
   static String get fcmVapidKey => _get('FCM_VAPID_KEY');
 
   /// Telefone do contato principal da casa, para o caminho de ligação do SOS
