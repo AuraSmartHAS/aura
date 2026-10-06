@@ -9,6 +9,11 @@ services:
     build: ./backend-spring
     ports:
       - "8080:8080"
+    environment:
+      # Conversa por voz da Maria (ElevenLabs). Sem as duas, /voice/token responde 503 e o resto
+      # da demo funciona normalmente. Exporte no shell ou ponha num .env na raiz (fora do git).
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
     healthcheck:
       # o JRE não traz curl; checar a porta aberta pelo bash basta para o dev/demo
       test: ["CMD-SHELL", "bash -c ': > /dev/tcp/localhost/8080'"]
