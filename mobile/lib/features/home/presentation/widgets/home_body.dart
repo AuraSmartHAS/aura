@@ -180,6 +180,7 @@ class _BottomPanel extends StatelessWidget {
             intentsHighlighted: state.intentsHighlighted,
             onSend: send,
             onRepeat: () => bloc.add(const HomeRepeatLastReplyEvent()),
+            canRepeat: state.lastAuraReply != null,
             onVoice: () => bloc.add(const HomeVoiceModeRequestedEvent()),
           )
         else ...[

@@ -163,6 +163,30 @@ void main() {
     await bloc.close();
   });
 
+  testWidgets(
+      '"Ouvir de novo" só aparece no modo texto depois que a Aura falou',
+      (tester) async {
+    final repository = _FakeConversationRepository();
+    addTearDown(repository.dispose);
+    final bloc = _RecordingHomeBloc(repository);
+    addTearDown(bloc.close);
+
+    await _pumpHome(tester, bloc);
+    await tester.tap(find.text('Prefiro digitar'));
+    await _settle(tester);
+
+    // Sem fala anterior o botão não faria nada: não deve existir.
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Ouvir de novo'), findsNothing);
+    expect(find.text('Prefiro falar'), findsOneWidget);
+
+    repository.emitAuraMessage('Está na hora do seu remédio.');
+    await _settle(tester);
+
+    expect(find.text('Ouvir de novo'), findsOneWidget);
+    expect(find.text('Prefiro falar'), findsOneWidget);
+  });
+
   test('"Ouvir de novo" traz de volta a última fala da Aura', () async {
     final repository = _FakeConversationRepository();
     addTearDown(repository.dispose);

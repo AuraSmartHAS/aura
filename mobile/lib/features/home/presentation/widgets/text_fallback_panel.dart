@@ -30,6 +30,7 @@ class TextFallbackPanel extends StatefulWidget {
     required this.onSend,
     required this.onRepeat,
     required this.onVoice,
+    required this.canRepeat,
     this.intentsHighlighted = false,
   });
 
@@ -37,6 +38,11 @@ class TextFallbackPanel extends StatefulWidget {
   final ValueChanged<String> onSend;
   final VoidCallback onRepeat;
   final VoidCallback onVoice;
+
+  /// Só há o que "ouvir de novo" depois que a Aura falou. Antes disso o botão
+  /// não faz nada, e quem não enxerga bem ou lê com dificuldade não deve ter de
+  /// descobrir isso tocando.
+  final bool canRepeat;
   final bool intentsHighlighted;
 
   @override
@@ -122,13 +128,14 @@ class _TextFallbackPanelState extends State<TextFallbackPanel> {
         const SizedBox(height: AppDimensions.sm),
         Row(
           children: [
-            Expanded(
-              child: _SecondaryAction(
-                label: 'Ouvir de novo',
-                icon: Icons.replay,
-                onTap: widget.onRepeat,
+            if (widget.canRepeat)
+              Expanded(
+                child: _SecondaryAction(
+                  label: 'Ouvir de novo',
+                  icon: Icons.replay,
+                  onTap: widget.onRepeat,
+                ),
               ),
-            ),
             Expanded(
               child: _SecondaryAction(
                 label: 'Prefiro falar',
