@@ -7,5 +7,5 @@ abstract class MedicationRepository {
   Future<Result<Medication>> update(String id, MedicationInput input);
   Future<Result<void>> delete(String id);
   Future<Result<DoseConfirmation>> confirmDose(String id,
-      {required bool taken});
+      {required bool taken, String? source});
 }

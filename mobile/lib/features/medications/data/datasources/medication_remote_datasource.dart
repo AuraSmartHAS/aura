@@ -10,7 +10,8 @@ abstract class MedicationRemoteDataSource {
   Future<Map<String, dynamic>> create(String homeId, Map<String, dynamic> body);
   Future<Map<String, dynamic>> update(String id, Map<String, dynamic> body);
   Future<void> delete(String id);
-  Future<Map<String, dynamic>> confirm(String id, {required bool taken});
+  Future<Map<String, dynamic>> confirm(String id,
+      {required bool taken, String? source});
 }
 
 class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
@@ -49,9 +50,13 @@ class MedicationRemoteDataSourceImpl implements MedicationRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> confirm(String id, {required bool taken}) async {
-    final res =
-        await _dio.post('/medications/$id/confirm', data: {'taken': taken});
+  Future<Map<String, dynamic>> confirm(String id,
+      {required bool taken, String? source}) async {
+    final res = await _dio.post('/medications/$id/confirm', data: {
+      'taken': taken,
+      // Ausente vale `self_report` no servidor; a voz manda `voice`.
+      if (source != null) 'source': source,
+    });
     return res.data as Map<String, dynamic>;
   }
 }

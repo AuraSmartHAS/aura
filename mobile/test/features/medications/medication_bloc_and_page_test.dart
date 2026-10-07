@@ -66,6 +66,7 @@ class _FakeMedications implements MedicationRepository {
   Future<Result<DoseConfirmation>> confirmDose(
     String id, {
     required bool taken,
+    String? source,
   }) async {
     confirmations.add((id, taken));
     if (confirmFailure != null) return Failure(confirmFailure);

@@ -1,6 +1,9 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.domain.Signal;
+import br.com.fiap.aura.domain.enums.Role;
+import br.com.fiap.aura.domain.enums.SignalSource;
+import br.com.fiap.aura.web.error.ApiException;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.intelligence.LeituraRegistrada;
 import br.com.fiap.aura.repository.SignalRepository;
@@ -45,6 +48,19 @@ public class SignalService {
         // os avisos do banco rodam depois do commit (AlertasAoRegistrarLeitura), não aqui dentro
         events.publishEvent(new LeituraRegistrada(signal.getHomeId()));
         return new SignalDtos.SignalCreatedResponse(signal.getId());
+    }
+
+    /**
+     * A origem {@code voice} é lida pela família como "a Maria falou" — é a procedência exibida como
+     * prova. Hoje só a rota de confirmação de dose aplica a regra: {@code POST /signals} segue aceitando
+     * {@code voice} de qualquer membro da casa porque o contrato histórico e os fluxos de demonstração
+     * dependem disso (decisão de produto pendente — ver o relatório da revisão), e a regra só vale para
+     * o que é novo.
+     */
+    public static void requirePatientForVoice(SignalSource source, Role role) {
+        if (source == SignalSource.VOICE && role != Role.PACIENTE) {
+            throw ApiException.badRequest("INVALID_SOURCE", "A origem voz só vale para a conta da paciente.");
+        }
     }
 
     @Transactional(readOnly = true)

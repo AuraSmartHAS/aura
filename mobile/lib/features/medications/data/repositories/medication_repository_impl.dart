@@ -63,9 +63,11 @@ class MedicationRepositoryImpl implements MedicationRepository {
   Future<Result<DoseConfirmation>> confirmDose(
     String id, {
     required bool taken,
+    String? source,
   }) async {
     try {
-      final data = await _remoteDataSource.confirm(id, taken: taken);
+      final data =
+          await _remoteDataSource.confirm(id, taken: taken, source: source);
       return Success(doseConfirmationFromJson(data));
     } catch (e) {
       return Failure(mapDioError(e));

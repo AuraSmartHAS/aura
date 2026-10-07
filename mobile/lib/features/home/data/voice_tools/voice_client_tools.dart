@@ -24,7 +24,10 @@ Map<String, sdk.ClientTool> buildVoiceClientTools({
   return {
     RegisterSymptomTool.name: RegisterSymptomTool(registerSymptom, session),
     ListMedicationsTool.name: ListMedicationsTool(getMedications, session),
-    ConfirmMedicationTool.name: ConfirmMedicationTool(confirmDose),
+    ConfirmMedicationTool.name: ConfirmMedicationTool(
+      confirmDose,
+      sourceFor: () => session.role?.isPatient == true ? 'voice' : null,
+    ),
     TriggerSosTool.name: TriggerSosTool(triggerEmergency, sosGateway),
   };
 }

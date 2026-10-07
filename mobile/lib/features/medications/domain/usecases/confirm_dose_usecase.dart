@@ -9,6 +9,9 @@ class ConfirmDoseUseCase {
 
   final MedicationRepository _repository;
 
-  Future<Result<DoseConfirmation>> call(String id, {required bool taken}) =>
-      _repository.confirmDose(id, taken: taken);
+  /// [source] diz quem confirmou: `voice` (agente) ou `self_report` (toque,
+  /// o padrão do servidor).
+  Future<Result<DoseConfirmation>> call(String id,
+          {required bool taken, String? source}) =>
+      _repository.confirmDose(id, taken: taken, source: source);
 }

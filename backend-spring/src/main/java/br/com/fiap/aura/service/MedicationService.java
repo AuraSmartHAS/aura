@@ -2,6 +2,7 @@ package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.domain.Medication;
 import br.com.fiap.aura.domain.Signal;
+import br.com.fiap.aura.domain.enums.Role;
 import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
 import br.com.fiap.aura.intelligence.LeituraRegistrada;
@@ -115,9 +116,11 @@ public class MedicationService {
 
     /** Confirma (ou nega) a dose: nada é prescrito, só se registra o sinal de adesão. */
     @Transactional
-    public MedicationDtos.ConfirmMedicationResponse confirm(AuthPrincipal principal, UUID medId, Boolean taken) {
+    public MedicationDtos.ConfirmMedicationResponse confirm(AuthPrincipal principal, UUID medId, Boolean taken,
+                                                            String origem) {
         auth.requireConsent(principal);
         Medication med = requireAccess(principal, medId);
+        SignalSource source = origemDaConfirmacao(origem, principal.role());
 
         boolean tomou = taken == null || taken;
         // dose confirmada desce o estoque da casa, com piso em zero; dose negada não mexe
@@ -132,12 +135,33 @@ public class MedicationService {
         Signal signal = signals.save(Signal.builder()
                 .homeId(med.getHomeId())
                 .type(SignalType.ADHERENCE)
-                .source(SignalSource.SELF_REPORT)
+                .source(source)
                 .value(value)
                 .build());
         // dose negada também é leitura: é dela que nasce o aviso de doses não confirmadas
         events.publishEvent(new LeituraRegistrada(med.getHomeId()));
         return new MedicationDtos.ConfirmMedicationResponse(signal.getId(), tomou, med.getStockDoses());
+    }
+
+    /**
+     * Quem confirmou a dose: a Maria falando com o agente ({@code voice}) ou tocando no app
+     * ({@code self_report}). Só essas duas — {@code wearable} e {@code usage} nunca confirmam dose, e
+     * aceitar qualquer origem deixaria um cliente rotular a adesão como leitura de um dispositivo.
+     */
+    private static SignalSource origemDaConfirmacao(String origem, Role role) {
+        if (origem == null || origem.isBlank()) {
+            return SignalSource.SELF_REPORT;
+        }
+        return switch (origem.trim().toLowerCase()) {
+            // A linha do tempo da família lê "voice" como "a Maria falou": quem não é a paciente não pode
+            // carimbar essa procedência, senão a origem exibida como prova seria só o que o cliente declarou.
+            case "voice" -> {
+                SignalService.requirePatientForVoice(SignalSource.VOICE, role);
+                yield SignalSource.VOICE;
+            }
+            case "self_report" -> SignalSource.SELF_REPORT;
+            default -> throw ApiException.badRequest("INVALID_SOURCE", "Origem da confirmação inválida: use voice ou self_report.");
+        };
     }
 
     /** Resolve medicação → casa e aplica o mesmo isolamento por paciente das outras rotas. */

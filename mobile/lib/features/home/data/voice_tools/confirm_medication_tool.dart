@@ -11,13 +11,20 @@ import 'voice_tool_support.dart';
 class ConfirmMedicationTool implements sdk.ClientTool {
   ConfirmMedicationTool(
     this._confirmDose, {
+    required String? Function() sourceFor,
     DateTime Function()? now,
     this.dedupeWindow = const Duration(seconds: 60),
-  }) : _now = now ?? DateTime.now;
+  })  : _sourceFor = sourceFor,
+        _now = now ?? DateTime.now;
 
   static const String name = 'confirm_medication';
 
   final ConfirmDoseUseCase _confirmDose;
+
+  /// Origem a declarar ao servidor. `voice` só vale para a conta da paciente; para
+  /// qualquer outra o servidor recusaria (400) e a dose falada se perderia — então
+  /// a tool cai para o padrão (`self_report`) em vez de não registrar nada.
+  final String? Function() _sourceFor;
   final DateTime Function() _now;
   final Duration dedupeWindow;
 
@@ -44,7 +51,7 @@ class ConfirmMedicationTool implements sdk.ClientTool {
       });
     }
 
-    final result = await _confirmDose(id, taken: taken);
+    final result = await _confirmDose(id, taken: taken, source: _sourceFor());
     final output = voiceToolFromResult(
       result,
       (dose) => {

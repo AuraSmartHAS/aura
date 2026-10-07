@@ -1,5 +1,6 @@
 package br.com.fiap.aura.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -7,6 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.fiap.aura.domain.HomeMember;
+import br.com.fiap.aura.domain.enums.HomeMemberRole;
+import br.com.fiap.aura.repository.HomeMemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +40,9 @@ class MedicationFlowTest {
 
     @Autowired
     private ObjectMapper json;
+
+    @Autowired
+    private HomeMemberRepository members;
 
     private String signup(String email) throws Exception {
         MvcResult res = mvc.perform(post("/api/v1/auth/signup")
@@ -126,6 +133,49 @@ class MedicationFlowTest {
                                 {"name":"Losartana"}"""))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    @DisplayName("a origem voz só vale para a paciente: a cuidadora não carimba \"a Maria falou\"")
+    void confirmacaoGravaAOrigem() throws Exception {
+        String[] ana = cuidadoraComCasa("med-origem@aura.com");
+        String auth = ana[0];
+        String medId = criaMedicacao(auth, ana[1]);
+
+        // a cuidadora confirma por toque; sem origem vale self_report
+        confirma(auth, medId, "{\"taken\":true}", 201);
+        confirma(auth, medId, "{\"taken\":true,\"source\":\"self_report\"}", 201);
+        // ...mas não pode declarar que foi por voz, nem outra origem que não é de dose
+        confirma(auth, medId, "{\"taken\":true,\"source\":\"voice\"}", 400);
+        confirma(auth, medId, "{\"taken\":true,\"source\":\"wearable\"}", 400);
+        confirma(auth, medId, "{\"taken\":true,\"source\":\"qualquer\"}", 400);
+
+        // a paciente (vinculada à casa) fala com o agente: voice vale
+        JsonNode conta = body(mvc.perform(post("/api/v1/auth/signup").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"med-origem-paciente@aura.com","password":"aura1234","role":"paciente"}"""))
+                .andExpect(status().isCreated()).andReturn());
+        String paciente = "Bearer " + conta.get("token").asText();
+        mvc.perform(post("/api/v1/consent").header("Authorization", paciente)).andExpect(status().isCreated());
+        members.save(HomeMember.builder().homeId(java.util.UUID.fromString(ana[1]))
+                .userId(java.util.UUID.fromString(conta.get("userId").asText()))
+                .role(HomeMemberRole.PACIENTE).build());
+        confirma(paciente, medId, "{\"taken\":true,\"source\":\"voice\"}", 201);
+        confirma(paciente, medId, "{\"taken\":true,\"source\":\" VOICE \"}", 201);
+
+        JsonNode sinais = body(mvc.perform(get("/api/v1/homes/{homeId}/signals", ana[1]).header("Authorization", auth))
+                .andExpect(status().isOk()).andReturn());
+        java.util.List<String> origens = new java.util.ArrayList<>();
+        sinais.forEach(s -> origens.add(s.get("source").asText()));
+        // 2 "voice" da paciente e os 2 toques da cuidadora, sem depender da ordem entre sinais
+        // gravados no mesmo instante
+        assertThat(origens).containsExactlyInAnyOrder("voice", "voice", "self_report", "self_report");
+    }
+
+    private void confirma(String auth, String medId, String corpo, int esperado) throws Exception {
+        mvc.perform(post("/api/v1/medications/{medId}/confirm", medId).header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON).content(corpo))
+                .andExpect(status().is(esperado));
     }
 
     @Test
