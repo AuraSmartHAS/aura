@@ -17,11 +17,16 @@ class ApprovalConfirmationSheet extends StatelessWidget {
     required this.recommendation,
     required this.patientName,
     required this.address,
+    this.supportPhone,
   });
 
   final Recommendation recommendation;
   final String? patientName;
   final String? address;
+
+  /// Telefone público do atendimento (`SUPPORT_PHONE`). Nulo ou vazio: a folha
+  /// não cita telefone — nada de número de mentira numa tela de dinheiro.
+  final String? supportPhone;
 
   /// Abre a folha e resolve para `true` quando a cuidadora confirma.
   static Future<bool> show(
@@ -29,6 +34,7 @@ class ApprovalConfirmationSheet extends StatelessWidget {
     required Recommendation recommendation,
     required String? patientName,
     required String? address,
+    String? supportPhone,
   }) async {
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
@@ -37,6 +43,7 @@ class ApprovalConfirmationSheet extends StatelessWidget {
         recommendation: recommendation,
         patientName: patientName,
         address: address,
+        supportPhone: supportPhone,
       ),
     );
     return confirmed ?? false;
@@ -46,6 +53,7 @@ class ApprovalConfirmationSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final totalLine = ApprovalCopy.totalLine(recommendation);
+    final changedMind = ApprovalCopy.changedMind(supportPhone);
 
     return SafeArea(
       child: Padding(
@@ -97,8 +105,10 @@ class ApprovalConfirmationSheet extends StatelessWidget {
                 label: 'Quem paga',
                 value: ApprovalCopy.payer,
               ),
-              const SizedBox(height: AppDimensions.md),
-              const _ChangedMindNote(),
+              if (changedMind != null) ...[
+                const SizedBox(height: AppDimensions.md),
+                _ChangedMindNote(message: changedMind),
+              ],
               const SizedBox(height: AppDimensions.lg),
               Semantics(
                 button: true,
@@ -194,15 +204,18 @@ class _SummaryRow extends StatelessWidget {
 }
 
 /// Caminho humano no lugar de um botão de cancelar que não existiria de
-/// verdade: prometer cancelamento sem rota é pior do que não ter.
+/// verdade: prometer cancelamento sem rota é pior do que não ter. Só aparece
+/// quando há um telefone de atendimento configurado.
 class _ChangedMindNote extends StatelessWidget {
-  const _ChangedMindNote();
+  const _ChangedMindNote({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Semantics(
-      label: ApprovalCopy.changedMind,
+      label: message,
       excludeSemantics: true,
       child: Container(
         width: double.infinity,
@@ -218,7 +231,7 @@ class _ChangedMindNote extends StatelessWidget {
                 size: 20, color: AppColors.primary),
             const SizedBox(width: AppDimensions.md),
             Expanded(
-              child: Text(ApprovalCopy.changedMind, style: text.bodyMedium),
+              child: Text(message, style: text.bodyMedium),
             ),
           ],
         ),

@@ -13,7 +13,11 @@ import 'approval_blocks.dart';
 import 'approval_confirmation_sheet.dart';
 
 class CareChainBody extends StatelessWidget {
-  const CareChainBody({super.key});
+  const CareChainBody({super.key, this.supportPhone});
+
+  /// Telefone público do atendimento, repassado à folha de confirmação. Vem da
+  /// configuração na página; vazio, a folha não cita telefone.
+  final String? supportPhone;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +50,10 @@ class CareChainBody extends StatelessWidget {
                       'com o porquê.',
                   icon: Icons.verified_outlined,
                 ),
-              CareChainStatus.ready => _RecommendationView(state: state),
+              CareChainStatus.ready => _RecommendationView(
+                  state: state,
+                  supportPhone: supportPhone,
+                ),
             };
           },
         ),
@@ -56,9 +63,10 @@ class CareChainBody extends StatelessWidget {
 }
 
 class _RecommendationView extends StatelessWidget {
-  const _RecommendationView({required this.state});
+  const _RecommendationView({required this.state, this.supportPhone});
 
   final CareChainState state;
+  final String? supportPhone;
 
   @override
   Widget build(BuildContext context) {
@@ -132,6 +140,7 @@ class _RecommendationView extends StatelessWidget {
       recommendation: reco,
       patientName: state.patientName,
       address: state.address,
+      supportPhone: supportPhone,
     );
     if (confirmed) {
       bloc.add(ApproveRecommendationEvent(reco.recommendationId));

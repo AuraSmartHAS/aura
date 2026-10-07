@@ -26,7 +26,31 @@ import 'package:flutter_test/flutter_test.dart';
 /// o preço (CR-5) e só descobria que um técnico entraria na casa depois de
 /// aprovar (AL-11). Estes testes prendem os dois consertos e a regressão do
 /// POST duplicado.
+/// Número de teste, só para provar que a folha usa o que vier da configuração.
+const _supportPhone = '(11) 4002-8922';
+
 void main() {
+  group('ApprovalCopy.changedMind (telefone de suporte)', () {
+    test('com telefone configurado, a frase cita esse número', () {
+      expect(
+        ApprovalCopy.changedMind('(11) 4002-8922'),
+        'Mudou de ideia? Fale com a gente pelo (11) 4002-8922 até o pedido '
+        'sair para entrega.',
+      );
+    });
+
+    test('apara espaços do valor configurado', () {
+      expect(ApprovalCopy.changedMind('  0800 123 4567 '),
+          contains('pelo 0800 123 4567 até'));
+    });
+
+    test('sem telefone (nulo, vazio ou só espaços), não há frase', () {
+      expect(ApprovalCopy.changedMind(null), isNull);
+      expect(ApprovalCopy.changedMind(''), isNull);
+      expect(ApprovalCopy.changedMind('   '), isNull);
+    });
+  });
+
   group('preço obrigatório (CR-5)', () {
     testWidgets(
         'sem preço, o botão de aprovar fica desabilitado e a tela diz por quê',
@@ -168,7 +192,11 @@ void main() {
         'e ela não promete cancelamento que não existe', (tester) async {
       final repository =
           _FakeCareChainRepository(recommendation: (id) => _reco(id: id));
-      final bloc = await _pumpCareChain(tester, repository);
+      final bloc = await _pumpCareChain(
+        tester,
+        repository,
+        supportPhone: _supportPhone,
+      );
       addTearDown(bloc.close);
 
       await _tap(tester, find.widgetWithText(FilledButton, 'Aprovar e pedir'));
@@ -185,9 +213,13 @@ void main() {
       expect(find.text(ApprovalCopy.payer), findsOneWidget);
 
       // A rota de cancelamento não existe: em vez de um botão que mentiria,
-      // a folha entrega o caminho humano com o telefone visível.
-      expect(find.text(ApprovalCopy.changedMind), findsOneWidget);
-      expect(find.textContaining('(11) 0000-0000'), findsOneWidget);
+      // a folha entrega o caminho humano com o telefone configurado visível.
+      expect(
+        find.text(ApprovalCopy.changedMind(_supportPhone)!),
+        findsOneWidget,
+      );
+      expect(find.textContaining(_supportPhone), findsOneWidget);
+      expect(find.textContaining('0000-0000'), findsNothing);
       expect(find.textContaining('Cancelar'), findsNothing);
 
       // Nada foi comprado ainda.
@@ -197,6 +229,35 @@ void main() {
           tester, find.widgetWithText(FilledButton, 'Confirmar e pedir'));
       await _settle(tester);
 
+      expect(repository.approved, ['rec-1']);
+    });
+
+    testWidgets(
+        'sem SUPPORT_PHONE configurado, a folha não cita telefone nenhum e '
+        'continua coerente', (tester) async {
+      final repository =
+          _FakeCareChainRepository(recommendation: (id) => _reco(id: id));
+      final bloc = await _pumpCareChain(tester, repository);
+      addTearDown(bloc.close);
+
+      await _tap(tester, find.widgetWithText(FilledButton, 'Aprovar e pedir'));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Confirmar a compra'), findsOneWidget);
+      expect(
+        find.text('Confira antes de pedir. Nada é comprado sem você confirmar '
+            'aqui.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Mudou de ideia'), findsNothing);
+      expect(find.textContaining('Fale com a gente'), findsNothing);
+      expect(find.textContaining('0000-0000'), findsNothing);
+      expect(find.byIcon(Icons.support_agent_outlined), findsNothing);
+
+      // A compra continua possível: só a promessa de canal some.
+      await _tap(
+          tester, find.widgetWithText(FilledButton, 'Confirmar e pedir'));
+      await _settle(tester);
       expect(repository.approved, ['rec-1']);
     });
 
@@ -333,13 +394,14 @@ Future<CareChainBloc> _pumpCareChain(
   WidgetTester tester,
   _FakeCareChainRepository repository, {
   HomeRepository? homeRepository,
+  String? supportPhone,
 }) async {
   final bloc = _buildBloc(repository, homeRepository: homeRepository);
   await tester.pumpWidget(
     MaterialApp(
       home: BlocProvider<CareChainBloc>.value(
         value: bloc..add(const LoadRecommendationEvent()),
-        child: const CareChainBody(),
+        child: CareChainBody(supportPhone: supportPhone),
       ),
     ),
   );

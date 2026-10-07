@@ -32,6 +32,11 @@ class AppConfig {
   /// Vazio aqui significa que a tela do SOS só oferece o 192.
   static String get sosContactPhone => _get('SOS_CONTACT_PHONE');
 
+  /// Telefone público do atendimento, mostrado na folha "Confirmar a compra"
+  /// como o caminho para desistir de um pedido. Não é segredo. Vazio aqui
+  /// significa que a folha não cita telefone nenhum.
+  static String get supportPhone => _get('SUPPORT_PHONE');
+
   /// Emergência pública. Botão que **a pessoa** toca, nunca discagem
   /// automática (decisão D19).
   static String get sosEmergencyPhone =>

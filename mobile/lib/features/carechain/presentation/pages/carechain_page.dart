@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/router/app_routes.dart';
 import '../bloc/carechain_bloc.dart';
@@ -22,7 +23,7 @@ class CareChainPage extends StatelessWidget {
           // RN-022: approval created the order → open its tracker.
           context.go(AppRoutes.orderDetail(state.approvedOrderId!));
         },
-        child: const CareChainBody(),
+        child: CareChainBody(supportPhone: AppConfig.supportPhone),
       ),
     );
   }
