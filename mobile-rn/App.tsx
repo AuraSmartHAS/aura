@@ -16,6 +16,7 @@ import { View } from 'react-native';
 import CareChainScreen from './src/screens/CareChainScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import MedicationsScreen from './src/screens/MedicationsScreen';
 import type { RootStackParamList } from './src/navigation';
 import { fontFamily, theme } from './src/theme';
 
@@ -71,6 +72,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Painel da cuidadora' }} />
           <Stack.Screen name="CareChain" component={CareChainScreen} options={{ title: 'Care-Chain' }} />
+          <Stack.Screen name="Medications" component={MedicationsScreen} options={{ title: 'Medicamentos' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>
