@@ -174,11 +174,11 @@ export class HomePageComponent implements OnInit {
   readonly adesao = percentualOuSemDados;
 
   /**
-   * Projeções que merecem o card: a régua disparou, ou a reposição já foi pedida e está a caminho
-   * (aí o card avisa em vez de oferecer o mesmo pedido de novo). O card não existe sem um dos dois.
+   * Projeções que merecem o card: a régua disparou, a reposição já foi pedida e está a caminho, ou
+   * a cuidadora deixou para depois (nos dois últimos o card avisa em vez de oferecer o pedido).
    */
   suggestedReplenishments(): ReplenishmentProjection[] {
-    return this.replenishment().filter((p) => p.suggested || p.orderInProgress);
+    return this.replenishment().filter((p) => p.suggested || p.orderInProgress || p.snoozedUntil);
   }
 
   /** A recomendação materializada pelo check, se ainda aguarda decisão humana. */

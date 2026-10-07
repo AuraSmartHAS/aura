@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * Configuração do AURA. Os fatores e pesos do escore vivem em
@@ -47,8 +48,12 @@ public record AuraProperties(Jwt jwt, Scoring scoring, Carechain carechain, Cors
      * Régua da reposição por consumo — v1 explicável: média simples das doses confirmadas na
      * janela, comparada ao lead time da cadeia mais a margem. Números versionados aqui, como
      * os pesos do escore, para quem não programa poder auditar a conta.
+     *
+     * @param snoozeHours por quanto tempo "deixar para depois" (a recusa) cala a sugestão daquela
+     *                    medicação — ou até uma entrega de reposição mudar o estoque, o que vier antes.
      */
-    public record Replenish(int windowDays, int safetyStockDays, int minHistoryDays, int packageDoses) { }
+    public record Replenish(int windowDays, int safetyStockDays, int minHistoryDays, int packageDoses,
+                            @DefaultValue("24") int snoozeHours) { }
 
     public record Cors(String allowedOrigins) { }
 

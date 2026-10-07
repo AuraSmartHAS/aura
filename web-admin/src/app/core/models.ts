@@ -103,6 +103,8 @@ export interface ReplenishmentProjection {
   reason: string | null;
   /** Reposição já pedida e ainda não entregue: a régua não sugere outra até o estoque subir. */
   orderInProgress?: OrderInProgress | null;
+  /** "Deixar para depois": a sugestão fica calada até este instante (ISO) ou até a próxima entrega. */
+  snoozedUntil?: string | null;
 }
 
 export interface Signal {

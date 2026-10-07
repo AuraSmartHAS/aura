@@ -228,13 +228,16 @@ class ReplenishmentFlowTest {
     }
 
     @Test
-    @DisplayName("reposição recusada não vira pedido — e sai do dedupe para a régua poder sugerir de novo")
+    @DisplayName("reposição recusada não vira pedido e adia a sugestão: o check seguinte não recria")
     void reposicaoRecusadaNaoViraPedido() throws Exception {
         String[] ana = cuidadoraComCasa("repo-recusa@aura.com");
         String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
         plantaConsumo(ana[1], medId, 21, 2, true);
 
-        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        JsonNode sugerida = check(ana[0], ana[1]).get(0);
+        assertThat(sugerida.get("snoozedUntil").isNull()).isTrue();
+        String recId = sugerida.get("recommendationId").asText();
+        Instant antesDaRecusa = Instant.now();
         mvc.perform(post("/api/v1/recommendations/{id}/reject", recId).header("Authorization", ana[0]))
                 .andExpect(status().isOk());
 
@@ -244,8 +247,54 @@ class ReplenishmentFlowTest {
                 .andReturn());
         assertThat(pedidos.size()).isZero();
 
-        String novaRec = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
-        assertThat(novaRec).isNotEqualTo(recId);
+        // "deixar para depois": a régua continua disparando, mas a sugestão fica calada pelo prazo
+        // configurado (24 h), sem materializar outra recomendação a cada recarga da tela
+        JsonNode adiada = check(ana[0], ana[1]).get(0);
+        assertThat(adiada.get("suggested").asBoolean()).isFalse();
+        assertThat(adiada.get("recommendationId").isNull()).isTrue();
+        assertThat(adiada.get("reason").isNull()).isTrue();
+        Instant ate = Instant.parse(adiada.get("snoozedUntil").asText());
+        assertThat(ate).isBetween(antesDaRecusa.plus(24, ChronoUnit.HOURS),
+                Instant.now().plus(24, ChronoUnit.HOURS));
+        check(ana[0], ana[1]);
+        assertThat(recommendations.findByHomeIdAndMedicationId(UUID.fromString(ana[1]), UUID.fromString(medId)))
+                .extracting(Recommendation::getStatus).containsExactly("rejected");
+
+        // passado o prazo (a recusa retrodatada faz o papel do relógio), a régua volta a sugerir
+        Recommendation recusada = recommendations.findById(UUID.fromString(recId)).orElseThrow();
+        recusada.setCreatedAt(Instant.now().minus(25, ChronoUnit.HOURS));
+        recommendations.save(recusada);
+
+        JsonNode deNovo = check(ana[0], ana[1]).get(0);
+        assertThat(deNovo.get("suggested").asBoolean()).isTrue();
+        assertThat(deNovo.get("snoozedUntil").isNull()).isTrue();
+        assertThat(deNovo.get("recommendationId").asText()).isNotEqualTo(recId).isNotEqualTo("null");
+    }
+
+    @Test
+    @DisplayName("uma entrega de reposição depois da recusa encerra o adiamento antes do prazo")
+    void entregaEncerraOAdiamento() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-recusa-entrega@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        // 10/dia: mesmo com o pacote entregue (8 + 30 = 38 -> 3,8 dias) a régua segue disparando
+        plantaConsumo(ana[1], medId, 21, 10, true);
+
+        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        String sku = recommendations.findById(UUID.fromString(recId)).orElseThrow().getSku();
+        mvc.perform(post("/api/v1/recommendations/{id}/reject", recId).header("Authorization", ana[0]))
+                .andExpect(status().isOk());
+        assertThat(check(ana[0], ana[1]).get(0).get("snoozedUntil").isNull()).isFalse();
+
+        // pedido que veio por outra via (outro dispositivo) e é entregue durante o adiamento
+        Recommendation outra = recommendations.save(Recommendation.builder()
+                .homeId(UUID.fromString(ana[1])).medicationId(UUID.fromString(medId)).sku(sku)
+                .reason("Pedido feito em outro dispositivo.").build());
+        avanca(aprovaReposicao(ana[0], outra.getId().toString()), 3);
+
+        JsonNode apos = check(ana[0], ana[1]).get(0);
+        assertThat(apos.get("stockDoses").asInt()).isEqualTo(38);
+        assertThat(apos.get("snoozedUntil").isNull()).isTrue();
+        assertThat(apos.get("suggested").asBoolean()).isTrue();
     }
 
     @Test

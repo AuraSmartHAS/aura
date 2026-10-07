@@ -107,7 +107,10 @@ public class ReplenishmentService {
         // O estoque só sobe na entrega. Com pedido de reposição a caminho, estoque baixo é esperado:
         // sugerir de novo seria pedir o mesmo pacote duas vezes.
         Optional<DeliveryOrder> open = inFlight.ofMedication(med.getHomeId(), med.getId());
-        boolean suggested = belowRule && open.isEmpty();
+        // "Deixar para depois" adia de verdade: sem isto, o check seguinte materializava outra
+        // recomendação igual na hora e cada clique só acumulava um registro rejected.
+        Instant snoozedUntil = belowRule && open.isEmpty() ? snoozedUntil(med, cfg, now) : null;
+        boolean suggested = belowRule && open.isEmpty() && snoozedUntil == null;
         if (open.isPresent()) {
             retirePending(med);
         }
@@ -126,7 +129,32 @@ public class ReplenishmentService {
         return new ReplenishmentDtos.Projection(med.getId(), med.getName(), med.getStockDoses(),
                 avg, daysOfSupply, leadTimeHours, cfg.safetyStockDays(), thresholdDays,
                 suggested, suggested ? materialize(med, reason) : null, reason,
-                open.map(InFlightOrderService::toDto).orElse(null));
+                open.map(InFlightOrderService::toDto).orElse(null), snoozedUntil);
+    }
+
+    /**
+     * Fim do adiamento pedido pela cuidadora, ou nulo se não há adiamento vigente. Deriva da
+     * recusa mais recente desta medicação — sem coluna nova: na recusa de uma reposição,
+     * {@code createdAt} passa a marcar o instante da recusa ({@code CareChainService.reject}).
+     * O adiamento termina no prazo de {@code snooze-hours} ou na primeira entrega de reposição
+     * depois da recusa, porque aí o estoque mudou e a conta precisa ser refeita.
+     */
+    private Instant snoozedUntil(Medication med, AuraProperties.Replenish cfg, Instant now) {
+        Optional<Instant> rejectedAt = recommendations
+                .findByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "rejected").stream()
+                .map(Recommendation::getCreatedAt)
+                .max(Instant::compareTo);
+        if (rejectedAt.isEmpty()) {
+            return null;
+        }
+        Instant until = rejectedAt.get().plus(cfg.snoozeHours(), ChronoUnit.HOURS);
+        if (!now.isBefore(until)) {
+            return null;
+        }
+        boolean restocked = inFlight.lastDeliveryOfMedication(med.getHomeId(), med.getId())
+                .filter(delivered -> delivered.isAfter(rejectedAt.get()))
+                .isPresent();
+        return restocked ? null : until;
     }
 
     /** Recomendações abertas desta medicação que o pedido a caminho já cobre: saem das listas. */

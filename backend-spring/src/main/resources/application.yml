@@ -59,6 +59,7 @@ aura:
       safety-stock-days: 4   # margem além do lead time, versionada como os pesos do escore
       min-history-days: 7    # sem uma semana de confirmações, nada se projeta
       package-doses: 30      # doses que uma reposição entrega
+      snooze-hours: 24       # "deixar para depois" cala a sugestão por este prazo (ou até a entrega)
   cors:
     # Padroes, nao origens literais: com credenciais habilitadas o Spring recusa curinga em
     # setAllowedOrigins, entao SecurityConfig usa setAllowedOriginPatterns. A faixa cobre o

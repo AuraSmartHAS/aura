@@ -6,11 +6,14 @@ import br.com.fiap.aura.domain.enums.OrderStage;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
 import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.web.dto.CareChainDtos;
+import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 /**
@@ -56,6 +59,23 @@ public class InFlightOrderService {
             return Optional.empty();
         }
         return orders.findFirstByRecommendationIdInAndStageInOrderByCreatedAtDesc(recommendationIds, CONSUMABLE_OPEN);
+    }
+
+    /**
+     * Instante da entrega de reposição mais recente desta medicação, se houver. É quando o estoque
+     * da casa mudou pela cadeia — e o que encerra um "deixar para depois" antes do prazo.
+     */
+    public Optional<Instant> lastDeliveryOfMedication(UUID homeId, UUID medicationId) {
+        Set<UUID> recommendationIds = recommendations.findByHomeIdAndMedicationId(homeId, medicationId)
+                .stream().map(Recommendation::getId).collect(Collectors.toSet());
+        if (recommendationIds.isEmpty()) {
+            return Optional.empty();
+        }
+        return orders.findByHomeIdOrderByCreatedAtDesc(homeId).stream()
+                .filter(o -> recommendationIds.contains(o.getRecommendationId()))
+                .map(DeliveryOrder::getDeliveredAt)
+                .filter(Objects::nonNull)
+                .max(Instant::compareTo);
     }
 
     /** O pedido em andamento que já cobre esta recomendação (reposição ou durável), se houver. */

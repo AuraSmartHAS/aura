@@ -126,12 +126,17 @@
             <strong>{{ p.medicationName }}</strong>
             <span class="tag tag--danger" *ngIf="p.suggested">acaba em uns {{ roundDays(p.daysOfSupply) }} dias</span>
             <span class="tag tag--approved" *ngIf="!p.suggested && p.orderInProgress">reposição pedida</span>
+            <span class="tag" *ngIf="!p.suggested && !p.orderInProgress && p.snoozedUntil">deixada para depois</span>
           </div>
           <p class="explain" *ngIf="p.suggested">{{ p.reason }}</p>
           <p class="explain" *ngIf="!p.suggested && p.orderInProgress">
             A reposição de {{ p.medicationName }} já foi aprovada e está a caminho. O estoque
             ({{ p.stockDoses }} doses) só sobe quando o pacote chegar; até lá nenhuma nova
             reposição é sugerida.
+          </p>
+          <p class="explain" *ngIf="!p.suggested && !p.orderInProgress && p.snoozedUntil">
+            Reposição adiada até {{ p.snoozedUntil | date: 'dd/MM HH:mm' }}. O estoque está em
+            {{ p.stockDoses }} doses; a sugestão volta depois desse prazo, ou antes se chegar uma entrega.
           </p>
           <p class="small muted">
             Prazo da cadeia: {{ p.leadTimeHours }} h · margem de segurança: {{ p.safetyStockDays }} dias

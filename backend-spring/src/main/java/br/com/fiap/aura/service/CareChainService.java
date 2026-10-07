@@ -261,6 +261,12 @@ public class CareChainService {
             throw ApiException.conflict("Recomendação já aprovada não pode ser rejeitada.");
         }
         rec.setStatus("rejected");
+        // Reposição recusada é "deixar para depois": o adiamento conta da recusa, não da sugestão
+        // (que pode ter ficado dias na tela). Sem coluna nova, createdAt passa a marcar a recusa —
+        // é a última decisão sobre o registro, e é dele que o ReplenishmentService deriva o prazo.
+        if (rec.getMedicationId() != null) {
+            rec.setCreatedAt(Instant.now());
+        }
         return toResponse(rec, productIndex().get(rec.getSku()));
     }
 

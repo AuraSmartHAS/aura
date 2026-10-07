@@ -1,6 +1,7 @@
 package br.com.fiap.aura.web.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.Instant;
 import java.util.UUID;
 
 public final class ReplenishmentDtos {
@@ -11,8 +12,8 @@ public final class ReplenishmentDtos {
             Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:
             burn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando
             `daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.
-            `suggested=false` quando falta história (`min-history-days`), o estoque está folgado ou já há um
-            pedido de reposição a caminho (`orderInProgress`).
+            `suggested=false` quando falta história (`min-history-days`), o estoque está folgado, já há um
+            pedido de reposição a caminho (`orderInProgress`) ou a cuidadora deixou para depois (`snoozedUntil`).
             Nada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022).""")
     public record Projection(UUID medicationId, String medicationName, Integer stockDoses,
                              @Schema(example = "2.8") Double avgDosesPerDay,
@@ -28,5 +29,10 @@ public final class ReplenishmentDtos {
                              @Schema(description = """
                                      Pedido de reposição desta medicação ainda a caminho (aprovado, separando ou em
                                      rota). Com ele a régua não sugere de novo: o estoque só sobe na entrega.""")
-                             CareChainDtos.OrderInProgress orderInProgress) { }
+                             CareChainDtos.OrderInProgress orderInProgress,
+                             @Schema(description = """
+                                     Fim do adiamento ("deixar para depois"): a régua dispararia, mas a recusa mais
+                                     recente desta medicação cala a sugestão até este instante (`snooze-hours`) ou até
+                                     uma entrega de reposição mudar o estoque. Nulo fora do adiamento.""")
+                             Instant snoozedUntil) { }
 }

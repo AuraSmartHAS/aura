@@ -7089,9 +7089,14 @@
           },
           "orderInProgress": {
             "$ref": "#/components/schemas/OrderInProgress"
+          },
+          "snoozedUntil": {
+            "type": "string",
+            "description": "Fim do adiamento (\"deixar para depois\"): a régua dispararia, mas a recusa mais\nrecente desta medicação cala a sugestão até este instante (`snooze-hours`) ou até\numa entrega de reposição mudar o estoque. Nulo fora do adiamento.",
+            "format": "date-time"
           }
         },
-        "description": "Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:\nburn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando\n`daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.\n`suggested=false` quando falta história (`min-history-days`), o estoque está folgado ou já há um\npedido de reposição a caminho (`orderInProgress`).\nNada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022)."
+        "description": "Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:\nburn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando\n`daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.\n`suggested=false` quando falta história (`min-history-days`), o estoque está folgado, já há um\npedido de reposição a caminho (`orderInProgress`) ou a cuidadora deixou para depois (`snoozedUntil`).\nNada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022)."
       },
       "CreateMedicationRequest": {
         "required": [
