@@ -425,6 +425,22 @@ public class EmergencyService {
                 falaDoEstado(e, degradado, quemConfirmou, contato));
     }
 
+    /**
+     * A emergência em aberto da casa, para a família descobrir o SOS sem ter o identificador.
+     *
+     * <p>O {@code GET /emergencies/{id}} é aberto e magro de propósito (a Maria o chama sem sessão), mas
+     * exige saber o id — que a família só teria por push. Esta rota é o outro caminho: autenticada e com
+     * o mesmo {@code requireAccess} do {@code ack}, devolve o mesmo corpo magro da última emergência
+     * <b>enquanto ela está aberta</b> ({@code waiting_cancel}, {@code dispatched} ou {@code escalated}).
+     * Cancelada, confirmada ou contida deixam de ser "ativas": não há mais o que a família fazer.
+     */
+    public java.util.Optional<EmergencyDtos.StatusResponse> active(AuthPrincipal principal, UUID homeId) {
+        homeService.requireAccess(principal, homeId);
+        return emergencies.findFirstByHomeIdAndStateInOrderByCreatedAtDesc(homeId,
+                        List.of(EmergencyState.WAITING_CANCEL, EmergencyState.DISPATCHED, EmergencyState.ESCALATED))
+                .map(e -> status(e.getId()));
+    }
+
     // =================================================================================
     // 5. DISPARO E ESCALONAMENTO — o que o SERVIDOR faz sozinho
     // =================================================================================

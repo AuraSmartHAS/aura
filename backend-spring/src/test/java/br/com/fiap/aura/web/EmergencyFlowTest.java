@@ -20,6 +20,10 @@ import br.com.fiap.aura.service.FcmService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import br.com.fiap.aura.domain.Emergency;
+import br.com.fiap.aura.domain.enums.EmergencyChannel;
+import br.com.fiap.aura.domain.enums.EmergencyState;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -326,6 +330,64 @@ class EmergencyFlowTest {
         assertThat(avisos.get(0).deviceToken()).isEqualTo("token-da-ana-ack");
         assertThat(estado(emergencyId).get("state").asText()).isEqualTo("acknowledged");
         assertThat(estado(emergencyId).get("escalated").asBoolean()).isFalse();
+    }
+
+    @Test
+    @DisplayName("a família descobre o SOS em aberto sem ter o id, e ele some quando deixa de ser aberto")
+    void emergenciaAtivaParaAFamilia() throws Exception {
+        Conta ana = signup("sos-ativa@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        Conta estranho = signup("sos-ativa-estranho@aura.com", "Caio");
+
+        // sem emergência: 204, não 404 — "nada acontecendo" é o estado normal da casa
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId).header("Authorization", ana.auth()))
+                .andExpect(status().isNoContent());
+
+        String emergencyId = disparaSemSessao(homeId).get("emergencyId").asText();
+
+        JsonNode ativa = body(mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", ana.auth()))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(ativa.get("emergencyId").asText()).isEqualTo(emergencyId);
+        assertThat(ativa.get("state").asText()).isEqualTo("waiting_cancel");
+
+        // é autenticada e isolada por casa: sem sessão 401, estranho 403
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", estranho.auth()))
+                .andExpect(status().isForbidden());
+
+        // quem diz "estou indo" fecha o loop, e a emergência deixa de ser ativa
+        mvc.perform(post("/api/v1/emergencies/{id}/ack", emergencyId).header("Authorization", ana.auth()))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId).header("Authorization", ana.auth()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("SOS antigo ainda aberto não some só porque o mais novo foi cancelado")
+    void emergenciaAtivaIgnoraAMaisNovaJaEncerrada() throws Exception {
+        Conta ana = signup("sos-ativa-antiga@aura.com", "Ana");
+        UUID homeId = UUID.fromString(casaDe(ana.auth()));
+        Instant agora = Instant.now();
+
+        Emergency antiga = emergencyRepository.save(Emergency.builder().homeId(homeId)
+                .channel(EmergencyChannel.TOUCH).state(EmergencyState.DISPATCHED)
+                .createdAt(agora.minusSeconds(600)).dispatchDueAt(agora.minusSeconds(595))
+                .dispatchedAt(agora.minusSeconds(595)).build());
+        emergencyRepository.save(Emergency.builder().homeId(homeId)
+                .channel(EmergencyChannel.TOUCH).state(EmergencyState.CANCELLED)
+                .createdAt(agora).dispatchDueAt(agora.plusSeconds(5)).cancelledAt(agora).build());
+
+        JsonNode ativa = body(mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", ana.auth()))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        assertThat(ativa.get("emergencyId").asText()).isEqualTo(antiga.getId().toString());
+        assertThat(ativa.get("state").asText()).isEqualTo("dispatched");
     }
 
     @Test

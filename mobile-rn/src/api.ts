@@ -29,6 +29,24 @@ export function isAdmin(): boolean {
   return role === 'admin';
 }
 
+/** Erro da API com o status HTTP: a tela distingue "sessão expirou" de "sem conexão". */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+export const SESSION_EXPIRED_MESSAGE = 'Sua sessão expirou. Entre novamente.';
+
+/** 401 com sessão aberta: o token venceu ou foi revogado (não é senha errada nem rede). */
+export function isSessionExpired(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401 && error.message === SESSION_EXPIRED_MESSAGE;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     ...init,
@@ -40,10 +58,28 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
 
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  // Corpo que não é JSON (uma página de erro de proxy, por exemplo) não pode virar um
+  // "Unexpected token <" na tela da cuidadora.
+  let body: { error?: { message?: string } } | null = null;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = null;
+    }
+  }
+
+  if (response.ok && text && body === null) {
+    // 200 com HTML (proxy, portal cativo): não é a resposta da API, e o `null` quebraria a tela com
+    // "Cannot read properties of null".
+    throw new ApiError('Resposta inesperada do servidor.', response.status);
+  }
 
   if (!response.ok) {
-    throw new Error(body?.error?.message ?? 'Falha na comunicação com o servidor.');
+    // Com sessão aberta, 401 é "sua sessão expirou". Sem sessão (login), é senha errada: a mensagem
+    // do servidor vale.
+    if (response.status === 401 && token && !path.startsWith('/auth/')) throw new ApiError(SESSION_EXPIRED_MESSAGE, 401);
+    throw new ApiError(body?.error?.message ?? 'Falha na comunicação com o servidor.', response.status);
   }
   return body as T;
 }
@@ -92,6 +128,39 @@ export interface Order {
   slaBreached: boolean;
 }
 
+/** Um sinal da casa (`GET /homes/{id}/signals`): matéria-prima da linha do tempo. */
+export interface CareSignal {
+  id: string;
+  /** `adherence`, `mobility`, `sleep`, `vitals`… */
+  type: string;
+  /** `voice`, `self_report`, `usage` ou `wearable`. */
+  source: string;
+  value: Record<string, unknown>;
+  /** ISO-8601 em UTC; a tela converte para a hora local. */
+  capturedAt: string;
+}
+
+export interface MedicationRecord {
+  id: string;
+  homeId: string;
+  name: string;
+  dosage: string | null;
+  /** Horários `HH:mm`; vazio = "quando necessário". */
+  schedule: string[];
+  notes: string | null;
+  active: boolean;
+  stockDoses: number | null;
+}
+
+/** SOS em aberto da casa; também é o corpo do "estou indo". */
+export interface ActiveEmergency {
+  emergencyId: string;
+  /** `waiting_cancel`, `dispatched`, `escalated` ou `acknowledged`. */
+  state: string;
+  createdAt?: string;
+  acknowledgedByName?: string | null;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     request<{ token: string; role: string }>('/auth/login', {
@@ -129,4 +198,41 @@ export const api = {
 
   advance: (orderId: string) =>
     request<{ stage: string; slaBreached: boolean }>(`/orders/${orderId}/advance`, { method: 'POST' }),
+
+  /**
+   * Sinais da casa desde `since` (o servidor recebe em UTC). Sem recorte de data, "os N últimos"
+   * misturam leituras do relógio e empurram a dose do dia para fora da página — e a tela passaria a
+   * afirmar "atrasada" para uma dose tomada.
+   */
+  signals: (homeId: string, since?: Date, limit = 200, type?: string) =>
+    request<CareSignal[]>(
+      `/homes/${homeId}/signals?limit=${limit}${type ? `&type=${type}` : ''}${since ? `&from=${encodeURIComponent(since.toISOString())}` : ''}`,
+    ),
+
+  /** Por nome, como o app Flutter lista: as duas telas mostram os remédios na mesma ordem. */
+  medications: async (homeId: string) =>
+    (await request<MedicationRecord[]>(`/homes/${homeId}/medications`)).sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }),
+    ),
+
+  /** Cadastra o medicamento; o servidor devolve o registro salvo (sem refazer a lista). */
+  createMedication: (homeId: string, body: Record<string, unknown>) =>
+    request<MedicationRecord>(`/homes/${homeId}/medications`, { method: 'POST', body: JSON.stringify(body) }),
+
+  updateMedication: (medicationId: string, body: Record<string, unknown>) =>
+    request<MedicationRecord>(`/medications/${medicationId}`, { method: 'PUT', body: JSON.stringify(body) }),
+
+  deleteMedication: (medicationId: string) =>
+    request<{ deleted: boolean }>(`/medications/${medicationId}`, { method: 'DELETE' }),
+
+  /** SOS em aberto; `null` no 204 (nada acontecendo). */
+  activeEmergency: (homeId: string) =>
+    request<ActiveEmergency | null>(`/homes/${homeId}/emergencies/active`),
+
+  /** Estado do aviso (rota aberta e magra): como um SOS que deixou de estar em aberto terminou. */
+  emergencyOutcome: (emergencyId: string) => request<ActiveEmergency>(`/emergencies/${emergencyId}`),
+
+  /** "Estou indo": fecha o loop e para o escalonamento. */
+  acknowledgeEmergency: (emergencyId: string) =>
+    request<ActiveEmergency>(`/emergencies/${emergencyId}/ack`, { method: 'POST' }),
 };

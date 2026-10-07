@@ -7,6 +7,7 @@ import '../../../../shared/widgets/async_state_views.dart';
 import '../../domain/day_period_grouping.dart';
 import '../../domain/entities/medication.dart';
 import '../bloc/medication_bloc.dart';
+import 'caregiver_dose_status.dart';
 import 'dose_confirm_actions.dart';
 import 'medication_form_sheet.dart';
 
@@ -238,7 +239,12 @@ class _MedicationCard extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: AppDimensions.md),
-                      DoseConfirmActions(medication: medication),
+                      // A paciente confirma a dose; a família lê o resultado.
+                      if (context.select<MedicationBloc, bool>(
+                          (bloc) => bloc.isCaregiver))
+                        CaregiverDoseStatus(medication: medication)
+                      else
+                        DoseConfirmActions(medication: medication),
                     ],
                   ),
                 ),

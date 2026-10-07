@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/session/auth_session.dart';
+import '../../caregiver_dashboard/domain/usecases/care_feed_usecases.dart';
 import '../data/datasources/medication_remote_datasource.dart';
 import '../data/repositories/medication_repository_impl.dart';
 import '../domain/repositories/medication_repository.dart';
@@ -39,6 +40,7 @@ void setupMedicationsModule(GetIt sl) {
       deleteMedicationUseCase: sl<DeleteMedicationUseCase>(),
       confirmDoseUseCase: sl<ConfirmDoseUseCase>(),
       session: sl<AuthSession>(),
+      getCareSignalsUseCase: sl<GetCareSignalsUseCase>(),
     ),
   );
 }

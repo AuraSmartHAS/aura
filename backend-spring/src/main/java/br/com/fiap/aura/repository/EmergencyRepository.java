@@ -145,6 +145,14 @@ public interface EmergencyRepository extends JpaRepository<Emergency, UUID> {
     /** A última emergência da casa — base da deduplicação de toque repetido. */
     Optional<Emergency> findFirstByHomeIdOrderByCreatedAtDesc(UUID homeId);
 
+    /**
+     * A emergência mais recente da casa entre os estados dados. Filtrar no banco (e não "pegar a última
+     * e olhar o estado") importa: se a mais nova foi cancelada e uma anterior segue aberta, a família
+     * ainda precisa vê-la.
+     */
+    Optional<Emergency> findFirstByHomeIdAndStateInOrderByCreatedAtDesc(
+            UUID homeId, java.util.Collection<EmergencyState> states);
+
     /** Contagem por casa numa janela — é o teto por hora da mitigação de abuso (regra 3). */
     long countByHomeIdAndCreatedAtGreaterThanEqual(UUID homeId, Instant from);
 

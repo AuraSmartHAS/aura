@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { api, setRole, setToken } from '../api';
 import AuraButton from '../components/AuraButton';
@@ -13,6 +13,13 @@ export default function LoginScreen({ navigation }: Props) {
   const [password, setPassword] = useState('aura1234');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Entrar no login é sair da sessão: um token vencido que sobrasse na memória faria uma senha
+  // errada aparecer como "sua sessão expirou".
+  useEffect(() => {
+    setToken(null);
+    setRole(null);
+  }, []);
 
   async function handleLogin() {
     setLoading(true);

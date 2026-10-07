@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Login: undefined;
   Dashboard: undefined;
   CareChain: { homeId: string; scoreId: string };
+  Medications: { homeId: string; patientFirstName: string };
 };
 
 export type ScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;

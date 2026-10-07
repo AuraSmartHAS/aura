@@ -18,5 +18,8 @@ Score scoreFromJson(Map<String, dynamic> json) {
         .toList(),
     explanation: (json['explanation'] as String?) ?? '',
     configVersion: json['configVersion'] as String?,
+    factorLabels: ((json['factorLabels'] as List?) ?? const [])
+        .map((e) => e.toString())
+        .toList(),
   );
 }
