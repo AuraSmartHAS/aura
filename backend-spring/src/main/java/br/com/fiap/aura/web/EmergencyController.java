@@ -122,9 +122,9 @@ public class EmergencyController {
      * O principal <b>quando existe</b>. Não usa {@code currentUser.require()} de propósito: nesta
      * rota a ausência de sessão é o caso de uso, não um erro.
      *
-     * <p>O {@code JwtAuthenticationFilter} continua rodando e continua recusando token inválido com
-     * 401 — o que é o comportamento certo: token corrompido é sintoma de bug no cliente, e mascarar
-     * isso como "disparo anônimo" esconderia o problema. Sem cabeçalho nenhum, aqui é nulo.
+     * <p>Sem cabeçalho, ou com um token que o {@code JwtAuthenticationFilter} recusou (vencido,
+     * inválido, revogado), aqui é nulo: a rota é aberta e um token velho no aparelho não pode
+     * custar um socorro.
      */
     private AuthPrincipal principalOuNulo() {
         var auth = SecurityContextHolder.getContext().getAuthentication();

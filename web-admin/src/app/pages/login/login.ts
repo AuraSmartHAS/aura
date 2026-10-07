@@ -23,14 +23,17 @@ export class LoginComponent {
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  /** "Sua sessão expirou" quando o interceptor trouxe a pessoa até aqui; some no próximo acesso. */
+  readonly notice = signal<string | null>(this.auth.consumeNotice());
 
   submit(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.notice.set(null);
 
     this.api.login(this.email, this.password).subscribe({
       next: (res) => {
-        this.auth.save(res.token, res.role);
+        this.auth.save(res.token, res.role, res.refreshToken);
         this.loading.set(false);
         this.router.navigate([res.role === 'admin' ? '/admin' : '/home']);
       },

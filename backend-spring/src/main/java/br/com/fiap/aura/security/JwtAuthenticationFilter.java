@@ -2,16 +2,13 @@ package br.com.fiap.aura.security;
 
 import br.com.fiap.aura.domain.UserAccount;
 import br.com.fiap.aura.repository.UserAccountRepository;
-import br.com.fiap.aura.web.error.ApiErrorResponse;
 import br.com.fiap.aura.web.error.ApiException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,21 +16,30 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Lê o {@code Authorization: Bearer ...} e popula o contexto de segurança. */
+/**
+ * Lê o {@code Authorization: Bearer ...} e popula o contexto de segurança.
+ *
+ * <p>Token recusado (vencido, inválido, revogado, de conta apagada) <b>não</b> encerra a requisição
+ * aqui: o filtro segue como anônimo e guarda o motivo em {@link #REJECTION_ATTRIBUTE}. Quem decide
+ * é a autorização. Numa rota pública (login, signup, refresh, health, SOS aberto, Swagger) o
+ * anônimo passa, e um token velho esquecido no navegador não impede o próprio login; numa rota
+ * protegida o ponto de entrada de autenticação responde 401 com o código guardado
+ * ({@code TOKEN_EXPIRED} para o cliente tentar o refresh, {@code UNAUTHORIZED} para ir ao login).
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    /** Atributo da requisição com a {@link ApiException} que recusou o token, quando houve. */
+    public static final String REJECTION_ATTRIBUTE = JwtAuthenticationFilter.class.getName() + ".REJECTION";
 
     private static final String PREFIX = "Bearer ";
 
     private final JwtService jwtService;
     private final UserAccountRepository users;
-    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserAccountRepository users,
-                                   ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserAccountRepository users) {
         this.jwtService = jwtService;
         this.users = users;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -56,18 +62,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (ApiException ex) {
                 SecurityContextHolder.clearContext();
-                writeError(response, ex);
-                return;
+                request.setAttribute(REJECTION_ATTRIBUTE, ex);
             }
         }
         chain.doFilter(request, response);
-    }
-
-    private void writeError(HttpServletResponse response, ApiException ex) throws IOException {
-        response.setStatus(ex.getStatus().value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(),
-                ApiErrorResponse.of(ex.getCode(), ex.getMessage(), null));
     }
 }
