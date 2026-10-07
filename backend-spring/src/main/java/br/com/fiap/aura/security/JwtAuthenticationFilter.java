@@ -43,9 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith(PREFIX)) {
             try {
-                AuthPrincipal tokenPrincipal = jwtService.parseAccess(header.substring(PREFIX.length()).trim());
-                UserAccount account = users.findById(tokenPrincipal.userId()).orElseThrow(() ->
+                JwtService.ParsedToken token = jwtService.parseAccess(header.substring(PREFIX.length()).trim());
+                UserAccount account = users.findById(token.userId()).orElseThrow(() ->
                         ApiException.unauthorized("UNAUTHORIZED", "Usuário do token não existe mais."));
+                // Token emitido antes da última troca de senha deixa de valer.
+                jwtService.requireCurrentPassword(token, account);
                 // A assinatura ainda autentica o token; a conta persistida decide se ele continua
                 // autorizado e qual é seu papel vigente (inclusive depois de revogação de ADMIN).
                 AuthPrincipal principal = new AuthPrincipal(account.getId(), account.getRole());

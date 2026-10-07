@@ -3834,7 +3834,8 @@
         "tags": [
           "1. Autenticação & LGPD"
         ],
-        "summary": "Troca a senha do usuário autenticado",
+        "summary": "Troca a senha do usuário autenticado e devolve um novo par de tokens",
+        "description": "Todo access e refresh token emitido antes da troca deixa de valer (401).",
         "operationId": "changePassword",
         "requestBody": {
           "content": {
@@ -3852,7 +3853,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OkResponse"
+                  "$ref": "#/components/schemas/TokenResponse"
                 }
               }
             }

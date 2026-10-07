@@ -80,10 +80,10 @@ public class AuthController {
     }
 
     @PostMapping("/auth/password")
-    @Operation(summary = "Troca a senha do usuário autenticado")
-    public AuthDtos.OkResponse changePassword(@Valid @RequestBody AuthDtos.ChangePasswordRequest req) {
-        auth.changePassword(currentUser.require(), req);
-        return new AuthDtos.OkResponse(true);
+    @Operation(summary = "Troca a senha do usuário autenticado e devolve um novo par de tokens",
+            description = "Todo access e refresh token emitido antes da troca deixa de valer (401).")
+    public AuthDtos.TokenResponse changePassword(@Valid @RequestBody AuthDtos.ChangePasswordRequest req) {
+        return auth.changePassword(currentUser.require(), req);
     }
 
     @PostMapping("/notifications/register-token")

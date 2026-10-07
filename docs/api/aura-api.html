@@ -163,20 +163,22 @@
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
-      <article class="op" data-busca="post /api/v1/auth/password troca a senha do usuário autenticado">
+      <article class="op" data-busca="post /api/v1/auth/password troca a senha do usuário autenticado e devolve um novo par de tokens">
         <header>
           <span class="metodo" style="background:#3fb95022;color:#3fb950;border-color:#3fb95055">POST</span>
           <code class="rota">/api/v1/auth/password</code>
           <span class="selo">JWT</span>
         </header>
-        <p class="resumo">Troca a senha do usuário autenticado</p>
+        <p class="resumo">Troca a senha do usuário autenticado e devolve um novo par de tokens</p>
         
         <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
   &quot;currentPassword&quot;: &quot;string&quot;,
   &quot;newPassword&quot;: &quot;string&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
-  &quot;ok&quot;: true
+  &quot;token&quot;: &quot;eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI3MmEyMWVkMi0xNzhl...&quot;,
+  &quot;role&quot;: &quot;cuidadora&quot;,
+  &quot;refreshToken&quot;: &quot;eyJhbGciOiJIUzM4NCJ9.eyJ0eXAiOiJyZWZyZXNoIiwic3Vi...&quot;
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
