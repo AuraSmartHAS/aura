@@ -4,11 +4,22 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/service_locator.dart';
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/session/auth_session.dart';
 import '../bloc/auth_bloc.dart';
 import '../widgets/login_body.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  // Consumido uma única vez, ao abrir a tela: se o app voltou para cá por
+  // logout forçado, a tela diz por quê; reconstruções não o reacendem.
+  late final bool _sessionExpired =
+      sl<AuthSession>().consumeSessionExpiredNotice();
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +35,7 @@ class LoginPage extends StatelessWidget {
             context.go(AppRouter.homeForRole());
           }
         },
-        child: const LoginBody(),
+        child: LoginBody(showSessionExpiredNotice: _sessionExpired),
       ),
     );
   }
