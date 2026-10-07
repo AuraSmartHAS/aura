@@ -47,20 +47,23 @@
     <p class="empty" *ngIf="ind.casas.length === 0">
       Nenhum fechamento ainda. Use “Consolidar agora” para rodar a rotina do banco.
     </p>
-    <table *ngIf="ind.casas.length > 0">
-      <thead>
-        <tr><th>Casa</th><th>Adesão (7 dias)</th><th>Passos x rotina</th><th>Avisos abertos</th><th>Atualizado</th></tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let casa of ind.casas">
-          <td>{{ casa.casa }}</td>
-          <td>{{ pct(casa.adesaoPct) }}</td>
-          <td>{{ variacao(casa.variacaoPassosPct) }}</td>
-          <td [class.low]="casa.alertasAbertos > 0">{{ casa.alertasAbertos }}</td>
-          <td>{{ casa.atualizadoEm | date: 'dd/MM HH:mm' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- tabela larga rola dentro do card, nunca a página (celular) -->
+    <div class="table-scroll" *ngIf="ind.casas.length > 0">
+      <table>
+        <thead>
+          <tr><th>Casa</th><th>Adesão (7 dias)</th><th>Passos x rotina</th><th>Avisos abertos</th><th>Atualizado</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let casa of ind.casas">
+            <td>{{ casa.casa }}</td>
+            <td>{{ pct(casa.adesaoPct) }}</td>
+            <td>{{ variacao(casa.variacaoPassosPct) }}</td>
+            <td [class.low]="casa.alertasAbertos > 0">{{ casa.alertasAbertos }}</td>
+            <td>{{ casa.atualizadoEm | date: 'dd/MM HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </article>
 
   <div class="grid grid--2">
@@ -77,26 +80,28 @@
         </select>
       </div>
 
-      <table>
-        <thead>
-          <tr><th>Item</th><th>Risco</th><th>Preço</th><th>Estoque</th><th></th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of catalog()">
-            <td>
-              <strong>{{ item.name }}</strong>
-              <span class="small muted">{{ item.sku }} · {{ item.normRef }}</span>
-            </td>
-            <td><span class="tag">{{ riskLabel(item.riskTag) }}</span></td>
-            <td>{{ item.price | currency: 'BRL' }}</td>
-            <td [class.low]="item.stockNearby === 0">{{ item.stockNearby }}</td>
-            <td class="row-actions">
-              <button class="btn btn--small" (click)="edit(item)" *ngIf="isAdmin()">Editar</button>
-              <button class="btn btn--small btn--danger" (click)="remove(item)" *ngIf="isAdmin()">Excluir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Risco</th><th>Preço</th><th>Estoque</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of catalog()">
+              <td>
+                <strong>{{ item.name }}</strong>
+                <span class="small muted">{{ item.sku }} · {{ item.normRef }}</span>
+              </td>
+              <td><span class="tag">{{ riskLabel(item.riskTag) }}</span></td>
+              <td>{{ item.price | currency: 'BRL' }}</td>
+              <td [class.low]="item.stockNearby === 0">{{ item.stockNearby }}</td>
+              <td class="row-actions">
+                <button class="btn btn--small" (click)="edit(item)" *ngIf="isAdmin()">Editar</button>
+                <button class="btn btn--small btn--danger" (click)="remove(item)" *ngIf="isAdmin()">Excluir</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <p class="empty" *ngIf="catalog().length === 0">Nenhum item para este filtro.</p>
     </article>
 

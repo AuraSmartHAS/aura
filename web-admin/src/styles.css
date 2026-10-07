@@ -132,8 +132,10 @@ main { padding: 24px; max-width: 1180px; margin: 0 auto; }
 /* blocos ------------------------------------------------------------------ */
 .page__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; }
 .grid--2 { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+/* sem isto o conteúdo largo (tabela) estica a trilha do grid e empurra a página para o lado */
+.grid > * { min-width: 0; }
 .card--wide { grid-column: 1 / -1; }
 
 .card {
@@ -304,6 +306,8 @@ input[readonly] { background: var(--surface-2); opacity: 0.8; }
 .stage__label { font-size: 11px; color: var(--muted); }
 
 /* tabelas ----------------------------------------------------------------- */
+/* tabela larga rola dentro do próprio card, nunca a página inteira */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
 th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
@@ -322,8 +326,34 @@ td.low { color: var(--danger); font-weight: 700; }
 .select select { width: auto; min-width: 180px; }
 
 @media (max-width: 860px) {
-  .grid--2 { grid-template-columns: 1fr; }
+  .grid--2 { grid-template-columns: minmax(0, 1fr); }
   .topbar { flex-wrap: wrap; gap: 12px; }
+}
+
+/* celular: coluna única, gutter de 16 px e nada largo demais para a tela */
+@media (max-width: 640px) {
+  .topbar { padding: 10px 16px; }
+  main { padding: 16px; }
+  .page__head { flex-wrap: wrap; align-items: flex-start; }
+  .card { padding: 16px; }
+  .card__head { flex-wrap: wrap; }
+  .facts { flex-wrap: wrap; gap: 12px 24px; }
+  .row { flex-direction: column; gap: 0; }
+  .select { flex-wrap: wrap; width: 100%; }
+  .select select { flex: 1; min-width: 0; }
+  .row-actions { flex-wrap: wrap; }
+}
+
+/* alvos de toque de 44 px (WCAG 2.5.5) em tela estreita ou ponteiro grosso */
+@media (max-width: 860px), (pointer: coarse) {
+  .brand { display: inline-block; min-height: 44px; }
+  .topbar nav a { display: inline-flex; align-items: center; min-height: 44px; }
+  .btn--small { min-height: 44px; padding: 8px 14px; font-size: 13px; }
+  a.btn { display: inline-flex; align-items: center; }
+  .chip:is(button, a) { min-height: 44px; padding: 8px 14px; font-size: 13px; }
+  input, select { min-height: 44px; }
+  .check { min-height: 44px; margin: 0; }
+  .check input { width: 22px; height: 22px; min-height: 0; flex: none; }
 }
 
 /* mapa da entrega (última milha) */

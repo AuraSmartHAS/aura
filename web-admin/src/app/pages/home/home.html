@@ -219,21 +219,24 @@
           <span class="small muted">{{ diaMes(c.de) }} a {{ diaMes(c.ate) }}</span>
         </div>
         <p class="empty" *ngIf="c.itens.length === 0">Nenhuma medicação acompanhada nesta casa.</p>
-        <table *ngIf="c.itens.length > 0">
-          <thead>
-            <tr><th>Medicação</th><th>Doses confirmadas</th><th>Não tomadas</th><th>Esperadas</th><th>Adesão</th><th>Estoque</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of c.itens">
-              <td>{{ item.medicamento }}</td>
-              <td>{{ item.dosesConfirmadas }}</td>
-              <td>{{ item.dosesNegadas }}</td>
-              <td>{{ item.dosesEsperadas }}</td>
-              <td>{{ adesao(item.adesaoPct) }}</td>
-              <td>{{ item.estoqueDoses ?? '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- tabela larga rola dentro do card, nunca a página (celular) -->
+        <div class="table-scroll" *ngIf="c.itens.length > 0">
+          <table>
+            <thead>
+              <tr><th>Medicação</th><th>Doses confirmadas</th><th>Não tomadas</th><th>Esperadas</th><th>Adesão</th><th>Estoque</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of c.itens">
+                <td>{{ item.medicamento }}</td>
+                <td>{{ item.dosesConfirmadas }}</td>
+                <td>{{ item.dosesNegadas }}</td>
+                <td>{{ item.dosesEsperadas }}</td>
+                <td>{{ adesao(item.adesaoPct) }}</td>
+                <td>{{ item.estoqueDoses ?? '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <p class="small muted" *ngIf="c.demandaEncaminhadaReais !== null">
           Demanda encaminhada a parceiros no período, a preço de referência:
           <strong>{{ c.demandaEncaminhadaReais | currency: 'BRL' }}</strong>
@@ -244,19 +247,21 @@
       <article class="card card--wide">
         <h2>Sinais recentes</h2>
         <p class="empty" *ngIf="signals().length === 0">Sem sinais registrados.</p>
-        <table *ngIf="signals().length > 0">
-          <thead>
-            <tr><th>Quando</th><th>Tipo</th><th>Origem</th><th>Conteúdo</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let signal of signals()">
-              <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
-              <td>{{ describeSignalType(signal) }}</td>
-              <td>{{ describeSignalSource(signal) }}</td>
-              <td>{{ describeSignalContent(signal) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-scroll" *ngIf="signals().length > 0">
+          <table>
+            <thead>
+              <tr><th>Quando</th><th>Tipo</th><th>Origem</th><th>Conteúdo</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let signal of signals()">
+                <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
+                <td>{{ describeSignalType(signal) }}</td>
+                <td>{{ describeSignalSource(signal) }}</td>
+                <td>{{ describeSignalContent(signal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </article>
     </div>
   </ng-container>
