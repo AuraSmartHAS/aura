@@ -60,11 +60,12 @@
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
         </activity-alias>
-        <!-- Google Maps API key. Replace the placeholder with your key
-             (or inject via gradle manifestPlaceholders). -->
+        <!-- Google Maps API key: injected by app/build.gradle.kts (manifestPlaceholders)
+             from android/local.properties or the GOOGLE_MAPS_API_KEY env var.
+             Never write the key here: this file is versioned. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
+            android:value="${MAPS_API_KEY}" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

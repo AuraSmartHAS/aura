@@ -100,7 +100,7 @@ Dado de saúde é sensível pela LGPD, então o consentimento é específico e d
 | `./mvnw` diz "Unable to locate a Java Runtime" | Exporte o `JAVA_HOME` do topo deste arquivo |
 | "Port 8080 was already in use" | `lsof -nP -iTCP:8080 -sTCP:LISTEN` e encerre o processo antigo |
 | O painel abre mas não loga | A API não está de pé: confira o terminal 1 e o `curl` de health |
-| O mapa abre sem o mapa | Falta a `GOOGLE_MAPS_API_KEY` no `.env` (veja `mobile/.env.example`) |
+| O mapa abre sem o mapa | Falta a `GOOGLE_MAPS_API_KEY` em `mobile/android/local.properties` (modelo em `mobile/local.example.properties`); refaça o build do app |
 | A demo de voz não conecta | É rede/serviço externo. **Use o vídeo gravado** — ele é o plano A, não o plano B |
 
 **Regra de palco:** o vídeo gravado do caminho feliz é o plano A. Demonstração ao vivo de voz depende de wi-fi de terceiro e já custou caro uma vez.

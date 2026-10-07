@@ -24,8 +24,6 @@ class AppConfig {
   /// Full REST prefix consumed by the dio client.
   static String get apiBaseUrl => '$backendBaseUrl/api/v1';
 
-  static String get googleMapsApiKey => _get('GOOGLE_MAPS_API_KEY');
-
   static String get fcmVapidKey => _get('FCM_VAPID_KEY');
 
   /// Telefone do contato principal da casa, para o caminho de ligação do SOS

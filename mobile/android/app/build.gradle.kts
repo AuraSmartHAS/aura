@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -6,6 +8,26 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Chave do Google Maps: android/local.properties (ignorado pelo git) e, na falta,
+// a variavel de ambiente GOOGLE_MAPS_API_KEY (CI). Vazia nao quebra o build:
+// o mapa apenas abre sem tiles.
+val mapsApiKey: String = run {
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { localProperties.load(it) }
+    }
+    localProperties.getProperty("GOOGLE_MAPS_API_KEY")?.trim()?.takeIf { it.isNotEmpty() }
+        ?: System.getenv("GOOGLE_MAPS_API_KEY")?.trim()?.takeIf { it.isNotEmpty() }
+        ?: ""
+}
+if (mapsApiKey.isEmpty()) {
+    logger.warn(
+        "AVISO: GOOGLE_MAPS_API_KEY nao definida (android/local.properties ou variavel " +
+            "de ambiente). O build segue, mas o mapa da entrega abre sem tiles.",
+    )
 }
 
 android {
@@ -34,6 +56,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {
