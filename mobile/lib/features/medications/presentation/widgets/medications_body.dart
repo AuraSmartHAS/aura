@@ -6,6 +6,7 @@ import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/async_state_views.dart';
 import '../../domain/entities/medication.dart';
 import '../bloc/medication_bloc.dart';
+import 'dose_confirm_actions.dart';
 import 'medication_form_sheet.dart';
 
 class MedicationsBody extends StatelessWidget {
@@ -21,7 +22,20 @@ class MedicationsBody extends StatelessWidget {
         label: const Text('Adicionar'),
       ),
       body: SafeArea(
-        child: BlocBuilder<MedicationBloc, MedicationState>(
+        child: BlocConsumer<MedicationBloc, MedicationState>(
+          listenWhen: (prev, curr) =>
+              curr.feedback != null && prev.feedback != curr.feedback,
+          listener: (context, state) {
+            final feedback = state.feedback!;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(feedback.message),
+                  backgroundColor: feedback.isError ? AppColors.error : null,
+                ),
+              );
+          },
           builder: (context, state) {
             return switch (state.status) {
               MedicationStatus.loading => const LoadingView(
@@ -222,6 +236,8 @@ class _MedicationCard extends StatelessWidget {
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
+                      const SizedBox(height: AppDimensions.md),
+                      DoseConfirmActions(medication: medication),
                     ],
                   ),
                 ),

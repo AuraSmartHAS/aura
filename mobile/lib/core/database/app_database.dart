@@ -11,9 +11,10 @@ class TranscriptMessages extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-/// Caregiver-managed medications. Local-only for now (no backend route yet —
-/// see docs/PROPOSTA-medications-api.md). Schema mirrors the proposed REST DTO
-/// so the local datasource can be swapped for a remote one later.
+/// Legacy: medications used to live only on the device. They now come from
+/// the server (`/homes/{id}/medications`) and nothing reads or writes this
+/// table; it stays only so existing installs keep a valid schema. Old local
+/// rows are not migrated.
 @DataClassName('MedicationEntry')
 class Medications extends Table {
   TextColumn get id => text()();
