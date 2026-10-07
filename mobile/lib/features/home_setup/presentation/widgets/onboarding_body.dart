@@ -492,46 +492,64 @@ class _ChecklistRow extends StatelessWidget {
         isSafe ? Icons.check_circle_outline : Icons.warning_amber_outlined;
     final statusLabel = isSafe ? 'Tudo certo' : 'Ponto de atenção';
 
-    // MergeSemantics so the row + Switch announce as a single toggle
-    // ("<label>, <status>, ligado/desligado") instead of nested controls.
+    // The WHOLE row is the touch target (tremor / low vision): tapping the
+    // icon, label or status toggles, with ink feedback, and the Switch keeps
+    // working on its own. A screen reader hears ONE toggle
+    // ("<label>, <status>, ligado/desligado") with a single tap action,
+    // instead of nested controls.
     return MergeSemantics(
       child: Semantics(
         label: '$label. $statusLabel',
-        child: ConstrainedBox(
-          constraints:
-              const BoxConstraints(minHeight: AppDimensions.minTouchTarget),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(icon, size: 24, color: AppColors.primary),
-              const SizedBox(width: AppDimensions.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+        toggled: value,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: () => onChanged(!value),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
+            // The visible texts and the Switch are excluded: the row's own
+            // label/toggled/tap is the ONLY semantic node, so the label is not
+            // announced twice and there is a single toggle action.
+            child: ExcludeSemantics(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: AppDimensions.minTouchTarget,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(label, style: text.titleSmall),
-                    const SizedBox(height: AppDimensions.xs),
-                    // Severity is never color-only: icon + text + color together.
-                    Row(
-                      children: [
-                        Icon(statusIcon, size: 16, color: statusColor),
-                        const SizedBox(width: AppDimensions.xs),
-                        Flexible(
-                          child: Text(
-                            statusLabel,
-                            style:
-                                text.labelMedium?.copyWith(color: statusColor),
+                    Icon(icon, size: 24, color: AppColors.primary),
+                    const SizedBox(width: AppDimensions.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(label, style: text.titleSmall),
+                          const SizedBox(height: AppDimensions.xs),
+                          // Severity is never color-only: icon + text + color
+                          // together.
+                          Row(
+                            children: [
+                              Icon(statusIcon, size: 16, color: statusColor),
+                              const SizedBox(width: AppDimensions.xs),
+                              Flexible(
+                                child: Text(
+                                  statusLabel,
+                                  style: text.labelMedium
+                                      ?.copyWith(color: statusColor),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Switch(value: value, onChanged: onChanged),
                   ],
                 ),
               ),
-              const SizedBox(width: AppDimensions.sm),
-              Switch(value: value, onChanged: onChanged),
-            ],
+            ),
           ),
         ),
       ),
