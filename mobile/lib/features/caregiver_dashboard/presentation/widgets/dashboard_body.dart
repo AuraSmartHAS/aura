@@ -67,7 +67,11 @@ class _DashboardContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(AppDimensions.md),
       children: [
-        _DashboardHeader(patientName: patient, address: detail.home.address),
+        DashboardHeader(
+          userFirstName: state.userFirstName,
+          patientName: patient,
+          address: detail.home.address,
+        ),
         const SizedBox(height: AppDimensions.lg),
 
         // FOCAL ELEMENT: risk drives the screen. Its treatment escalates with
@@ -88,9 +92,18 @@ class _DashboardContent extends StatelessWidget {
 
 /// Warm, personalized greeting: "Como a paciente está hoje" + time-of-day and
 /// the home it refers to. Sets a calm, human tone before any risk signal.
-class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.patientName, required this.address});
+///
+/// A saudação usa o primeiro nome de quem está logado; sem um nome utilizável
+/// fica só "Boa noite" — nunca um nome inventado.
+class DashboardHeader extends StatelessWidget {
+  const DashboardHeader({
+    super.key,
+    required this.userFirstName,
+    required this.patientName,
+    required this.address,
+  });
 
+  final String? userFirstName;
   final String patientName;
   final String address;
 
@@ -108,7 +121,7 @@ class _DashboardHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting, Ana',
+          userFirstName == null ? greeting : '$greeting, $userFirstName',
           style: text.labelLarge?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: AppDimensions.xs),

@@ -11,8 +11,9 @@ abstract class AuthRemoteDataSource {
   /// `null` quando ele ainda não cadastrou nenhuma.
   Future<String?> firstHomeId();
 
-  /// Se o servidor já tem o aceite dos termos deste usuário (`GET /auth/me`).
-  Future<bool> consentAccepted();
+  /// Dados do usuário autenticado (`GET /auth/me`): se o servidor já tem o
+  /// aceite dos termos e o nome cadastrado. Uma chamada só por login.
+  Future<MeModel> me();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -47,8 +48,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> consentAccepted() async {
+  Future<MeModel> me() async {
     final res = await _dio.get('/auth/me');
-    return (res.data as Map<String, dynamic>)['consentAccepted'] == true;
+    return MeModel.fromJson(res.data as Map<String, dynamic>);
   }
 }

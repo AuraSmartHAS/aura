@@ -122,7 +122,7 @@ class _GreetingRow extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Olá, $userName',
+              userName == null ? 'Olá' : 'Olá, $userName',
               // Patient surface: large warm greeting (>=32sp).
               style: Theme.of(context).textTheme.displayLarge,
             ),

@@ -31,7 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
         role: creds.role,
       );
       await _adoptExistingHome();
-      await _adoptServerConsent();
+      await _adoptServerProfile();
       await _session.onLoggedIn(role);
       return Success(UserEntity(role: role, email: email));
     } catch (e) {
@@ -60,15 +60,22 @@ class AuthRepositoryImpl implements AuthRepository {
   /// login ela é refeita a partir do servidor, então outro aparelho não pede o
   /// aceite de novo e um servidor sem o registro volta a pedir. Sem resposta
   /// (rede), a flag local fica como estava.
-  Future<void> _adoptServerConsent() async {
+  ///
+  /// A mesma resposta traz o nome que a saudação usa. O nome anterior é
+  /// apagado antes da chamada: sem resposta, a tela cumprimenta sem nome em vez
+  /// de chamar este usuário pelo nome de outro.
+  Future<void> _adoptServerProfile() async {
+    await _tokenStore.saveUserName(null);
     try {
-      if (await _remoteDataSource.consentAccepted()) {
+      final me = await _remoteDataSource.me();
+      if (me.consentAccepted) {
         await _tokenStore.setConsentAccepted();
       } else {
         await _tokenStore.clearConsentAccepted();
       }
+      await _tokenStore.saveUserName(me.name);
     } catch (e) {
-      debugPrint('[AURA-AUTH] não consegui consultar o aceite no servidor: $e');
+      debugPrint('[AURA-AUTH] não consegui consultar /auth/me no servidor: $e');
     }
   }
 

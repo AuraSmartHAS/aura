@@ -55,7 +55,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       topScore = _highestRisk(scoresResult.data);
     }
 
-    emit(DashboardState.ready(homeDetail: homeDetail, topScore: topScore));
+    emit(DashboardState.ready(
+      homeDetail: homeDetail,
+      topScore: topScore,
+      userFirstName: _session.userFirstName,
+    ));
   }
 
   Score? _highestRisk(List<Score> scores) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'greeting_name.dart';
 import 'token_store.dart';
 import 'user_role.dart';
 
@@ -15,11 +16,16 @@ class AuthSession extends ChangeNotifier {
   UserRole? _role;
   bool _consentAccepted = false;
   String? _homeId;
+  String? _userName;
 
   bool get isAuthenticated => _isAuthenticated;
   UserRole? get role => _role;
   bool get consentAccepted => _consentAccepted;
   String? get homeId => _homeId;
+
+  /// Primeiro nome para a saudação, ou `null` quando o servidor não deu um
+  /// nome de pessoa (a tela cumprimenta sem nome).
+  String? get userFirstName => greetingFirstName(_userName);
 
   /// Hydrates the session from secure storage at startup.
   Future<void> bootstrap() async {
@@ -28,6 +34,7 @@ class AuthSession extends ChangeNotifier {
     _role = UserRole.fromString(await _store.role);
     _consentAccepted = await _store.consentAccepted;
     _homeId = await _store.homeId;
+    _userName = await _store.userName;
     notifyListeners();
   }
 
@@ -36,6 +43,7 @@ class AuthSession extends ChangeNotifier {
     _role = role;
     _consentAccepted = await _store.consentAccepted;
     _homeId = await _store.homeId;
+    _userName = await _store.userName;
     notifyListeners();
   }
 
@@ -55,6 +63,7 @@ class AuthSession extends ChangeNotifier {
     _role = null;
     _consentAccepted = false;
     _homeId = null;
+    _userName = null;
     notifyListeners();
   }
 }

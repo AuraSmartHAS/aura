@@ -32,6 +32,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// não precisar esperar 12 segundos de verdade.
   final Duration silenceTimeout;
 
+  /// Primeiro nome de quem está logado (vem da sessão); `null` cumprimenta sem
+  /// nome em vez de supor que é a Maria.
+  final String? userFirstName;
+
   StreamSubscription<ConversationStatus>? _statusSubscription;
   StreamSubscription<ConversationMode>? _modeSubscription;
   StreamSubscription<List<TranscriptMessageEntity>>? _transcriptSubscription;
@@ -57,6 +61,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required ToggleMuteUseCase toggleMuteUseCase,
     required ConversationRepository conversationRepository,
     this.silenceTimeout = const Duration(seconds: 12),
+    this.userFirstName,
   })  : _fetchTokenUseCase = fetchTokenUseCase,
         _startConversationUseCase = startConversationUseCase,
         _stopConversationUseCase = stopConversationUseCase,
@@ -84,7 +89,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Abrir a tela não busca token nenhum (C7a): quem busca é cada início de
     // conversa. A tela também abre calma — nada de banner vermelho antes de a
     // Maria pedir alguma coisa.
-    emit(state.copyWith(isLoading: false, userName: 'Maria'));
+    emit(state.copyWith(isLoading: false, userName: userFirstName));
   }
 
   void _setupStreamListeners() {

@@ -14,6 +14,7 @@ class _FakeRemote implements AuthRemoteDataSource {
     this.homesFail = false,
     this.consent = false,
     this.consentFail = false,
+    this.name,
   });
 
   final String role;
@@ -21,7 +22,9 @@ class _FakeRemote implements AuthRemoteDataSource {
   final bool homesFail;
   final bool consent;
   final bool consentFail;
+  final String? name;
   int homesCalls = 0;
+  int meCalls = 0;
 
   @override
   Future<AuthCredentialsModel> login(String email, String password) async =>
@@ -38,9 +41,10 @@ class _FakeRemote implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> consentAccepted() async {
+  Future<MeModel> me() async {
+    meCalls++;
     if (consentFail) throw Exception('sem rede');
-    return consent;
+    return MeModel(consentAccepted: consent, name: name);
   }
 }
 
@@ -128,6 +132,60 @@ void main() {
 
       expect(result, isA<Success>());
       expect(session.consentAccepted, isTrue);
+    });
+  });
+
+  group('nome da saudação vem do mesmo GET /auth/me', () {
+    test('login guarda o nome e a sessão expõe só o primeiro', () async {
+      final remote = _FakeRemote(name: 'Beatriz Teste');
+
+      await repo(remote).login('b@a', 'x');
+
+      expect(remote.meCalls, 1, reason: 'aceite e nome saem da mesma chamada');
+      expect(await store.userName, 'Beatriz Teste');
+      expect(session.userFirstName, 'Beatriz');
+    });
+
+    test('nome do seed com o papel entre parênteses vira só "Ana"', () async {
+      await repo(_FakeRemote(name: 'Ana (cuidadora)')).login('a@a', 'x');
+
+      expect(session.userFirstName, 'Ana');
+    });
+
+    test('conta sem nome no servidor fica sem nome (não vira "Ana")', () async {
+      await repo(_FakeRemote(name: '')).login('n@a', 'x');
+
+      expect(session.userFirstName, isNull);
+    });
+
+    test('sem resposta do /auth/me o nome de quem saiu não sobra', () async {
+      await store.saveUserName('Ana (cuidadora)');
+
+      final result =
+          await repo(_FakeRemote(consentFail: true)).login('b@a', 'x');
+
+      expect(result, isA<Success>());
+      expect(await store.userName, isNull);
+      expect(session.userFirstName, isNull);
+    });
+
+    test('bootstrap recupera o nome guardado ao reabrir o app', () async {
+      await repo(_FakeRemote(name: 'Beatriz Teste')).login('b@a', 'x');
+
+      final reopened = AuthSession(store);
+      await reopened.bootstrap();
+
+      expect(reopened.userFirstName, 'Beatriz');
+    });
+
+    test('logout limpa o nome', () async {
+      final r = repo(_FakeRemote(name: 'Beatriz Teste'));
+      await r.login('b@a', 'x');
+
+      await r.logout();
+
+      expect(session.userFirstName, isNull);
+      expect(await store.userName, isNull);
     });
   });
 }
