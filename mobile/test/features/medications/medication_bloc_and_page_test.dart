@@ -215,6 +215,60 @@ void main() {
       expect(find.text('Não tomei'), findsOneWidget);
     });
 
+    testWidgets('lista agrupa por período a partir dos horários HH:mm',
+        (tester) async {
+      // Tela alta para que todos os grupos estejam montados ao mesmo tempo.
+      tester.view.physicalSize = const Size(800, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final repo = _FakeMedications([
+        _losartana,
+        const Medication(
+          id: 'med-2',
+          homeId: 'home-1',
+          name: 'Metformina',
+          times: ['20:00', '13:00'],
+        ),
+        const Medication(id: 'med-3', homeId: 'home-1', name: 'Vitamina D'),
+      ]);
+      final bloc = _bloc(repo)..add(const LoadMedicationsEvent());
+      addTearDown(bloc.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: BlocProvider<MedicationBloc>.value(
+            value: bloc,
+            child: const MedicationsBody(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      double top(Finder f) => tester.getTopLeft(f).dy;
+
+      // Cabeçalhos na ordem do dia.
+      final manha = top(find.text('Manhã'));
+      final tarde = top(find.text('Tarde'));
+      final noite = top(find.text('Noite'));
+      final semHorario = top(find.text('Sem horário definido'));
+      expect(manha, lessThan(tarde));
+      expect(tarde, lessThan(noite));
+      expect(noite, lessThan(semHorario));
+
+      // Losartana (08:00) fica na Manhã, não em "Sem horário definido".
+      expect(find.text('Losartana'), findsOneWidget);
+      expect(top(find.text('Losartana')), inInclusiveRange(manha, tarde));
+      expect(find.text('08:00'), findsOneWidget);
+
+      // Metformina aparece na Tarde só com 13:00 e na Noite só com 20:00.
+      expect(find.text('Metformina'), findsNWidgets(2));
+      expect(top(find.text('13:00')), inInclusiveRange(tarde, noite));
+      expect(top(find.text('20:00')), inInclusiveRange(noite, semHorario));
+      expect(find.text('13:00, 20:00'), findsNothing);
+
+      // Só quem não tem horário fica em "Sem horário definido".
+      expect(top(find.text('Vitamina D')), greaterThan(semHorario));
+    });
+
     testWidgets('"Tomei" chama o confirm e mostra "Dose registrada"',
         (tester) async {
       final repo = await pump(tester);
