@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:aura/core/di/service_locator.dart';
 import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_dimensions.dart';
 
 import '../../domain/entities/emergency.dart';
-import '../bloc/sos_bloc.dart';
+import '../open_sos_panel.dart';
 import '../sos_copy.dart';
-import 'sos_panel.dart';
 
-/// Como a tela consegue um bloc de SOS. O padrão é o injetor; o teste passa o
-/// seu para poder afirmar quantas emergências o toque criou.
-typedef SosBlocFactory = SosBloc Function();
+export '../open_sos_panel.dart' show SosBlocFactory;
 
 /// Botão de socorro persistente (correção C3).
 ///
@@ -54,29 +49,18 @@ class _SosButtonState extends State<SosButton> {
     if (_opening) return;
     _opening = true;
 
-    final navigator = Navigator.of(context);
-    final bloc = (widget.blocFactory ?? _fromInjector)()
-      ..add(SosRequested(channel: widget.channel));
-
     try {
-      await navigator.push(
-        MaterialPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => BlocProvider<SosBloc>.value(
-            value: bloc,
-            child: const SosPanel(),
-          ),
-        ),
-      );
-    } finally {
       // Fechar a folha não cancela nada: o disparo é do servidor. O que morre
       // aqui é o acompanhamento deste aparelho.
-      await bloc.close();
+      await openSosPanel(
+        context,
+        blocFactory: widget.blocFactory,
+        channel: widget.channel,
+      );
+    } finally {
       _opening = false;
     }
   }
-
-  static SosBloc _fromInjector() => sl<SosBloc>();
 
   @override
   Widget build(BuildContext context) {
