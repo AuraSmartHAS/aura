@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/service_locator.dart';
+import '../../../../core/errors/result.dart';
 import '../../../sos/domain/entities/emergency.dart';
 import '../../../sos/presentation/open_sos_panel.dart';
 import '../../data/voice_tools/voice_sos_gateway.dart';
@@ -43,15 +44,27 @@ class _VoiceSosListenerState extends State<_VoiceSosListener> {
   @override
   void initState() {
     super.initState();
-    _subscription = sl<VoiceSosGateway>().requests.listen((_) async {
-      if (!mounted || _opening) return;
-      _opening = true;
-      try {
-        await openSosPanel(context, channel: EmergencyChannel.voice);
-      } finally {
-        _opening = false;
-      }
-    });
+    final gateway = sl<VoiceSosGateway>();
+    _subscription = gateway.requests.listen(_show);
+    // Um pedido feito enquanto esta tela não estava na árvore não se perde.
+    final pending = gateway.takePending();
+    if (pending != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _show(pending));
+    }
+  }
+
+  Future<void> _show(Result<EmergencyTicket> outcome) async {
+    if (!mounted || _opening) return;
+    _opening = true;
+    try {
+      await openSosPanel(
+        context,
+        channel: EmergencyChannel.voice,
+        outcome: outcome,
+      );
+    } finally {
+      _opening = false;
+    }
   }
 
   @override

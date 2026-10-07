@@ -25,6 +25,49 @@ import 'package:flutter_test/flutter_test.dart';
 /// `canPromiseAlert` e `spokenMessage` — e o que se verifica aqui é que a tela
 /// obedece.
 void main() {
+  group('pedido feito pelo agente de voz — um pedido, um disparo', () {
+    test('a folha acompanha o desfecho da tool e NÃO registra de novo', () async {
+      final repository = _FakeEmergencyRepository(
+        ticket: _ticket(
+          state: EmergencyState.waitingCancel,
+          canPromiseAlert: true,
+        ),
+      );
+      final bloc = _buildBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(SosOutcomeAttached(Success(repository.ticket!)));
+      await _tick();
+
+      expect(repository.triggerCalls, isEmpty);
+      expect(bloc.state.emergencyId, repository.ticket!.id);
+      expect(bloc.state.phase, isNot(SosPhase.failed));
+    });
+
+    test('tool falhou: a folha mostra a falha e a ligação — e também não '
+        'registra por conta própria', () async {
+      final repository = _FakeEmergencyRepository(
+        ticket: _ticket(
+          state: EmergencyState.waitingCancel,
+          canPromiseAlert: true,
+        ),
+      );
+      final bloc = _buildBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(const SosOutcomeAttached(
+        Failure(AppFailure.networkError(message: 'sem rede')),
+      ));
+      await _tick();
+
+      // Antes, a folha disparava de novo e podia dizer "avisei" enquanto a
+      // voz dizia "não consegui".
+      expect(repository.triggerCalls, isEmpty);
+      expect(bloc.state.phase, SosPhase.failed);
+      expect(bloc.state.canPromiseAlert, isFalse);
+    });
+  });
+
   group('regra 1 — a tela nunca promete o que o sistema não sabe', () {
     test(
         'canPromiseAlert falso: nada de "avisei", e a tela cai para a ligação',

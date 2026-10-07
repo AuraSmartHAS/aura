@@ -32,9 +32,10 @@ class TriggerSosTool implements sdk.ClientTool {
 
     final result = await _trigger(channel: EmergencyChannel.voice);
 
-    // Sucesso ou falha, a folha sobe: com sucesso ela traz a janela de
-    // cancelamento; com falha, o botão de ligar.
-    _gateway.show();
+    // Sucesso ou falha, a folha sobe com o MESMO desfecho que a voz vai relatar:
+    // com sucesso ela traz a janela de cancelamento; com falha, o botão de
+    // ligar. Ela não registra de novo — um pedido, um disparo.
+    _gateway.show(result);
 
     switch (result) {
       case Success<EmergencyTicket>(:final data):

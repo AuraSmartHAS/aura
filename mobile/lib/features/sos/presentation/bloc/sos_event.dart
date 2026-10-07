@@ -18,6 +18,18 @@ class SosRequested extends SosEvent {
   List<Object?> get props => [channel];
 }
 
+/// O pedido de socorro JÁ foi feito por outro caminho (o agente de voz) e esta é a resposta do
+/// servidor. A folha só acompanha: registrar de novo abriria uma segunda emergência (ou um
+/// "avisei" na tela enquanto a voz disse "não consegui"), então aqui nunca se chama o servidor.
+class SosOutcomeAttached extends SosEvent {
+  const SosOutcomeAttached(this.result);
+
+  final Result<EmergencyTicket> result;
+
+  @override
+  List<Object?> get props => [result];
+}
+
 /// Um segundo passou na contagem visual. **Não dispara nada**: quem dispara é
 /// o servidor, e ele não depende deste aparelho (regra 2).
 class SosCountdownTicked extends SosEvent {

@@ -3,6 +3,7 @@ import 'package:aura/core/errors/app_failure.dart';
 import 'package:aura/core/errors/result.dart';
 import 'package:aura/core/session/auth_session.dart';
 import 'package:aura/core/session/token_store.dart';
+import 'package:aura/core/session/user_role.dart';
 import 'package:aura/features/home/data/voice_tools/voice_client_tools.dart';
 import 'package:aura/features/home/data/voice_tools/voice_sos_gateway.dart';
 import 'package:aura/features/home/domain/repositories/symptom_repository.dart';
@@ -30,8 +31,9 @@ void main() {
 
   setUp(() async {
     FlutterSecureStorage.setMockInitialValues({});
-    session = AuthSession(TokenStore(const FlutterSecureStorage()))
-      ..setHomeId('home-1');
+    session = AuthSession(TokenStore(const FlutterSecureStorage()));
+    await session.onLoggedIn(UserRole.paciente);
+    session.setHomeId('home-1');
     symptoms = _FakeSymptoms();
     meds = _FakeMedications();
     emergencies = _FakeEmergencies();
@@ -150,6 +152,18 @@ void main() {
       expect(result.data,
           {'confirmed': true, 'taken': true, 'stockDoses': 9});
       expect(meds.confirms, [('med-1', true)]);
+      // A voz se identifica: a família vê "por voz", não "no app".
+      expect(meds.sources, ['voice']);
+    });
+
+    test('conta que não é a da paciente: a dose NÃO se perde (o servidor recusaria '
+        '"voice") e cai para o padrão', () async {
+      await session.onLoggedIn(UserRole.cuidadora);
+
+      final result = await run('confirm_medication', {'medicationId': 'med-1'});
+
+      expect(result.success, isTrue);
+      expect(meds.sources, [null]);
     });
 
     test('taken aceita texto "false"', () async {
@@ -194,7 +208,7 @@ void main() {
 
   group('trigger_sos', () {
     test('sem confirmação verbal não aciona nada', () async {
-      final shown = <void>[];
+      final shown = <Result<EmergencyTicket>>[];
       final sub = gateway.requests.listen(shown.add);
       addTearDown(sub.cancel);
 
@@ -208,7 +222,7 @@ void main() {
 
     test('confirmado: pede socorro por voz, devolve o que se pode prometer e '
         'sobe a folha', () async {
-      final shown = <void>[];
+      final shown = <Result<EmergencyTicket>>[];
       final sub = gateway.requests.listen(shown.add);
       addTearDown(sub.cancel);
 
@@ -224,13 +238,30 @@ void main() {
       expect(data['canPromiseAlert'], isFalse);
       expect(data['simulated'], isTrue);
       expect(data['primaryContactName'], 'Ana');
-      expect(shown, hasLength(1));
+      // A folha recebe o desfecho que a tool obteve (e só acompanha).
+      expect(shown.single, isA<Success<EmergencyTicket>>());
+      expect((shown.single as Success<EmergencyTicket>).data.id, 'em-1');
+    });
+
+    test('desfecho sem ninguém ouvindo não se perde: a tela o recebe ao voltar',
+        () async {
+      final solo = VoiceSosGateway();
+      addTearDown(solo.dispose);
+      final ticket = _FakeEmergencies();
+
+      // A tela de voz não está na árvore: ninguém escuta o gateway.
+      solo.show(await ticket.trigger(channel: EmergencyChannel.voice));
+
+      final pending = solo.takePending();
+      expect(pending, isA<Success<EmergencyTicket>>());
+      // Entregue uma vez só.
+      expect(solo.takePending(), isNull);
     });
 
     test('falha ao pedir socorro vira erro e ainda sobe a folha (botão de '
         'ligar)', () async {
       emergencies.failure = const AppFailure.networkError(message: 'sem rede');
-      final shown = <void>[];
+      final shown = <Result<EmergencyTicket>>[];
       final sub = gateway.requests.listen(shown.add);
       addTearDown(sub.cancel);
 
@@ -239,7 +270,8 @@ void main() {
 
       expect(result.success, isFalse);
       expect(result.data, isNull);
-      expect(shown, hasLength(1));
+      // A folha recebe a MESMA falha que a voz vai relatar, em vez de tentar de novo.
+      expect(shown.single, isA<Failure<EmergencyTicket>>());
     });
   });
 }
@@ -271,6 +303,7 @@ class _FakeMedications implements MedicationRepository {
   Object? failure;
   Object? confirmFailure;
   final List<(String, bool)> confirms = [];
+  final List<String?> sources = [];
 
   @override
   Future<Result<List<Medication>>> getMedications(String homeId) async {
@@ -290,9 +323,10 @@ class _FakeMedications implements MedicationRepository {
 
   @override
   Future<Result<DoseConfirmation>> confirmDose(String id,
-      {required bool taken}) async {
+      {required bool taken, String? source}) async {
     if (confirmFailure != null) return Failure(confirmFailure);
     confirms.add((id, taken));
+    sources.add(source);
     return Success(
         DoseConfirmation(signalId: 'sig-$id', taken: taken, stockDoses: 9));
   }
