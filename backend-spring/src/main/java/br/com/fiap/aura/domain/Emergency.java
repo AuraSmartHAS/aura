@@ -106,7 +106,18 @@ public class Emergency {
     @Builder.Default
     private boolean transportReal = false;
 
-    /** Aparelhos que receberam o aviso principal. Zero é possível: casa sem aparelho registrado. */
+    /**
+     * Valor de {@link #notifiedCount} entre o disparo e o resultado do push: "o aviso está saindo".
+     * Sentinela na coluna que já existe, em vez de coluna nova anulável, para não mudar o esquema
+     * dos três bancos. Nunca chega ao contrato como número — a API traduz para nulo e
+     * {@code alertInProgress}.
+     */
+    public static final int ENVIO_EM_ANDAMENTO = -1;
+
+    /**
+     * Aparelhos que receberam o aviso principal. Zero é possível: casa sem aparelho registrado.
+     * {@link #ENVIO_EM_ANDAMENTO} enquanto o push ainda não respondeu.
+     */
     @Column(name = "notified_count", nullable = false)
     @Builder.Default
     private int notifiedCount = 0;

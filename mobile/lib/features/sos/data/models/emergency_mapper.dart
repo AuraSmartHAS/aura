@@ -38,6 +38,7 @@ class EmergencyMapper {
       acknowledgedByName: _string(json['acknowledgedByName']),
       escalated: _bool(json['escalated']) ?? false,
       notifiedCount: _int(json['notifiedCount']) ?? 0,
+      alertInProgress: _bool(json['alertInProgress']) ?? false,
       transportReal: _bool(json['transportReal']) ?? false,
       simulated: _bool(json['simulated']) ?? true,
       canPromiseAlert: _bool(json['canPromiseAlert']) ?? false,

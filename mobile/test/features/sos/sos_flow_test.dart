@@ -369,6 +369,42 @@ void main() {
       expect(repository.statusCalls, hasLength(chamadas));
     });
 
+    test(
+        'disparado com o push ainda saindo continua "estou avisando", sem '
+        'cair na falha', () async {
+      final repository = _FakeEmergencyRepository(ticket: _ticket());
+      final bloc =
+          _buildBloc(repository, poll: const Duration(milliseconds: 30));
+      addTearDown(bloc.close);
+
+      bloc.add(const SosRequested());
+      await _tick();
+
+      // A fresta entre o disparo e a resposta do FCM: o servidor ainda não
+      // promete, mas também não há falha nenhuma a anunciar.
+      repository.nextStatus = _status(
+        state: EmergencyState.dispatched,
+        canPromiseAlert: false,
+        alertInProgress: true,
+        dispatchedAt: DateTime(2026, 8, 27, 14, 32),
+        spokenMessage: 'Estou avisando a Ana.',
+      );
+      final antes = repository.statusCalls.length;
+      // duas leituras depois: a primeira com certeza já foi aplicada
+      await _waitFor(() => repository.statusCalls.length >= antes + 2);
+      expect(bloc.state.phase, SosPhase.counting);
+      expect(bloc.state.spokenMessage, 'Estou avisando a Ana.');
+      expect(bloc.state.spokenMessage!.toLowerCase(),
+          isNot(contains('não consegui')));
+
+      repository.nextStatus = _status(
+        state: EmergencyState.dispatched,
+        dispatchedAt: DateTime(2026, 8, 27, 14, 32),
+        spokenMessage: 'Pronto. O aviso saiu para a Ana às 14h32.',
+      );
+      await _waitFor(() => bloc.state.phase == SosPhase.delivered);
+    });
+
     test('um acompanhamento que falha não desmente o que já se sabe', () async {
       final repository = _FakeEmergencyRepository(ticket: _ticket());
       final bloc = _buildBloc(repository, poll: const Duration(milliseconds: 30));
@@ -623,11 +659,13 @@ EmergencyStatus _status({
   DateTime? dispatchedAt,
   String? acknowledgedByName,
   String? spokenMessage,
+  bool alertInProgress = false,
 }) {
   return EmergencyStatus(
     id: _kEmergencyId,
     state: state,
     canPromiseAlert: canPromiseAlert,
+    alertInProgress: alertInProgress,
     degradedReason: degradedReason,
     dispatchedAt: dispatchedAt,
     acknowledgedByName: acknowledgedByName,

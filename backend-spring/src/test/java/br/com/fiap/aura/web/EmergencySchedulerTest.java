@@ -117,7 +117,10 @@ class EmergencySchedulerTest {
         while (Instant.now().isBefore(limite)) {
             ultimo = body(mvc.perform(get("/api/v1/emergencies/{id}", emergencyId))
                     .andExpect(status().isOk()).andReturn());
-            if (esperado.equals(ultimo.get("state").asText())) {
+            // dispatched com o push ainda saindo é um estado legítimo (alertInProgress): o que este
+            // teste confere é o resultado do disparo, então espera o envio responder também
+            if (esperado.equals(ultimo.get("state").asText())
+                    && !ultimo.path("alertInProgress").asBoolean(false)) {
                 return ultimo;
             }
             Thread.sleep(200);

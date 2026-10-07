@@ -8123,8 +8123,15 @@
           },
           "notifiedCount": {
             "type": "integer",
+            "description": "Aparelhos que aceitaram o aviso principal. Nulo enquanto o envio ainda não respondeu (ver alertInProgress) — nulo não é zero.",
             "format": "int32",
+            "nullable": true,
             "example": 1
+          },
+          "alertInProgress": {
+            "type": "boolean",
+            "description": "true entre o disparo e o resultado do push: o aviso está saindo. Nesse intervalo canPromiseAlert é false sem degradedReason, e a fala é \"Estou avisando\" — nunca \"não consegui avisar\".",
+            "example": false
           },
           "transportReal": {
             "type": "boolean",

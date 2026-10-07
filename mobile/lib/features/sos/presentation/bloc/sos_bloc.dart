@@ -206,7 +206,13 @@ class SosBloc extends Bloc<SosEvent, SosState> {
     if (result is! Success<EmergencyStatus>) return;
 
     final status = result.data;
-    final phase = _phaseFor(status.state, status.canPromiseAlert);
+    // Disparado com o push ainda saindo: continua "estou avisando". Cair em
+    // `failed` aqui diria "não consegui avisar" enquanto o aviso está saindo.
+    // Degradação conhecida (transporte simulado, sem aparelho) não espera.
+    final sending = status.alertInProgress && status.degradedReason == null;
+    final phase = sending
+        ? SosPhase.counting
+        : _phaseFor(status.state, status.canPromiseAlert);
 
     emit(state.copyWith(
       phase: phase,

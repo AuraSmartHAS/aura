@@ -136,7 +136,15 @@ public final class EmergencyDtos {
             Instant acknowledgedAt,
             @Schema(example = "Ana") String acknowledgedByName,
             @Schema(example = "false") boolean escalated,
-            @Schema(example = "1") int notifiedCount,
+            @Schema(description = "Aparelhos que aceitaram o aviso principal. Nulo enquanto o envio "
+                    + "ainda não respondeu (ver alertInProgress) — nulo não é zero.",
+                    example = "1", nullable = true)
+            Integer notifiedCount,
+            @Schema(description = "true entre o disparo e o resultado do push: o aviso está saindo. "
+                    + "Nesse intervalo canPromiseAlert é false sem degradedReason, e a fala é "
+                    + "\"Estou avisando\" — nunca \"não consegui avisar\".",
+                    example = "false")
+            boolean alertInProgress,
             @Schema(example = "false") boolean transportReal,
             @Schema(example = "true") boolean simulated,
             @Schema(example = "false") boolean canPromiseAlert,
