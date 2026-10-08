@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/notifications/notification_service.dart';
 import '../../../core/session/auth_session.dart';
 import '../../../core/session/token_store.dart';
 import '../data/datasources/auth_remote_datasource.dart';
@@ -20,6 +21,7 @@ void setupAuthModule(GetIt sl) {
       sl<AuthRemoteDataSource>(),
       sl<TokenStore>(),
       sl<AuthSession>(),
+      beforeLogout: () => sl<NotificationService>().unregister(),
     ),
   );
 

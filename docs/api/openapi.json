@@ -28,6 +28,18 @@
       "description": "Cadastro da casa do paciente e checklist de segurança"
     },
     {
+      "name": "5. Care-Chain",
+      "description": "Recomendação explicada, aprovação humana, pedido e entrega"
+    },
+    {
+      "name": "6. Torre de Controle",
+      "description": "KPIs de operação (somente admin)"
+    },
+    {
+      "name": "8. SOS e crise",
+      "description": "Pedido de socorro com janela de cancelamento no servidor"
+    },
+    {
       "name": "3. Monitoramento 360",
       "description": "Sinais observados e escore explicável"
     },
@@ -48,10 +60,6 @@
       "description": "Projeção de reposição por consumo confirmado — régua aritmética declarada; a decisão continua humana"
     },
     {
-      "name": "5. Care-Chain",
-      "description": "Recomendação explicada, aprovação humana, pedido e entrega"
-    },
-    {
       "name": "1. Autenticação & LGPD",
       "description": "Cadastro, login, refresh e aceite de consentimento"
     },
@@ -60,16 +68,12 @@
       "description": "Itens de acessibilidade (NBR 9050) — CRUD administrativo"
     },
     {
-      "name": "6. Torre de Controle",
-      "description": "KPIs de operação (somente admin)"
-    },
-    {
       "name": "7. Notificações",
       "description": "Push no celular de quem cuida — com modo simulado declarado"
     },
     {
-      "name": "8. SOS e crise",
-      "description": "Pedido de socorro com janela de cancelamento no servidor"
+      "name": "10. Voz",
+      "description": "Sessão da conversa por voz com a Aura (ElevenLabs)"
     }
   ],
   "paths": {
@@ -2234,6 +2238,119 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "1. Autenticação & LGPD"
+        ],
+        "summary": "Desregistra o aparelho no logout: avisos deixam de chegar a ele",
+        "description": "Idempotente. Com `fcmToken` no corpo, só desregistra se ele ainda for o token\nregistrado — o logout atrasado de um aparelho antigo não desliga o atual.\n",
+        "operationId": "unregisterFcm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FcmTokenRemovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/medications/{medId}/confirm": {
@@ -3830,7 +3947,8 @@
         "tags": [
           "1. Autenticação & LGPD"
         ],
-        "summary": "Troca a senha do usuário autenticado",
+        "summary": "Troca a senha do usuário autenticado e devolve um novo par de tokens",
+        "description": "Todo access e refresh token emitido antes da troca deixa de valer (401).",
         "operationId": "changePassword",
         "requestBody": {
           "content": {
@@ -3848,7 +3966,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OkResponse"
+                  "$ref": "#/components/schemas/TokenResponse"
                 }
               }
             }
@@ -6307,6 +6425,112 @@
           }
         }
       }
+    },
+    "/api/v1/voice/token": {
+      "get": {
+        "tags": [
+          "10. Voz"
+        ],
+        "summary": "Token de curta duração para abrir a conversa com o agente de voz",
+        "description": "503 VOICE_NOT_CONFIGURED sem ELEVENLABS_API_KEY/ELEVENLABS_AGENT_ID; 502 VOICE_UPSTREAM_ERROR se o ElevenLabs falhar.",
+        "operationId": "token",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6728,6 +6952,9 @@
             "type": "string",
             "description": "Endereço do item no site do parceiro; nulo quando não há link, e a interface não deve prometer um",
             "example": "https://www.leroymerlin.com.br/barra-de-apoio-reta-60cm_1234567"
+          },
+          "orderInProgress": {
+            "$ref": "#/components/schemas/OrderInProgress"
           }
         },
         "description": "Recomendação explicada. `reason` é o texto que a cuidadora lê antes de aprovar e passa\npelo guardrail de não-prescrição. Enquanto `status` for `recommended`, nenhum pedido existe:\nsó a aprovação humana cria o pedido (RN-022).\n`factorLabels` traz os mesmos `factors` em português, na MESMA ordem e com o mesmo tamanho —\nnenhuma tela precisa traduzir código. Preço e instalação vêm na própria recomendação para\nque ninguém aprove sem saber o total; são opcionais e vêm nulos quando o SKU saiu do catálogo\nou quando o item não é instalável."
@@ -6842,6 +7069,15 @@
         "properties": {
           "fcmToken": {
             "type": "string"
+          }
+        }
+      },
+      "FcmTokenRemovalRequest": {
+        "type": "object",
+        "properties": {
+          "fcmToken": {
+            "type": "string",
+            "description": "Opcional — com ele, só desregistra se ainda for o token registrado"
           }
         }
       },
@@ -6972,9 +7208,17 @@
           },
           "reason": {
             "type": "string"
+          },
+          "orderInProgress": {
+            "$ref": "#/components/schemas/OrderInProgress"
+          },
+          "snoozedUntil": {
+            "type": "string",
+            "description": "Fim do adiamento (\"deixar para depois\"): a régua dispararia, mas a recusa mais\nrecente desta medicação cala a sugestão até este instante (`snooze-hours`) ou até\numa entrega de reposição mudar o estoque. Nulo fora do adiamento.",
+            "format": "date-time"
           }
         },
-        "description": "Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:\nburn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando\n`daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.\n`suggested=false` quando falta história (`min-history-days`) ou o estoque está folgado.\nNada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022)."
+        "description": "Projeção de reposição de uma medicação com estoque controlado. A conta viaja aberta:\nburn rate = doses confirmadas na janela ÷ dias da janela; a régua dispara quando\n`daysOfSupply` fica abaixo do lead time da cadeia mais a margem de segurança.\n`suggested=false` quando falta história (`min-history-days`), o estoque está folgado, já há um\npedido de reposição a caminho (`orderInProgress`) ou a cuidadora deixou para depois (`snoozedUntil`).\nNada aqui cria pedido: a aprovação humana continua sendo a única porta (RN-022)."
       },
       "CreateMedicationRequest": {
         "required": [
@@ -8001,8 +8245,15 @@
           },
           "notifiedCount": {
             "type": "integer",
+            "description": "Aparelhos que aceitaram o aviso principal. Nulo enquanto o envio ainda não respondeu (ver alertInProgress) — nulo não é zero.",
             "format": "int32",
+            "nullable": true,
             "example": 1
+          },
+          "alertInProgress": {
+            "type": "boolean",
+            "description": "true entre o disparo e o resultado do push: o aviso está saindo. Nesse intervalo canPromiseAlert é false sem degradedReason, e a fala é \"Estou avisando\" — nunca \"não consegui avisar\".",
+            "example": false
           },
           "transportReal": {
             "type": "boolean",
@@ -8078,6 +8329,35 @@
           },
           "details": {
             "type": "object"
+          }
+        }
+      },
+      "OrderInProgress": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "sourcing",
+              "in_route",
+              "delivered",
+              "installed",
+              "returned"
+            ]
+          }
+        },
+        "description": "Pedido que já cobre o item recomendado."
+      },
+      "VoiceTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
           }
         }
       }

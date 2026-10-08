@@ -59,6 +59,7 @@ aura:
       safety-stock-days: 4   # margem além do lead time, versionada como os pesos do escore
       min-history-days: 7    # sem uma semana de confirmações, nada se projeta
       package-doses: 30      # doses que uma reposição entrega
+      snooze-hours: 24       # "deixar para depois" cala a sugestão por este prazo (ou até a entrega)
   cors:
     # Padroes, nao origens literais: com credenciais habilitadas o Spring recusa curinga em
     # setAllowedOrigins, entao SecurityConfig usa setAllowedOriginPatterns. A faixa cobre o
@@ -77,6 +78,14 @@ aura:
     max-per-hour: 12
     # Varredor de recuperação: pega disparo vencido que o agendamento em memória perdeu num restart.
     sweep-millis: 1000
+  voice:
+    # Agente de voz da Maria (ElevenLabs). Só o NOME das variáveis mora aqui; sem elas o endpoint
+    # /voice/token responde 503 VOICE_NOT_CONFIGURED e o resto da API segue normal.
+    api-key: ${ELEVENLABS_API_KEY:}
+    agent-id: ${ELEVENLABS_AGENT_ID:}
+    base-url: https://api.elevenlabs.io
+    # Limite da chamada que gera o token. Sem ele, a ElevenLabs sem vagas levava ~17 s para falhar.
+    timeout: 8s
   push:
     # Credencial do Firebase — só o NOME da variável mora aqui; o segredo nunca entra no repositório.
     # Uma das duas basta: caminho do arquivo da conta de serviço ou o JSON inteiro.

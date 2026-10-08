@@ -62,7 +62,7 @@ A Ana **aprova**. Só depois disso nasce o pedido.
 > *"Nenhum pedido nasce sem a aprovação da cuidadora — e isso é verificado por teste automatizado, não por promessa."*
 
 ### Cena 4 — Vira logística de verdade
-Avance o pedido pelos estágios até **instalado** e abra a **Torre de Controle**: OTIF, lead time e SLA saem dos pedidos reais, não de um mock.
+Avance o pedido pelos estágios até **instalado** no app React Native (**Care-Chain**, "Avançar estágio"), entrando com a **conta da Operação**: só o admin move a cadeia, a cuidadora recebe 403. A Torre de Controle do painel web não mostra mais OTIF nem carteira de pedidos (D-008): ela mostra casas monitoradas, risco alto e os indicadores de cuidado consolidados no banco.
 > *"A última milha do cuidado é logística. O fluxo não termina em 'entregue' — termina em 'instalado'."*
 
 ### Cena 5 — A mesma API, outro app · `localhost:8081`
@@ -100,11 +100,11 @@ Dado de saúde é sensível pela LGPD, então o consentimento é específico e d
 | `./mvnw` diz "Unable to locate a Java Runtime" | Exporte o `JAVA_HOME` do topo deste arquivo |
 | "Port 8080 was already in use" | `lsof -nP -iTCP:8080 -sTCP:LISTEN` e encerre o processo antigo |
 | O painel abre mas não loga | A API não está de pé: confira o terminal 1 e o `curl` de health |
-| O mapa abre sem o mapa | Falta a `GOOGLE_MAPS_API_KEY` no `.env` (veja `mobile/.env.example`) |
+| O mapa abre sem o mapa | Falta a `GOOGLE_MAPS_API_KEY` em `mobile/android/local.properties` (modelo em `mobile/local.example.properties`); refaça o build do app |
 | A demo de voz não conecta | É rede/serviço externo. **Use o vídeo gravado** — ele é o plano A, não o plano B |
 
 **Regra de palco:** o vídeo gravado do caminho feliz é o plano A. Demonstração ao vivo de voz depende de wi-fi de terceiro e já custou caro uma vez.
 
-**Cena do mapa da entrega (painel web, pedido "Em rota" → Ver entrega):** reinicie o backend 3 a 5 minutos antes da cena — o seed nasce com o entregador a ~40% do caminho e ele cruza os 60% no minuto 4. Depois de 12 minutos o ponto trava em "chegando" (teto de 97%): não é defeito, mas a cena fica melhor com ele no meio da rota. O mapa fala só com o localhost — wi-fi do auditório não o afeta.
+**Cena do mapa da entrega (app Flutter, pedido "Em rota"):** reinicie o backend 3 a 5 minutos antes da cena — o seed nasce com o entregador a ~40% do caminho e ele cruza os 60% no minuto 4. Depois de 12 minutos o ponto trava em "chegando" (teto de 97%): não é defeito, mas a cena fica melhor com ele no meio da rota. A rota e a posição vêm do backend local; os tiles do mapa vêm do Google e precisam de internet e da `GOOGLE_MAPS_API_KEY`.
 
-**Cena da reposição por consumo (painel web, card "Reposição por consumo"):** o card nasce aceso do seed — 13 doses de Levodopa ÷ ~2,8 doses/dia confirmadas = ~5 dias, abaixo da régua de 24 h + 4 dias de margem. Quem narra fala de **estoque, ritmo e prazo** — nunca "remédio da Maria" nem "tratamento"; o item é "consumível recorrente da rede parceira". Aprovar cria o pedido na MESMA esteira (SLA de 24 h, carteira e KPIs da Torre enxergam na hora); avançá-lo até entregue devolve 30 doses ao estoque e o card se apaga sozinho. Regra: aprovar ao vivo sim; avançar o pedido da reposição só com a fala do OTIF ensaiada.
+**Cena da reposição por consumo (painel web, card "Reposição por consumo"):** o card nasce aceso do seed — 13 doses de Levodopa ÷ ~2,8 doses/dia confirmadas = ~5 dias, abaixo da régua de 24 h + 4 dias de margem. Quem narra fala de **estoque, ritmo e prazo** — nunca "remédio da Maria" nem "tratamento"; o item é "consumível recorrente da rede parceira". Aprovar cria o pedido na MESMA esteira (SLA de 24 h); avançá-lo até entregue, no app React Native com a conta da Operação, devolve 30 doses ao estoque e o card se apaga sozinho. Regra: aprovar ao vivo sim; avançar o pedido da reposição só com a fala ensaiada.

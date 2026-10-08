@@ -5,7 +5,8 @@ import '../session/token_store.dart';
 
 /// Injects the `Authorization: Bearer <token>` header and transparently
 /// refreshes the access token once on `401 TOKEN_EXPIRED`, replaying the
-/// original request. If refresh fails, the session is cleared.
+/// original request. If refresh fails, the session is cleared as a *forced*
+/// logout, so the login screen tells the user the session expired.
 class AuthInterceptor extends QueuedInterceptor {
   AuthInterceptor({
     required TokenStore tokenStore,
@@ -49,7 +50,7 @@ class AuthInterceptor extends QueuedInterceptor {
 
     final refreshed = await _refresh();
     if (!refreshed) {
-      await _session.onLoggedOut();
+      await _session.onLoggedOut(forced: true);
       return handler.next(err);
     }
 

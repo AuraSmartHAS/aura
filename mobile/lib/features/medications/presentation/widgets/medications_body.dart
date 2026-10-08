@@ -4,8 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/async_state_views.dart';
+import '../../domain/day_period_grouping.dart';
 import '../../domain/entities/medication.dart';
 import '../bloc/medication_bloc.dart';
+import 'caregiver_dose_status.dart';
+import 'dose_confirm_actions.dart';
 import 'medication_form_sheet.dart';
 
 class MedicationsBody extends StatelessWidget {
@@ -21,7 +24,20 @@ class MedicationsBody extends StatelessWidget {
         label: const Text('Adicionar'),
       ),
       body: SafeArea(
-        child: BlocBuilder<MedicationBloc, MedicationState>(
+        child: BlocConsumer<MedicationBloc, MedicationState>(
+          listenWhen: (prev, curr) =>
+              curr.feedback != null && prev.feedback != curr.feedback,
+          listener: (context, state) {
+            final feedback = state.feedback!;
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(
+                  content: Text(feedback.message),
+                  backgroundColor: feedback.isError ? AppColors.error : null,
+                ),
+              );
+          },
           builder: (context, state) {
             return switch (state.status) {
               MedicationStatus.loading => const LoadingView(
@@ -70,20 +86,9 @@ class _MedicationList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Group by time-of-day derived from the free-text schedule. Within each
-    // bucket, sort by the earliest hour mentioned so the day reads in order.
-    final grouped = <_TimeOfDay, List<Medication>>{};
-    for (final med in medications) {
-      grouped.putIfAbsent(_TimeOfDay.fromSchedule(med.schedule), () => [])
-          .add(med);
-    }
-    final orderedBuckets =
-        _TimeOfDay.values.where(grouped.containsKey).toList();
-    for (final bucket in orderedBuckets) {
-      grouped[bucket]!.sort(
-        (a, b) => _firstHour(a.schedule).compareTo(_firstHour(b.schedule)),
-      );
-    }
+    // Grouped by period of the day from the `HH:mm` times; a medication with
+    // times in several periods appears in each one (see day_period_grouping).
+    final groups = groupByDayPeriod(medications);
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(
@@ -93,17 +98,21 @@ class _MedicationList extends StatelessWidget {
         // room so the FAB never hides the last card.
         AppDimensions.xxl + AppDimensions.xl,
       ),
-      itemCount: orderedBuckets.length,
+      itemCount: groups.length,
       itemBuilder: (context, index) {
-        final bucket = orderedBuckets[index];
-        final meds = grouped[bucket]!;
+        final group = groups[index];
+        final bucket = _TimeOfDay.of(group.period);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionHeader(timeOfDay: bucket, count: meds.length),
+            _SectionHeader(timeOfDay: bucket, count: group.entries.length),
             const SizedBox(height: AppDimensions.sm),
-            for (final med in meds) ...[
-              _MedicationCard(medication: med, timeOfDay: bucket),
+            for (final entry in group.entries) ...[
+              _MedicationCard(
+                medication: entry.medication,
+                times: entry.times,
+                timeOfDay: bucket,
+              ),
               const SizedBox(height: AppDimensions.sm),
             ],
             const SizedBox(height: AppDimensions.md),
@@ -145,16 +154,23 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _MedicationCard extends StatelessWidget {
-  const _MedicationCard({required this.medication, required this.timeOfDay});
+  const _MedicationCard({
+    required this.medication,
+    required this.times,
+    required this.timeOfDay,
+  });
 
   final Medication medication;
+
+  /// Only the times of this card's period.
+  final List<String> times;
   final _TimeOfDay timeOfDay;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final dosage = medication.dosage;
-    final schedule = medication.schedule;
+    final schedule = times.isEmpty ? null : times.join(', ');
     final notes = medication.notes;
 
     return Semantics(
@@ -222,6 +238,13 @@ class _MedicationCard extends StatelessWidget {
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                       ],
+                      const SizedBox(height: AppDimensions.md),
+                      // A paciente confirma a dose; a família lê o resultado.
+                      if (context.select<MedicationBloc, bool>(
+                          (bloc) => bloc.isCaregiver))
+                        CaregiverDoseStatus(medication: medication)
+                      else
+                        DoseConfirmActions(medication: medication),
                     ],
                   ),
                 ),
@@ -321,17 +344,8 @@ class _DeleteButton extends StatelessWidget {
   }
 }
 
-/// Earliest hour (0–24) mentioned in a free-text schedule, used only for
-/// sorting. 99 keeps unscheduled meds at the bottom of their bucket.
-int _firstHour(String? schedule) {
-  if (schedule == null) return 99;
-  final match = RegExp(r'(\d{1,2})\s*h').firstMatch(schedule.toLowerCase());
-  if (match == null) return 99;
-  return int.tryParse(match.group(1)!) ?? 99;
-}
-
-/// Time-of-day buckets derived from the free-text "Horário". Each carries a
-/// warm, distinct color + icon cue so the list reads as a daily routine.
+/// Visual cue (label, color + icon) of each [MedicationPeriod], so the list reads
+/// as a daily routine.
 enum _TimeOfDay {
   morning('Manhã', Icons.wb_twilight, AppColors.warning),
   afternoon('Tarde', Icons.wb_sunny_outlined, AppColors.primary),
@@ -345,17 +359,10 @@ enum _TimeOfDay {
   final IconData icon;
   final Color color;
 
-  static _TimeOfDay fromSchedule(String? schedule) {
-    if (schedule == null || schedule.trim().isEmpty) return _TimeOfDay.anytime;
-    final s = schedule.toLowerCase();
-    if (s.contains('manhã') || s.contains('manha')) return _TimeOfDay.morning;
-    if (s.contains('tarde')) return _TimeOfDay.afternoon;
-    if (s.contains('noite') || s.contains('noturno')) return _TimeOfDay.evening;
-
-    final hour = _firstHour(schedule);
-    if (hour == 99) return _TimeOfDay.anytime;
-    if (hour < 12) return _TimeOfDay.morning;
-    if (hour < 18) return _TimeOfDay.afternoon;
-    return _TimeOfDay.evening;
-  }
+  static _TimeOfDay of(MedicationPeriod period) => switch (period) {
+        MedicationPeriod.morning => _TimeOfDay.morning,
+        MedicationPeriod.afternoon => _TimeOfDay.afternoon,
+        MedicationPeriod.evening => _TimeOfDay.evening,
+        MedicationPeriod.unscheduled => _TimeOfDay.anytime,
+      };
 }

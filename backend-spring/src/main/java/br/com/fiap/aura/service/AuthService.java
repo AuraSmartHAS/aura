@@ -51,7 +51,7 @@ public class AuthService {
                 .name(req.name())
                 .build());
         return new AuthDtos.SignupResponse(user.getId(),
-                jwt.issueAccess(user.getId(), role), jwt.issueRefresh(user.getId(), role), role);
+                jwt.issueAccess(user), jwt.issueRefresh(user), role);
     }
 
     /** Cria uma conta administrativa sem devolver credenciais ao solicitante. */
@@ -80,17 +80,17 @@ public class AuthService {
         UserAccount user = users.findByEmailIgnoreCase(req.email())
                 .filter(u -> encoder.matches(req.password(), u.getPasswordHash()))
                 .orElseThrow(() -> ApiException.unauthorized("INVALID_CREDENTIALS", "E-mail ou senha incorretos."));
-        return new AuthDtos.TokenResponse(jwt.issueAccess(user.getId(), user.getRole()),
-                user.getRole(), jwt.issueRefresh(user.getId(), user.getRole()));
+        return tokens(user);
     }
 
     @Transactional(readOnly = true)
     public AuthDtos.TokenResponse refresh(String refreshToken) {
-        AuthPrincipal principal = jwt.parseRefresh(refreshToken);
-        UserAccount user = users.findById(principal.userId())
+        JwtService.ParsedToken token = jwt.parseRefresh(refreshToken);
+        UserAccount user = users.findById(token.userId())
                 .orElseThrow(() -> ApiException.unauthorized("UNAUTHORIZED", "Usuário do token não existe mais."));
-        return new AuthDtos.TokenResponse(jwt.issueAccess(user.getId(), user.getRole()),
-                user.getRole(), jwt.issueRefresh(user.getId(), user.getRole()));
+        // Refresh emitido antes da última troca de senha não renova mais a sessão.
+        jwt.requireCurrentPassword(token, user);
+        return tokens(user);
     }
 
     @Transactional(readOnly = true)
@@ -100,18 +100,47 @@ public class AuthService {
                 consents.existsByUserId(user.getId()));
     }
 
+    /**
+     * Troca a senha e devolve um par de tokens novo. O hash muda, então todo access e refresh
+     * emitido antes deixa de valer; o chamador segue logado com o par devolvido.
+     */
     @Transactional
-    public void changePassword(AuthPrincipal principal, AuthDtos.ChangePasswordRequest req) {
+    public AuthDtos.TokenResponse changePassword(AuthPrincipal principal, AuthDtos.ChangePasswordRequest req) {
         UserAccount user = require(principal.userId());
         if (!encoder.matches(req.currentPassword(), user.getPasswordHash())) {
             throw ApiException.unauthorized("INVALID_CREDENTIALS", "Senha atual incorreta.");
         }
         user.setPasswordHash(encoder.encode(req.newPassword()));
+        return tokens(user);
     }
 
+    private AuthDtos.TokenResponse tokens(UserAccount user) {
+        return new AuthDtos.TokenResponse(jwt.issueAccess(user), user.getRole(), jwt.issueRefresh(user));
+    }
+
+    /**
+     * Um aparelho é de uma pessoa só. O celular em que a Ana saiu e a Maria entrou continua com o
+     * mesmo token FCM; sem tirar o token da Ana, o SOS endereçado a ela apitaria na mão da Maria.
+     */
     @Transactional
     public void registerFcmToken(AuthPrincipal principal, String token) {
+        users.findByFcmToken(token).stream()
+                .filter(u -> !u.getId().equals(principal.userId()))
+                .forEach(u -> u.setFcmToken(null));
         require(principal.userId()).setFcmToken(token);
+    }
+
+    /**
+     * Desregistro no logout. Com o token informado, só apaga se ainda for o registrado: o logout
+     * atrasado de um aparelho antigo não pode desligar o aviso do aparelho em que a pessoa entrou
+     * depois. Sem token, apaga o que houver. Idempotente nos dois casos.
+     */
+    @Transactional
+    public void unregisterFcmToken(AuthPrincipal principal, String token) {
+        UserAccount user = require(principal.userId());
+        if (token == null || token.isBlank() || token.equals(user.getFcmToken())) {
+            user.setFcmToken(null);
+        }
     }
 
     @Transactional

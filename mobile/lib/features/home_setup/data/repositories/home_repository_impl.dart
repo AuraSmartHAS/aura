@@ -46,8 +46,8 @@ class HomeRepositoryImpl implements HomeRepository {
   Future<Result<HomeDetail>> getHome(String homeId) async {
     try {
       final data = await _remoteDataSource.getHome(homeId);
-      final homeJson = data['home'] as Map<String, dynamic>;
-      final patient = data['patient'] as Map<String, dynamic>?;
+      // `GET /homes/{id}` devolve a casa num objeto plano (HomeResponse do
+      // backend-spring), com o paciente e o checklist no mesmo nível.
       final checklist = (data['safetyChecklist'] as Map?)?.map(
             (k, v) => MapEntry(k as String, v as bool),
           ) ??
@@ -55,13 +55,13 @@ class HomeRepositoryImpl implements HomeRepository {
       return Success(
         HomeDetail(
           home: Home(
-            id: homeJson['id'] as String,
-            label: (homeJson['label'] as String?) ?? 'Casa',
-            address: (homeJson['address'] as String?) ?? '',
-            lat: (homeJson['lat'] as num?)?.toDouble(),
-            lng: (homeJson['lng'] as num?)?.toDouble(),
+            id: data['id'] as String,
+            label: (data['label'] as String?) ?? 'Casa',
+            address: (data['address'] as String?) ?? '',
+            lat: (data['lat'] as num?)?.toDouble(),
+            lng: (data['lng'] as num?)?.toDouble(),
           ),
-          patientName: patient?['name'] as String?,
+          patientName: data['patientName'] as String?,
           checklist: checklist,
         ),
       );

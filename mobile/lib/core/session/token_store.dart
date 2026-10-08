@@ -15,6 +15,7 @@ class TokenStore {
   static const _kHomeId = 'home_id';
   static const _kPairedHomeId = 'paired_home_id';
   static const _kConsentAccepted = 'consent_accepted';
+  static const _kUserName = 'user_name';
 
   Future<void> saveSession({
     required String accessToken,
@@ -61,6 +62,15 @@ class TokenStore {
       (await _storage.read(key: _kConsentAccepted)) == 'true';
   Future<void> setConsentAccepted() =>
       _storage.write(key: _kConsentAccepted, value: 'true');
+  Future<void> clearConsentAccepted() =>
+      _storage.delete(key: _kConsentAccepted);
+
+  /// Nome do usuário como o servidor o devolve em `GET /auth/me` (pode ser
+  /// vazio). Some no [clear], junto com o resto da sessão.
+  Future<String?> get userName => _storage.read(key: _kUserName);
+  Future<void> saveUserName(String? name) => name == null
+      ? _storage.delete(key: _kUserName)
+      : _storage.write(key: _kUserName, value: name);
 
   Future<void> clear() async {
     final pairedHome = await pairedHomeId;

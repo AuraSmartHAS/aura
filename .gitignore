@@ -25,3 +25,7 @@ blob-report/
 .env.local
 **/.env
 !**/.env.example
+
+# Conta de servico do Firebase (Admin SDK do backend): chave privada, nunca versionar.
+# O compose monta este diretorio no container como somente leitura.
+secrets/

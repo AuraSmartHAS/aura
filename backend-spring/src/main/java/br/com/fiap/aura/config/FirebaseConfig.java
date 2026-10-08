@@ -1,6 +1,7 @@
 package br.com.fiap.aura.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -42,13 +43,17 @@ public class FirebaseConfig {
         AuraProperties.Push push = props.push();
         String origem = origem(push);
         if (origem == null) {
-            log.warn("Push SIMULADO: sem AURA_FIREBASE_CREDENTIALS nem AURA_FIREBASE_CREDENTIALS_JSON, "
+            log.warn("Push SIMULADO (transportReal=false): sem AURA_FIREBASE_CREDENTIALS nem AURA_FIREBASE_CREDENTIALS_JSON, "
                     + "nenhuma notificação sai do servidor e a API devolve simulated=true");
             return null;
         }
         try (InputStream credencial = abrir(push)) {
-            FirebaseMessaging messaging = messagingFrom(credencial, APP_NAME);
-            log.info("Push REAL habilitado — credencial do Firebase lida de {}", origem);
+            GoogleCredentials conta = GoogleCredentials.fromStream(credencial);
+            FirebaseMessaging messaging = messagingFrom(conta, APP_NAME);
+            // o projeto da conta de serviço tem de ser o mesmo do google-services.json dos apps;
+            // outro projeto não derruba nada aqui, mas cada envio volta SENDER_ID_MISMATCH
+            log.info("Push REAL habilitado (transportReal=true) — projeto Firebase {}, credencial lida de {}",
+                    projectIdOf(conta), origem);
             return messaging;
         } catch (IOException | RuntimeException e) {
             log.error("Credencial do Firebase em {} não carregou ({}) — push segue simulado",
@@ -63,14 +68,24 @@ public class FirebaseConfig {
      * nenhum teste passaria por aqui e a poda do pom só apareceria em produção.
      */
     static FirebaseMessaging messagingFrom(InputStream credencial, String appName) throws IOException {
+        return messagingFrom(GoogleCredentials.fromStream(credencial), appName);
+    }
+
+    private static FirebaseMessaging messagingFrom(GoogleCredentials credencial, String appName) {
         FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(credencial))
+                .setCredentials(credencial)
                 .build();
         FirebaseApp app = FirebaseApp.getApps().stream()
                 .filter(existente -> appName.equals(existente.getName()))
                 .findFirst()
                 .orElseGet(() -> FirebaseApp.initializeApp(options, appName));
         return FirebaseMessaging.getInstance(app);
+    }
+
+    private static String projectIdOf(GoogleCredentials credencial) {
+        return credencial instanceof ServiceAccountCredentials conta && conta.getProjectId() != null
+                ? conta.getProjectId()
+                : "desconhecido";
     }
 
     /** Nome da origem para o log — nunca o conteúdo da credencial. */

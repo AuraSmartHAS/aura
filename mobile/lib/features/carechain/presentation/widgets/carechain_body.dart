@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/async_state_views.dart';
@@ -11,7 +13,11 @@ import 'approval_blocks.dart';
 import 'approval_confirmation_sheet.dart';
 
 class CareChainBody extends StatelessWidget {
-  const CareChainBody({super.key});
+  const CareChainBody({super.key, this.supportPhone});
+
+  /// Telefone público do atendimento, repassado à folha de confirmação. Vem da
+  /// configuração na página; vazio, a folha não cita telefone.
+  final String? supportPhone;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +50,10 @@ class CareChainBody extends StatelessWidget {
                       'com o porquê.',
                   icon: Icons.verified_outlined,
                 ),
-              CareChainStatus.ready => _RecommendationView(state: state),
+              CareChainStatus.ready => _RecommendationView(
+                  state: state,
+                  supportPhone: supportPhone,
+                ),
             };
           },
         ),
@@ -54,9 +63,10 @@ class CareChainBody extends StatelessWidget {
 }
 
 class _RecommendationView extends StatelessWidget {
-  const _RecommendationView({required this.state});
+  const _RecommendationView({required this.state, this.supportPhone});
 
   final CareChainState state;
+  final String? supportPhone;
 
   @override
   Widget build(BuildContext context) {
@@ -84,11 +94,14 @@ class _RecommendationView extends StatelessWidget {
           level: reco.level,
           isApproving: state.isApproving,
           canApprove: state.canApprove,
-          approveBlockedReason:
-              state.canApprove ? null : ApprovalCopy.approveBlockedWithoutPrice,
+          approveBlockedReason: state.canApprove
+              ? null
+              : reco.hasOrderInProgress
+                  ? ApprovalCopy.itemAlreadyOrdered
+                  : ApprovalCopy.approveBlockedWithoutPrice,
           moneySlot: RecommendationPriceBlock(
             recommendation: reco,
-            onRetry: state.canApprove
+            onRetry: reco.hasPrice
                 ? null
                 : () => bloc.add(const LoadRecommendationEvent()),
           ),
@@ -98,6 +111,18 @@ class _RecommendationView extends StatelessWidget {
           ),
           onApprove: () => _confirmAndApprove(context, state),
         ),
+        if (reco.hasOrderInProgress) ...[
+          const SizedBox(height: AppDimensions.md),
+          SizedBox(
+            height: AppDimensions.minTouchTarget,
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  context.push(AppRoutes.orderDetail(reco.orderInProgressId!)),
+              icon: const Icon(Icons.local_shipping_outlined),
+              label: const Text('Acompanhar pedido'),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -115,6 +140,7 @@ class _RecommendationView extends StatelessWidget {
       recommendation: reco,
       patientName: state.patientName,
       address: state.address,
+      supportPhone: supportPhone,
     );
     if (confirmed) {
       bloc.add(ApproveRecommendationEvent(reco.recommendationId));

@@ -157,6 +157,7 @@ class EmergencyStatus {
     this.acknowledgedByName,
     this.escalated = false,
     this.notifiedCount = 0,
+    this.alertInProgress = false,
     this.transportReal = false,
     this.simulated = true,
     this.degradedReason,
@@ -170,6 +171,11 @@ class EmergencyStatus {
   final String? acknowledgedByName;
   final bool escalated;
   final int notifiedCount;
+
+  /// O servidor já disparou e o push ainda não respondeu: o aviso está saindo.
+  /// Não é falha — `canPromiseAlert` vem falso só porque ainda não há o que
+  /// prometer, e a tela continua em "estou avisando".
+  final bool alertInProgress;
   final bool transportReal;
   final bool simulated;
   final bool canPromiseAlert;

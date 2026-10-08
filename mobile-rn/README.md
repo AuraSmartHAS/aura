@@ -23,6 +23,23 @@ npm run android    # emulador Android
 
 Login de demonstração: `ana@aura.com` / `aura1234`.
 
+### 🔔 Push (só Android, build próprio)
+
+No navegador e no Expo Go o app roda igual, sem push (o Expo Go não recebe push remoto desde o
+SDK 53). Para receber SOS, pedido e recomendação no celular, gere o APK com o Firebase do app
+(`google-services.json` do pacote `br.com.fiap.aura.rn`, projeto `aura-84408`, nesta pasta):
+
+```bash
+export EXPO_PUBLIC_API_URL=http://<IP-da-máquina>:8080/api/v1
+npx expo prebuild --platform android --no-install   # gera android/ (fora do git)
+cd android && ./gradlew assembleRelease
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+O APK de release leva o JavaScript embutido (não precisa do Metro) e libera HTTP sem TLS para a
+API da rede local (`expo-build-properties`). O login registra o aparelho para a pessoa; "Sair"
+desregistra. O toque no aviso de SOS abre a tela "Pedido de ajuda" com "Estou indo".
+
 > Em **device físico**, troque o host em `src/api.ts` pelo IP da máquina — `localhost`
 > no aparelho aponta para o próprio aparelho. No emulador Android o app já usa `10.0.2.2`.
 

@@ -1,6 +1,7 @@
 package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.config.AuraProperties;
+import br.com.fiap.aura.domain.DeliveryOrder;
 import br.com.fiap.aura.domain.Medication;
 import br.com.fiap.aura.domain.Product;
 import br.com.fiap.aura.domain.Recommendation;
@@ -18,7 +19,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,11 +46,14 @@ public class ReplenishmentService {
     private final HomeService homeService;
     private final GuardrailService guardrails;
     private final AuraProperties props;
+    private final InFlightOrderService inFlight;
+    private final ApplicationEventPublisher events;
 
     public ReplenishmentService(MedicationRepository medications, SignalRepository signals,
                                 RecommendationRepository recommendations, ProductRepository products,
                                 HomeService homeService, GuardrailService guardrails,
-                                AuraProperties props) {
+                                AuraProperties props, InFlightOrderService inFlight,
+                                ApplicationEventPublisher events) {
         this.medications = medications;
         this.signals = signals;
         this.recommendations = recommendations;
@@ -55,6 +61,8 @@ public class ReplenishmentService {
         this.homeService = homeService;
         this.guardrails = guardrails;
         this.props = props;
+        this.inFlight = inFlight;
+        this.events = events;
     }
 
     @Transactional
@@ -70,13 +78,13 @@ public class ReplenishmentService {
         for (Medication med : medications.findByHomeIdOrderByCreatedAtDesc(homeId, PageRequest.of(0, 200))) {
             // sem estoque controlado não há o que projetar — a medicação segue fora da régua
             if (med.isActive() && med.getStockDoses() != null) {
-                projections.add(project(med, adherence, cfg, now));
+                projections.add(project(principal, med, adherence, cfg, now));
             }
         }
         return projections;
     }
 
-    private ReplenishmentDtos.Projection project(Medication med, List<Signal> adherence,
+    private ReplenishmentDtos.Projection project(AuthPrincipal principal, Medication med, List<Signal> adherence,
                                                  AuraProperties.Replenish cfg, Instant now) {
         String medId = med.getId().toString();
         // o value do sinal é JSON numa coluna texto: o filtro por medicação é em memória, de propósito
@@ -97,8 +105,19 @@ public class ReplenishmentService {
         double avg = round1((double) confirmadas / cfg.windowDays());
         Double daysOfSupply = avg > 0 ? round1(med.getStockDoses() / avg) : null;
 
-        boolean suggested = historyDays >= cfg.minHistoryDays()
+        boolean belowRule = historyDays >= cfg.minHistoryDays()
                 && daysOfSupply != null && daysOfSupply < thresholdDays;
+
+        // O estoque só sobe na entrega. Com pedido de reposição a caminho, estoque baixo é esperado:
+        // sugerir de novo seria pedir o mesmo pacote duas vezes.
+        Optional<DeliveryOrder> open = inFlight.ofMedication(med.getHomeId(), med.getId());
+        // "Deixar para depois" adia de verdade: sem isto, o check seguinte materializava outra
+        // recomendação igual na hora e cada clique só acumulava um registro rejected.
+        Instant snoozedUntil = belowRule && open.isEmpty() ? snoozedUntil(med, cfg, now) : null;
+        boolean suggested = belowRule && open.isEmpty() && snoozedUntil == null;
+        if (open.isPresent()) {
+            retirePending(med);
+        }
 
         // a frase fala de estoque, ritmo e prazo — nunca de tratamento; e passa no guardrail como
         // qualquer texto que sai da API
@@ -113,7 +132,39 @@ public class ReplenishmentService {
 
         return new ReplenishmentDtos.Projection(med.getId(), med.getName(), med.getStockDoses(),
                 avg, daysOfSupply, leadTimeHours, cfg.safetyStockDays(), thresholdDays,
-                suggested, suggested ? materialize(med, reason) : null, reason);
+                suggested, suggested ? materialize(principal, med, reason) : null, reason,
+                open.map(InFlightOrderService::toDto).orElse(null), snoozedUntil);
+    }
+
+    /**
+     * Fim do adiamento pedido pela cuidadora, ou nulo se não há adiamento vigente. Deriva da
+     * recusa mais recente desta medicação — sem coluna nova: na recusa de uma reposição,
+     * {@code createdAt} passa a marcar o instante da recusa ({@code CareChainService.reject}).
+     * O adiamento termina no prazo de {@code snooze-hours} ou na primeira entrega de reposição
+     * depois da recusa, porque aí o estoque mudou e a conta precisa ser refeita.
+     */
+    private Instant snoozedUntil(Medication med, AuraProperties.Replenish cfg, Instant now) {
+        Optional<Instant> rejectedAt = recommendations
+                .findByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "rejected").stream()
+                .map(Recommendation::getCreatedAt)
+                .max(Instant::compareTo);
+        if (rejectedAt.isEmpty()) {
+            return null;
+        }
+        Instant until = rejectedAt.get().plus(cfg.snoozeHours(), ChronoUnit.HOURS);
+        if (!now.isBefore(until)) {
+            return null;
+        }
+        boolean restocked = inFlight.lastDeliveryOfMedication(med.getHomeId(), med.getId())
+                .filter(delivered -> delivered.isAfter(rejectedAt.get()))
+                .isPresent();
+        return restocked ? null : until;
+    }
+
+    /** Recomendações abertas desta medicação que o pedido a caminho já cobre: saem das listas. */
+    private void retirePending(Medication med) {
+        recommendations.findByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
+                .forEach(r -> r.setStatus("superseded"));
     }
 
     /**
@@ -121,16 +172,22 @@ public class ReplenishmentService {
      * deduplicada por medicação. Recomendação não é pedido: o pedido continua nascendo só na
      * aprovação humana. Sem o produto-refil de parceiro no catálogo, projeta e não materializa.
      */
-    private UUID materialize(Medication med, String reason) {
+    private UUID materialize(AuthPrincipal principal, Medication med, String reason) {
         return refillFor(med)
                 .map(partner -> recommendations
                         .findFirstByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
-                        .orElseGet(() -> recommendations.save(Recommendation.builder()
-                                .homeId(med.getHomeId())
-                                .medicationId(med.getId())
-                                .sku(partner.getSku())
-                                .reason(reason)
-                                .build()))
+                        .orElseGet(() -> {
+                            Recommendation rec = recommendations.save(Recommendation.builder()
+                                    .homeId(med.getHomeId())
+                                    .medicationId(med.getId())
+                                    .sku(partner.getSku())
+                                    .reason(reason)
+                                    .build());
+                            // só a recomendação que NASCEU aqui avisa; a pendente reaproveitada, não
+                            events.publishEvent(new PushEvents.RecommendationCreated(med.getHomeId(),
+                                    rec.getId(), "medication:" + med.getId(), principal.userId()));
+                            return rec;
+                        })
                         .getId())
                 .orElse(null);
     }

@@ -5,9 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.fiap.aura.domain.Recommendation;
 import br.com.fiap.aura.domain.Signal;
 import br.com.fiap.aura.domain.enums.SignalSource;
 import br.com.fiap.aura.domain.enums.SignalType;
+import br.com.fiap.aura.repository.RecommendationRepository;
 import br.com.fiap.aura.repository.SignalRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +47,9 @@ class ReplenishmentFlowTest {
 
     @Autowired
     private SignalRepository signals;
+
+    @Autowired
+    private RecommendationRepository recommendations;
 
     private String signup(String email) throws Exception {
         MvcResult res = mvc.perform(post("/api/v1/auth/signup")
@@ -223,13 +228,16 @@ class ReplenishmentFlowTest {
     }
 
     @Test
-    @DisplayName("reposição recusada não vira pedido — e sai do dedupe para a régua poder sugerir de novo")
+    @DisplayName("reposição recusada não vira pedido e adia a sugestão: o check seguinte não recria")
     void reposicaoRecusadaNaoViraPedido() throws Exception {
         String[] ana = cuidadoraComCasa("repo-recusa@aura.com");
         String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
         plantaConsumo(ana[1], medId, 21, 2, true);
 
-        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        JsonNode sugerida = check(ana[0], ana[1]).get(0);
+        assertThat(sugerida.get("snoozedUntil").isNull()).isTrue();
+        String recId = sugerida.get("recommendationId").asText();
+        Instant antesDaRecusa = Instant.now();
         mvc.perform(post("/api/v1/recommendations/{id}/reject", recId).header("Authorization", ana[0]))
                 .andExpect(status().isOk());
 
@@ -239,8 +247,54 @@ class ReplenishmentFlowTest {
                 .andReturn());
         assertThat(pedidos.size()).isZero();
 
-        String novaRec = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
-        assertThat(novaRec).isNotEqualTo(recId);
+        // "deixar para depois": a régua continua disparando, mas a sugestão fica calada pelo prazo
+        // configurado (24 h), sem materializar outra recomendação a cada recarga da tela
+        JsonNode adiada = check(ana[0], ana[1]).get(0);
+        assertThat(adiada.get("suggested").asBoolean()).isFalse();
+        assertThat(adiada.get("recommendationId").isNull()).isTrue();
+        assertThat(adiada.get("reason").isNull()).isTrue();
+        Instant ate = Instant.parse(adiada.get("snoozedUntil").asText());
+        assertThat(ate).isBetween(antesDaRecusa.plus(24, ChronoUnit.HOURS),
+                Instant.now().plus(24, ChronoUnit.HOURS));
+        check(ana[0], ana[1]);
+        assertThat(recommendations.findByHomeIdAndMedicationId(UUID.fromString(ana[1]), UUID.fromString(medId)))
+                .extracting(Recommendation::getStatus).containsExactly("rejected");
+
+        // passado o prazo (a recusa retrodatada faz o papel do relógio), a régua volta a sugerir
+        Recommendation recusada = recommendations.findById(UUID.fromString(recId)).orElseThrow();
+        recusada.setCreatedAt(Instant.now().minus(25, ChronoUnit.HOURS));
+        recommendations.save(recusada);
+
+        JsonNode deNovo = check(ana[0], ana[1]).get(0);
+        assertThat(deNovo.get("suggested").asBoolean()).isTrue();
+        assertThat(deNovo.get("snoozedUntil").isNull()).isTrue();
+        assertThat(deNovo.get("recommendationId").asText()).isNotEqualTo(recId).isNotEqualTo("null");
+    }
+
+    @Test
+    @DisplayName("uma entrega de reposição depois da recusa encerra o adiamento antes do prazo")
+    void entregaEncerraOAdiamento() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-recusa-entrega@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        // 10/dia: mesmo com o pacote entregue (8 + 30 = 38 -> 3,8 dias) a régua segue disparando
+        plantaConsumo(ana[1], medId, 21, 10, true);
+
+        String recId = check(ana[0], ana[1]).get(0).get("recommendationId").asText();
+        String sku = recommendations.findById(UUID.fromString(recId)).orElseThrow().getSku();
+        mvc.perform(post("/api/v1/recommendations/{id}/reject", recId).header("Authorization", ana[0]))
+                .andExpect(status().isOk());
+        assertThat(check(ana[0], ana[1]).get(0).get("snoozedUntil").isNull()).isFalse();
+
+        // pedido que veio por outra via (outro dispositivo) e é entregue durante o adiamento
+        Recommendation outra = recommendations.save(Recommendation.builder()
+                .homeId(UUID.fromString(ana[1])).medicationId(UUID.fromString(medId)).sku(sku)
+                .reason("Pedido feito em outro dispositivo.").build());
+        avanca(aprovaReposicao(ana[0], outra.getId().toString()), 3);
+
+        JsonNode apos = check(ana[0], ana[1]).get(0);
+        assertThat(apos.get("stockDoses").asInt()).isEqualTo(38);
+        assertThat(apos.get("snoozedUntil").isNull()).isTrue();
+        assertThat(apos.get("suggested").asBoolean()).isTrue();
     }
 
     @Test
@@ -287,5 +341,86 @@ class ReplenishmentFlowTest {
         assertThat(projecoes.size()).isEqualTo(1);
         assertThat(projecoes.get(0).get("suggested").asBoolean()).isFalse();
         assertThat(projecoes.get(0).get("daysOfSupply").asDouble()).isEqualTo(50.0);
+    }
+
+    private String aprovaReposicao(String auth, String recId) throws Exception {
+        return body(mvc.perform(post("/api/v1/recommendations/{id}/approve", recId).header("Authorization", auth))
+                .andExpect(status().isCreated())
+                .andReturn()).get("orderId").asText();
+    }
+
+    private void avanca(String orderId, int vezes) throws Exception {
+        String admin = adminAuth();
+        for (int i = 0; i < vezes; i++) {
+            mvc.perform(post("/api/v1/orders/{id}/advance", orderId).header("Authorization", admin))
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @Test
+    @DisplayName("com a reposição a caminho a régua não sugere de novo e expõe o pedido")
+    void pedidoACaminhoSuspendeASugestao() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-andamento@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+
+        JsonNode antes = check(ana[0], ana[1]).get(0);
+        assertThat(antes.get("suggested").asBoolean()).isTrue();
+        assertThat(antes.get("orderInProgress").isNull()).isTrue();
+        String orderId = aprovaReposicao(ana[0], antes.get("recommendationId").asText());
+
+        // o estoque ainda é 8: sem a regra, o próximo check sugeriria o mesmo pacote outra vez
+        JsonNode depois = check(ana[0], ana[1]).get(0);
+        assertThat(depois.get("stockDoses").asInt()).isEqualTo(8);
+        assertThat(depois.get("suggested").asBoolean()).isFalse();
+        assertThat(depois.get("recommendationId").isNull()).isTrue();
+        assertThat(depois.get("orderInProgress").get("orderId").asText()).isEqualTo(orderId);
+        assertThat(depois.get("orderInProgress").get("stage").asText()).isEqualTo("approved");
+
+        avanca(orderId, 2); // sourcing, in_route: continua a caminho
+        JsonNode emRota = check(ana[0], ana[1]).get(0);
+        assertThat(emRota.get("suggested").asBoolean()).isFalse();
+        assertThat(emRota.get("orderInProgress").get("stage").asText()).isEqualTo("in_route");
+    }
+
+    @Test
+    @DisplayName("entregue, o estoque sobe e a régua se resolve sozinha, sem pedido em andamento")
+    void entregaDevolveAsDosesEEncerra() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-entrega@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+        String orderId = aprovaReposicao(ana[0], check(ana[0], ana[1]).get(0).get("recommendationId").asText());
+
+        avanca(orderId, 3); // delivered: +30 doses
+
+        JsonNode apos = check(ana[0], ana[1]).get(0);
+        assertThat(apos.get("stockDoses").asInt()).isEqualTo(38);
+        assertThat(apos.get("suggested").asBoolean()).isFalse();
+        assertThat(apos.get("orderInProgress").isNull()).isTrue();
+    }
+
+    @Test
+    @DisplayName("pendente que ficou para trás sai da lista e não vira segundo pedido")
+    void pendenteObsoletaEhAposentada() throws Exception {
+        String[] ana = cuidadoraComCasa("repo-obsoleta@aura.com");
+        String medId = medicacao(ana[0], ana[1], "Levodopa e Carbidopa", 8);
+        plantaConsumo(ana[1], medId, 21, 2, true);
+        JsonNode sugerida = check(ana[0], ana[1]).get(0);
+        String orderId = aprovaReposicao(ana[0], sugerida.get("recommendationId").asText());
+
+        Recommendation velha = recommendations.save(Recommendation.builder()
+                .homeId(UUID.fromString(ana[1])).medicationId(UUID.fromString(medId))
+                .sku(recommendations.findById(UUID.fromString(sugerida.get("recommendationId").asText()))
+                        .orElseThrow().getSku())
+                .reason("Sugestão anterior ao pedido.").build());
+
+        check(ana[0], ana[1]);
+
+        assertThat(recommendations.findById(velha.getId()).orElseThrow().getStatus()).isEqualTo("superseded");
+        mvc.perform(post("/api/v1/recommendations/{id}/approve", velha.getId()).header("Authorization", ana[0]))
+                .andExpect(status().isConflict());
+        assertThat(body(mvc.perform(get("/api/v1/homes/{id}/orders", ana[1]).header("Authorization", ana[0]))
+                .andReturn())).hasSize(1);
+        assertThat(orderId).isNotBlank();
     }
 }

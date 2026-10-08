@@ -309,18 +309,17 @@ public class EmergencyService {
      * <b>nunca é silencioso</b> — sempre gera a retração —, então um cancelamento indevido aparece.
      */
     public EmergencyDtos.CancelResponse cancel(UUID emergencyId) {
-        Emergency emergencia = carrega(emergencyId);
+        carrega(emergencyId);   // 404 antes de qualquer escrita
         Instant agora = Instant.now();
 
-        boolean dentroDaJanela = emergencies.compareAndSetState(
-                emergencyId, EmergencyState.WAITING_CANCEL, EmergencyState.CANCELLED, agora) == 1;
+        boolean dentroDaJanela = emergencies.cancelaNaJanela(emergencyId, agora) == 1;
 
         Emergency atual = carrega(emergencyId);
 
         if (!dentroDaJanela && atual.getState() == EmergencyState.CANCELLED) {
             // segundo toque no "foi engano": idempotente, sem uma segunda retração
             log.info("Cancelamento repetido da emergência {} — nada a fazer", emergencyId);
-            return respostaDeCancelamento(atual, true, emergencia.getDispatchedAt() != null);
+            return respostaDeCancelamento(atual, true, atual.getDispatchedAt() != null);
         }
         if (!dentroDaJanela && !atual.getState().aberta()) {
             // contida ou já encerrada: não há aviso na rua para retratar
@@ -329,14 +328,20 @@ public class EmergencyService {
             return respostaDeCancelamento(atual, false, atual.getDispatchedAt() != null);
         }
 
+        // dispatchedAt é gravado no próprio CAS do disparo: se está aqui, o aviso já começou a sair
         boolean avisoJaSaiu = atual.getDispatchedAt() != null;
+        if (!dentroDaJanela) {
+            emergencies.registraCancelamentoForaDaJanela(emergencyId, agora);
+        }
         atual.setCancelledAt(agora);
 
         Home home = homes.findById(atual.getHomeId()).orElse(null);
         int retratados = home == null ? 0
                 : envia(PushKind.SOS_CANCELLED, home, atual, destinatariosComAparelho(home));
+        // só a coluna da retração: um save da entidade lida antes do envio regravaria um estado
+        // velho por cima de um "estou indo" ou de um resultado de disparo chegado nesse meio-tempo
+        emergencies.registraRetracao(emergencyId, retratados > 0);
         atual.setRetractionSent(retratados > 0);
-        emergencies.save(atual);
 
         log.info("Emergência {} cancelada ({}) — aviso original havia saído: {}; retração em {} aparelho(s)",
                 emergencyId, dentroDaJanela ? "dentro da janela" : "FORA da janela, nada desfeito",
@@ -371,8 +376,8 @@ public class EmergencyService {
         for (EmergencyState esperado : List.of(EmergencyState.WAITING_CANCEL,
                                               EmergencyState.DISPATCHED,
                                               EmergencyState.ESCALATED)) {
-            if (emergencies.compareAndSetState(emergencyId, esperado,
-                    EmergencyState.ACKNOWLEDGED, agora) == 1) {
+            // autor e instante entram no mesmo UPDATE do estado: ninguém lê "acknowledged" sem quem
+            if (emergencies.confirma(emergencyId, esperado, agora, principal.userId()) == 1) {
                 confirmou = true;
                 anterior = esperado;
                 break;
@@ -388,10 +393,6 @@ public class EmergencyService {
             }
             throw ApiException.conflict("Este pedido de ajuda já foi encerrado e não aceita mais confirmação.");
         }
-
-        atual.setAcknowledgedAt(agora);
-        atual.setAcknowledgedByUserId(principal.userId());
-        emergencies.save(atual);
 
         log.info("Emergência {} confirmada por {} — escalonamento interrompido (estava em {})",
                 emergencyId, principal.userId(), anterior.value());
@@ -413,13 +414,31 @@ public class EmergencyService {
                 .map(UserAccount::getName).map(EmergencyService::primeiroNome).orElse(null);
         String quemConfirmou = nomeDe(e.getAcknowledgedByUserId());
         String degradado = degradedReason(e, destinatarios.size());
+        boolean emAndamento = envioEmAndamento(e);
         return new EmergencyDtos.StatusResponse(
                 e.getId(), e.getState(), e.getCreatedAt(), e.getDispatchDueAt(), e.getDispatchedAt(),
                 e.getAcknowledgedAt(), quemConfirmou,
-                e.getEscalatedAt() != null, e.getNotifiedCount(),
+                e.getEscalatedAt() != null, avisados(e), emAndamento,
                 e.isTransportReal(), !e.isTransportReal(),
-                degradado == null, degradado,
+                // enquanto o push não respondeu não há o que prometer, nem falha a anunciar
+                degradado == null && !emAndamento, degradado,
                 falaDoEstado(e, degradado, quemConfirmou, contato));
+    }
+
+    /**
+     * A emergência em aberto da casa, para a família descobrir o SOS sem ter o identificador.
+     *
+     * <p>O {@code GET /emergencies/{id}} é aberto e magro de propósito (a Maria o chama sem sessão), mas
+     * exige saber o id — que a família só teria por push. Esta rota é o outro caminho: autenticada e com
+     * o mesmo {@code requireAccess} do {@code ack}, devolve o mesmo corpo magro da última emergência
+     * <b>enquanto ela está aberta</b> ({@code waiting_cancel}, {@code dispatched} ou {@code escalated}).
+     * Cancelada, confirmada ou contida deixam de ser "ativas": não há mais o que a família fazer.
+     */
+    public java.util.Optional<EmergencyDtos.StatusResponse> active(AuthPrincipal principal, UUID homeId) {
+        homeService.requireAccess(principal, homeId);
+        return emergencies.findFirstByHomeIdAndStateInOrderByCreatedAtDesc(homeId,
+                        List.of(EmergencyState.WAITING_CANCEL, EmergencyState.DISPATCHED, EmergencyState.ESCALATED))
+                .map(e -> status(e.getId()));
     }
 
     // =================================================================================
@@ -429,55 +448,61 @@ public class EmergencyService {
     /**
      * Dispara o aviso se a janela de cancelamento fechou sem cancelamento. <b>Idempotente</b>: pode
      * ser chamado à vontade pelo agendamento pontual, pelo varredor de recuperação e pelos testes —
-     * quem não vence o {@code compareAndSetState} sai sem fazer nada.
+     * quem não vence o CAS de {@link EmergencyRepository#iniciaDisparo} sai sem fazer nada.
      *
      * <p>É público de propósito: é este o ponto de entrada que o teste exercita para provar o
      * comportamento de T+5s sem dormir 5 segundos na suíte. O teste chama <b>exatamente</b> o que o
      * cronômetro chama, e não um caminho paralelo escrito para o teste.
      *
      * <p>Nenhuma transação envolvendo a chamada ao Firebase: a rede fica fora do banco, senão uma
-     * conexão do pool ficaria presa esperando o FCM.
+     * conexão do pool ficaria presa esperando o FCM. Por isso cada escrita aqui commita sozinha, e
+     * por isso a ordem é: <b>(1)</b> um único {@code UPDATE} atômico vira o estado <i>junto</i> com
+     * {@code dispatchedAt}, {@code escalateDueAt} e a marca de "envio em andamento"
+     * ({@link EmergencyRepository#iniciaDisparo}); <b>(2)</b> o push sai sem banco aberto;
+     * <b>(3)</b> só a coluna do resultado é gravada. Nenhum leitor vê {@code dispatched} sem
+     * {@code dispatchedAt}, nem "não consegui avisar" enquanto o aviso ainda está saindo.
      */
     public void dispatchIfDue(UUID emergencyId) {
         Instant agora = Instant.now();
-        if (emergencies.compareAndSetState(emergencyId, EmergencyState.WAITING_CANCEL,
-                EmergencyState.DISPATCHED, agora) != 1) {
+        Instant escalarEm = agora.plusSeconds(props.sos().escalateAfterSeconds());
+        if (emergencies.iniciaDisparo(emergencyId, agora, escalarEm, fcm.transportReal()) != 1) {
             return;   // cancelada dentro da janela, ou outro chamador já disparou
         }
+        // os 60s contam do disparo, não do fim do envio: um FCM lento não pode atrasar a escalada
+        agendaEscalonamento(emergencyId, escalarEm);
 
-        Emergency emergencia = carrega(emergencyId);
-        Home home = homes.findById(emergencia.getHomeId()).orElse(null);
-        if (home == null) {
-            log.error("Emergência {} aponta para casa {} que não existe mais — nada a avisar",
-                    emergencyId, emergencia.getHomeId());
-            return;
+        int enviados = 0;
+        try {
+            Emergency emergencia = carrega(emergencyId);
+            Home home = homes.findById(emergencia.getHomeId()).orElse(null);
+            if (home == null) {
+                log.error("Emergência {} aponta para casa {} que não existe mais — nada a avisar",
+                        emergencyId, emergencia.getHomeId());
+                return;
+            }
+
+            List<UserAccount> comAparelho = destinatariosComAparelho(home);
+            // o principal é o primeiro contato COM aparelho, não necessariamente o dono: dono sem
+            // token registrado não pode consumir o disparo principal e deixar o aviso sem ninguém
+            List<UserAccount> principal = comAparelho.isEmpty() ? List.of() : List.of(comAparelho.get(0));
+
+            enviados = envia(PushKind.SOS, home, emergencia, principal);
+
+            if (enviados == 0) {
+                // 422 seria o erro certo pelo livro e o errado pela pessoa no chão: o registro fica,
+                // o estado avança, e é a resposta da API que diz que não há como prometer entrega
+                log.error("Emergência {} da casa {} disparada SEM DESTINATÁRIO — nenhum aparelho registrado. "
+                                + "O cliente precisa oferecer ligação telefônica.",
+                        emergencyId, home.getId());
+            } else if (!emergencia.isTransportReal()) {
+                log.error("Emergência {} da casa {} disparada em TRANSPORTE SIMULADO — nada saiu deste "
+                                + "servidor. Isto NÃO é um SOS entregue.", emergencyId, home.getId());
+            }
+        } finally {
+            // sempre fecha o "em andamento", inclusive por exceção: senão a tela ficaria dizendo
+            // "estou avisando" até o prazo de envioEmAndamento vencer
+            emergencies.registraResultadoDoDisparo(emergencyId, enviados);
         }
-
-        List<UserAccount> comAparelho = destinatariosComAparelho(home);
-        // o principal é o primeiro contato COM aparelho, não necessariamente o dono: dono sem token
-        // registrado não pode consumir o disparo principal e deixar o aviso sem ninguém
-        List<UserAccount> principal = comAparelho.isEmpty() ? List.of() : List.of(comAparelho.get(0));
-
-        emergencia.setTransportReal(fcm.transportReal());
-        int enviados = envia(PushKind.SOS, home, emergencia, principal);
-
-        emergencia.setDispatchedAt(agora);
-        emergencia.setNotifiedCount(enviados);
-        emergencia.setEscalateDueAt(agora.plusSeconds(props.sos().escalateAfterSeconds()));
-        emergencies.save(emergencia);
-
-        if (enviados == 0) {
-            // 422 seria o erro certo pelo livro e o errado pela pessoa no chão: o registro fica, o
-            // estado avança, e é a resposta da API que diz que não há como prometer entrega
-            log.error("Emergência {} da casa {} disparada SEM DESTINATÁRIO — nenhum aparelho registrado. "
-                            + "O cliente precisa oferecer ligação telefônica.",
-                    emergencyId, home.getId());
-        } else if (!emergencia.isTransportReal()) {
-            log.error("Emergência {} da casa {} disparada em TRANSPORTE SIMULADO — nada saiu deste "
-                            + "servidor. Isto NÃO é um SOS entregue.", emergencyId, home.getId());
-        }
-
-        agendaEscalonamento(emergencyId, emergencia.getEscalateDueAt());
     }
 
     /**
@@ -486,14 +511,15 @@ public class EmergencyService {
      * <p>Isto só é possível por causa do C0: até o vínculo {@code home_members} existir, a casa
      * tinha um único {@code ownerUserId} e "avisar os outros cuidadores" não tinha modelo de dados.
      *
-     * <p>Idempotente pelo mesmo {@code compareAndSetState}. Se alguém confirmou nesse meio-tempo, o
+     * <p>Idempotente pelo mesmo CAS ({@link EmergencyRepository#iniciaEscalonamento}). Se alguém confirmou nesse meio-tempo, o
      * estado já é {@code ACKNOWLEDGED} e este método sai sem enviar nada — que é o ponto todo de
      * existir confirmação.
      */
     public void escalateIfDue(UUID emergencyId) {
         Instant agora = Instant.now();
-        if (emergencies.compareAndSetState(emergencyId, EmergencyState.DISPATCHED,
-                EmergencyState.ESCALATED, agora) != 1) {
+        // escalatedAt no mesmo UPDATE do estado; e, como no disparo, nada de save da entidade depois
+        // do envio — ele regravaria "escalated" por cima de um "estou indo" chegado durante o push
+        if (emergencies.iniciaEscalonamento(emergencyId, agora) != 1) {
             return;   // confirmada, cancelada, ou já escalada
         }
 
@@ -503,15 +529,17 @@ public class EmergencyService {
             return;
         }
 
-        List<UserAccount> comAparelho = destinatariosComAparelho(home);
-        // pula o primeiro: ele já recebeu o aviso original e não precisa do mesmo texto duas vezes
-        List<UserAccount> demais = comAparelho.size() <= 1 ? List.of()
-                : comAparelho.subList(1, comAparelho.size());
+        int enviados = 0;
+        try {
+            List<UserAccount> comAparelho = destinatariosComAparelho(home);
+            // pula o primeiro: ele já recebeu o aviso original e não precisa do mesmo texto duas vezes
+            List<UserAccount> demais = comAparelho.size() <= 1 ? List.of()
+                    : comAparelho.subList(1, comAparelho.size());
 
-        int enviados = envia(PushKind.SOS_ESCALATED, home, emergencia, demais);
-        emergencia.setEscalatedAt(agora);
-        emergencia.setEscalatedCount(enviados);
-        emergencies.save(emergencia);
+            enviados = envia(PushKind.SOS_ESCALATED, home, emergencia, demais);
+        } finally {
+            emergencies.registraResultadoDoEscalonamento(emergencyId, enviados);
+        }
 
         log.warn("Emergência {} da casa {} ESCALADA sem confirmação em {}s — {} outro(s) membro(s) avisado(s)",
                 emergencyId, home.getId(), props.sos().escalateAfterSeconds(), enviados);
@@ -715,7 +743,10 @@ public class EmergencyService {
         }
         return switch (e.getState()) {
             case WAITING_CANCEL -> "Estou avisando %s.".formatted(alvo);
-            case DISPATCHED, ESCALATED -> e.getNotifiedCount() == 0
+            // o push ainda não respondeu: dizer "não consegui" agora seria falso e alarmante
+            case DISPATCHED, ESCALATED -> envioEmAndamento(e)
+                    ? "Estou avisando %s.".formatted(alvo)
+                    : avisados(e) == 0
                     ? "Não consegui avisar %s. Toque no botão grande para ligar para ela.".formatted(alvo)
                     // "Saiu", não "chegou": DISPATCHED confirma a entrega ao transporte,
                     // não ao aparelho — a voz nunca afirma o que o sistema não sabe.
@@ -728,6 +759,29 @@ public class EmergencyService {
             case THROTTLED -> "Não consigo avisar %s daqui. Toque no botão grande para ligar para ela."
                     .formatted(alvo);
         };
+    }
+
+    /**
+     * O push principal já saiu do {@code UPDATE} de disparo e ainda não respondeu.
+     *
+     * <p>Com prazo: se o processo morrer no meio do envio, o resultado nunca é gravado, e "estou
+     * avisando" não pode durar para sempre. Passado o prazo do escalonamento — quando o servidor já
+     * avisou os demais membros de todo modo —, a falta de resultado vira o que ela é: ninguém
+     * confirmadamente avisado.
+     */
+    private boolean envioEmAndamento(Emergency e) {
+        return e.getNotifiedCount() == Emergency.ENVIO_EM_ANDAMENTO
+                && e.getDispatchedAt() != null
+                && Instant.now().isBefore(e.getDispatchedAt().plusSeconds(props.sos().escalateAfterSeconds()));
+    }
+
+    /** Aparelhos avisados, para o contrato: nulo enquanto o envio não respondeu, nunca o sentinela. */
+    @Nullable
+    private Integer avisados(Emergency e) {
+        if (e.getNotifiedCount() != Emergency.ENVIO_EM_ANDAMENTO) {
+            return e.getNotifiedCount();
+        }
+        return envioEmAndamento(e) ? null : 0;
     }
 
     /** "às 14h32" — o formato que o assistente fala, no fuso de São Paulo. */

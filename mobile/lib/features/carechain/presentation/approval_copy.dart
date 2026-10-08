@@ -8,15 +8,18 @@ import '../domain/entities/recommendation.dart';
 class ApprovalCopy {
   const ApprovalCopy._();
 
-  /// Placeholder visível: o número real do atendimento entra quando existir.
-  /// Prometer um canal que não existe seria pior do que declarar o placeholder.
-  static const String supportPhone = '(11) 0000-0000';
-
   /// Não há rota de cancelamento no servidor (decisão registrada no plano):
   /// em vez de desenhar um botão que mentiria, a folha mostra o caminho humano.
-  static const String changedMind =
-      'Mudou de ideia? Fale com a gente pelo $supportPhone até o pedido sair '
-      'para entrega.';
+  ///
+  /// O telefone vem da configuração (`SUPPORT_PHONE`). Sem número configurado
+  /// devolve `null` e a folha não mostra a nota: numa tela de dinheiro, um
+  /// número fictício como "(11) 0000-0000" promete um canal que não existe.
+  static String? changedMind(String? supportPhone) {
+    final phone = supportPhone?.trim();
+    if (phone == null || phone.isEmpty) return null;
+    return 'Mudou de ideia? Fale com a gente pelo $phone até o pedido sair '
+        'para entrega.';
+  }
 
   static const String priceUnavailableTitle = 'O preço não carregou';
 
@@ -26,6 +29,10 @@ class ApprovalCopy {
 
   static const String approveBlockedWithoutPrice =
       'Aprovação bloqueada até o preço carregar.';
+
+  /// O servidor não recomenda de novo, nem aprova, um item cujo pedido está a caminho.
+  static const String itemAlreadyOrdered =
+      'Este item já foi pedido e está a caminho. Acompanhe o pedido.';
 
   static const String payer =
       'Você paga. A compra fica no seu nome — a pessoa que você cuida não '

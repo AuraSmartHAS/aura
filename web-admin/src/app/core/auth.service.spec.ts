@@ -32,10 +32,30 @@ describe('AuthService', () => {
   });
 
   it('limpar derruba a sessão e o armazenamento', () => {
-    auth.save('jwt-123', 'cuidadora');
+    auth.save('jwt-123', 'cuidadora', 'refresh-123');
     auth.clear();
 
     expect(auth.isLoggedIn()).toBeFalse();
     expect(localStorage.getItem('aura.token')).toBeNull();
+    expect(localStorage.getItem('aura.refreshToken')).toBeNull();
+    expect(auth.refreshToken()).toBeNull();
+  });
+
+  it('guarda o refresh token junto com a sessão', () => {
+    auth.save('jwt-123', 'cuidadora', 'refresh-123');
+    expect(localStorage.getItem('aura.refreshToken')).toBe('refresh-123');
+    expect(auth.refreshToken()).toBe('refresh-123');
+  });
+
+  it('expirar avisa uma vez e só quando havia sessão', () => {
+    expect(auth.expire()).toBeFalse();
+    expect(auth.consumeNotice()).toBeNull();
+
+    auth.save('jwt-123', 'cuidadora', 'refresh-123');
+    expect(auth.expire()).toBeTrue();
+    expect(auth.expire()).toBeFalse();
+    expect(auth.isLoggedIn()).toBeFalse();
+    expect(auth.consumeNotice()).toBe('Sua sessão expirou. Entre novamente.');
+    expect(auth.consumeNotice()).toBeNull();
   });
 });

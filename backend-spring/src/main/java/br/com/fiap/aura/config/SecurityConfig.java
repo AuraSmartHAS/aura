@@ -2,6 +2,7 @@ package br.com.fiap.aura.config;
 
 import br.com.fiap.aura.security.JwtAuthenticationFilter;
 import br.com.fiap.aura.web.error.ApiErrorResponse;
+import br.com.fiap.aura.web.error.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +26,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * API stateless: nenhuma sessão no servidor, autorização derivada do JWT.
  * Rotas públicas: signup/login/refresh, health, página de status, Swagger — e o SOS.
+ * Nelas um {@code Authorization} vencido, inválido ou revogado é ignorado (a requisição segue
+ * anônima); ver {@link JwtAuthenticationFilter}.
  */
 @Configuration
 @EnableMethodSecurity
@@ -72,8 +75,16 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/ops/**").hasRole("ADMIN")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e
-                .authenticationEntryPoint((req, res, ex) ->
-                    write(mapper, res, 401, "UNAUTHORIZED", "Autenticação necessária."))
+                // Token recusado pelo filtro só vira erro aqui, numa rota que exige sessão: o
+                // motivo original (TOKEN_EXPIRED, "Sessão encerrada"...) volta ao cliente intacto.
+                .authenticationEntryPoint((req, res, ex) -> {
+                    if (req.getAttribute(JwtAuthenticationFilter.REJECTION_ATTRIBUTE)
+                            instanceof ApiException rejected) {
+                        write(mapper, res, rejected.getStatus().value(), rejected.getCode(), rejected.getMessage());
+                    } else {
+                        write(mapper, res, 401, "UNAUTHORIZED", "Autenticação necessária.");
+                    }
+                })
                 .accessDeniedHandler((req, res, ex) ->
                     write(mapper, res, 403, "FORBIDDEN", "Acesso negado a este recurso.")))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

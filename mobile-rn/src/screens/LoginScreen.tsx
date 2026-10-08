@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { api, setToken } from '../api';
+import { api, isPatient, setRole, setToken } from '../api';
+import { pendingDeepLink, registerPushToken } from '../push';
 import AuraButton from '../components/AuraButton';
 import type { ScreenProps } from '../navigation';
 import { fontFamily, radius, spacing, theme } from '../theme';
@@ -14,13 +15,26 @@ export default function LoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Entrar no login é sair da sessão: um token vencido que sobrasse na memória faria uma senha
+  // errada aparecer como "sua sessão expirou".
+  useEffect(() => {
+    setToken(null);
+    setRole(null);
+  }, []);
+
   async function handleLogin() {
     setLoading(true);
     setError(null);
     try {
       const session = await api.login(email, password);
       setToken(session.token);
+      setRole(session.role);
+      // o aparelho passa a ser desta pessoa: o servidor o tira de quem entrou antes
+      registerPushToken();
       navigation.replace('Dashboard');
+      // toque num aviso que chegou antes do login: abre agora, com sessão
+      const destination = pendingDeepLink.take();
+      if (destination?.name === 'EmergencyAlert' && !isPatient()) navigation.navigate('EmergencyAlert', destination.params);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível entrar.');
     } finally {

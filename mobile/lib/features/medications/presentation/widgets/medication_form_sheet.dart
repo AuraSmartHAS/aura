@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../domain/entities/medication.dart';
+import '../../domain/schedule_input.dart';
 import '../bloc/medication_bloc.dart';
 
 /// Add/edit form shown as a bottom sheet.
@@ -21,9 +23,13 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
   late final TextEditingController _dosage;
   late final TextEditingController _schedule;
   late final TextEditingController _notes;
+  late final TextEditingController _stock;
 
   /// Inline error for the name field; null when valid.
   String? _nameError;
+
+  /// Inline error for the schedule field (server only accepts `HH:mm`).
+  String? _scheduleError;
 
   @override
   void initState() {
@@ -33,6 +39,7 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
     _dosage = TextEditingController(text: med?.dosage);
     _schedule = TextEditingController(text: med?.schedule);
     _notes = TextEditingController(text: med?.notes);
+    _stock = TextEditingController(text: med?.stockDoses?.toString());
   }
 
   @override
@@ -41,6 +48,7 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
     _dosage.dispose();
     _schedule.dispose();
     _notes.dispose();
+    _stock.dispose();
     super.dispose();
   }
 
@@ -106,31 +114,58 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
             const SizedBox(height: AppDimensions.sm),
             TextField(
               controller: _schedule,
-              decoration: const InputDecoration(
-                labelText: 'Horário',
-                hintText: 'Ex.: 8h e 20h',
-                helperText: 'Escreva os horários ou use uma sugestão abaixo.',
-                prefixIcon: Icon(Icons.schedule_outlined),
+              decoration: InputDecoration(
+                labelText: 'Horários',
+                hintText: 'Ex.: 08:00, 20:00',
+                helperText: 'Formato HH:mm, separados por vírgula. '
+                    'Ou use uma sugestão abaixo.',
+                helperMaxLines: 2,
+                errorText: _scheduleError,
+                errorMaxLines: 3,
+                prefixIcon: const Icon(Icons.schedule_outlined),
               ),
-              textCapitalization: TextCapitalization.sentences,
+              keyboardType: TextInputType.datetime,
               textInputAction: TextInputAction.next,
+              onChanged: (_) {
+                if (_scheduleError != null) {
+                  setState(() => _scheduleError = null);
+                }
+              },
             ),
             const SizedBox(height: AppDimensions.sm),
             Wrap(
               spacing: AppDimensions.sm,
               runSpacing: AppDimensions.sm,
               children: [
-                for (final suggestion in const [
-                  'Manhã (8h)',
-                  'Tarde (14h)',
-                  'Noite (20h)',
-                  'Antes de dormir',
+                for (final (label, time) in const [
+                  ('Manhã', '08:00'),
+                  ('Tarde', '14:00'),
+                  ('Noite', '20:00'),
+                  ('Antes de dormir', '22:00'),
                 ])
                   _ScheduleSuggestion(
-                    label: suggestion,
-                    onTap: () => _applySchedule(suggestion),
+                    label: '$label · $time',
+                    onTap: () => _applySchedule(time),
                   ),
               ],
+            ),
+            const SizedBox(height: AppDimensions.lg),
+
+            // ── Estoque ────────────────────────────────────────────
+            const _FieldGroupLabel('Estoque em casa'),
+            const SizedBox(height: AppDimensions.sm),
+            TextField(
+              controller: _stock,
+              decoration: InputDecoration(
+                labelText: isEdit ? 'Doses em estoque' : 'Estoque inicial',
+                hintText: 'Ex.: 30',
+                helperText: 'Opcional. Em doses; cada "Tomei" desconta uma.',
+                suffixText: 'doses',
+                prefixIcon: const Icon(Icons.inventory_2_outlined),
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textInputAction: TextInputAction.next,
             ),
             const SizedBox(height: AppDimensions.lg),
 
@@ -164,19 +199,29 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
     );
   }
 
-  /// Appends a suggestion to the schedule field instead of overwriting, so the
-  /// caregiver can combine several (e.g. "8h e 20h").
-  void _applySchedule(String suggestion) {
+  /// Appends an `HH:mm` suggestion to the schedule field instead of
+  /// overwriting, so the caregiver can combine several (e.g. "08:00, 20:00").
+  /// A time already in the field is not repeated.
+  void _applySchedule(String time) {
     final current = _schedule.text.trim();
-    _schedule.text = current.isEmpty ? suggestion : '$current, $suggestion';
+    final present = current.split(RegExp(r'[,;\s]+')).contains(time);
+    if (!present) {
+      _schedule.text = current.isEmpty ? time : '$current, $time';
+    }
     _schedule.selection = TextSelection.fromPosition(
       TextPosition(offset: _schedule.text.length),
     );
+    if (_scheduleError != null) setState(() => _scheduleError = null);
   }
 
   void _save(BuildContext context) {
-    if (_name.text.trim().isEmpty) {
-      setState(() => _nameError = 'Informe o nome do medicamento.');
+    final nameMissing = _name.text.trim().isEmpty;
+    final schedule = parseScheduleInput(_schedule.text);
+    if (nameMissing || !schedule.isValid) {
+      setState(() {
+        _nameError = nameMissing ? 'Informe o nome do medicamento.' : null;
+        _scheduleError = schedule.error;
+      });
       return;
     }
     context.read<MedicationBloc>().add(
@@ -184,8 +229,9 @@ class _MedicationFormSheetState extends State<MedicationFormSheet> {
             id: widget.medication?.id,
             name: _name.text.trim(),
             dosage: _text(_dosage),
-            schedule: _text(_schedule),
+            times: schedule.times,
             notes: _text(_notes),
+            stockDoses: int.tryParse(_stock.text.trim()),
           ),
         );
     Navigator.of(context).pop();

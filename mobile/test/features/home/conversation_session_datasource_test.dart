@@ -31,6 +31,52 @@ void main() {
     expect(transcripts.last.last.isUser, isTrue);
   });
 
+  test('start envia o token e a variável dinâmica `name` ao SDK', () async {
+    final client = _FakeConversationClient();
+    final dataSource = ConversationSessionDataSourceImpl(
+      clientFactory: (callbacks) => client..captured = callbacks,
+      dynamicVariables: () => {'name': 'Maria'},
+    );
+    addTearDown(dataSource.dispose);
+
+    final result = await dataSource.start('tok-1');
+
+    expect(result, isA<Success<void>>());
+    expect(client.startedWith, 'tok-1');
+    expect(client.startedVariables, {'name': 'Maria'});
+  });
+
+  test('a fala do agente entra na transcrição sem as tags de emoção', () async {
+    final client = _FakeConversationClient();
+    final dataSource = ConversationSessionDataSourceImpl(
+      clientFactory: (callbacks) => client..captured = callbacks,
+    );
+    addTearDown(dataSource.dispose);
+
+    final transcripts = <List<TranscriptMessageEntity>>[];
+    final subscription = dataSource.transcriptStream.listen(transcripts.add);
+    addTearDown(subscription.cancel);
+
+    client.captured.onMessage!(
+      message: '[reassuring] Anotei que você tomou a losartana.',
+      source: sdk.Role.ai,
+    );
+    // Só tag: não sobra nada para mostrar, então nada entra.
+    client.captured.onMessage!(message: '[softly]', source: sdk.Role.ai);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(transcripts.last, hasLength(1));
+    expect(transcripts.last.single.text, 'Anotei que você tomou a losartana.');
+    expect(transcripts.last.single.isUser, isFalse);
+  });
+
+  test('stripSpokenDirectives tira só tags de direção, não horários', () {
+    expect(stripSpokenDirectives('[warmly] Oi, [pause] tudo bem?'),
+        'Oi, tudo bem?');
+    expect(stripSpokenDirectives('Tome às [08:00] hoje'), 'Tome às [08:00] hoje');
+    expect(stripSpokenDirectives('Sem tags aqui.'), 'Sem tags aqui.');
+  });
+
   test('sem sessão viva o envio falha em vez de sumir em silêncio', () async {
     final client = _FakeConversationClient(connected: false);
     final dataSource = ConversationSessionDataSourceImpl(
@@ -71,6 +117,22 @@ class _FakeConversationClient extends sdk.ConversationClient {
   final bool connected;
   final List<String> sent = [];
   late sdk.ConversationCallbacks captured;
+  String? startedWith;
+  Map<String, dynamic>? startedVariables;
+
+  @override
+  Future<void> startSession({
+    String? agentId,
+    String? conversationToken,
+    String? userId,
+    String? environment,
+    sdk.ConversationOverrides? overrides,
+    Map<String, dynamic>? customLlmExtraBody,
+    Map<String, dynamic>? dynamicVariables,
+  }) async {
+    startedWith = conversationToken;
+    startedVariables = dynamicVariables;
+  }
 
   @override
   void sendUserMessage(String text) {

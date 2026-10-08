@@ -6,6 +6,14 @@ import '../models/user_model.dart';
 abstract class AuthRemoteDataSource {
   Future<AuthCredentialsModel> login(String email, String password);
   Future<void> signup(String email, String password, String role);
+
+  /// Id da primeira casa que o usuário já tem no backend (`GET /homes`), ou
+  /// `null` quando ele ainda não cadastrou nenhuma.
+  Future<String?> firstHomeId();
+
+  /// Dados do usuário autenticado (`GET /auth/me`): se o servidor já tem o
+  /// aceite dos termos e o nome cadastrado. Uma chamada só por login.
+  Future<MeModel> me();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -29,5 +37,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       '/auth/signup',
       data: {'email': email, 'password': password, 'role': role},
     );
+  }
+
+  @override
+  Future<String?> firstHomeId() async {
+    final res = await _dio.get('/homes');
+    final homes = res.data as List<dynamic>;
+    if (homes.isEmpty) return null;
+    return (homes.first as Map<String, dynamic>)['id'] as String?;
+  }
+
+  @override
+  Future<MeModel> me() async {
+    final res = await _dio.get('/auth/me');
+    return MeModel.fromJson(res.data as Map<String, dynamic>);
   }
 }

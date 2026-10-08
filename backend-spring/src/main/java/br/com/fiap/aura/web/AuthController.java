@@ -80,16 +80,27 @@ public class AuthController {
     }
 
     @PostMapping("/auth/password")
-    @Operation(summary = "Troca a senha do usuário autenticado")
-    public AuthDtos.OkResponse changePassword(@Valid @RequestBody AuthDtos.ChangePasswordRequest req) {
-        auth.changePassword(currentUser.require(), req);
-        return new AuthDtos.OkResponse(true);
+    @Operation(summary = "Troca a senha do usuário autenticado e devolve um novo par de tokens",
+            description = "Todo access e refresh token emitido antes da troca deixa de valer (401).")
+    public AuthDtos.TokenResponse changePassword(@Valid @RequestBody AuthDtos.ChangePasswordRequest req) {
+        return auth.changePassword(currentUser.require(), req);
     }
 
     @PostMapping("/notifications/register-token")
     @Operation(summary = "Registra o token FCM do dispositivo para receber push")
     public AuthDtos.OkResponse registerFcm(@Valid @RequestBody AuthDtos.FcmTokenRequest req) {
         auth.registerFcmToken(currentUser.require(), req.fcmToken());
+        return new AuthDtos.OkResponse(true);
+    }
+
+    @DeleteMapping("/notifications/register-token")
+    @Operation(summary = "Desregistra o aparelho no logout: avisos deixam de chegar a ele",
+            description = """
+                    Idempotente. Com `fcmToken` no corpo, só desregistra se ele ainda for o token
+                    registrado — o logout atrasado de um aparelho antigo não desliga o atual.
+                    """)
+    public AuthDtos.OkResponse unregisterFcm(@RequestBody(required = false) AuthDtos.FcmTokenRemovalRequest req) {
+        auth.unregisterFcmToken(currentUser.require(), req == null ? null : req.fcmToken());
         return new AuthDtos.OkResponse(true);
     }
 

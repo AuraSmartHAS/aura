@@ -7,7 +7,7 @@ Interface web da **cuidadora** e da **Torre de Controle**, consumindo a mesma AP
 |---|---|
 | Stack | Angular 20 (standalone components, signals) · TypeScript · CSS puro |
 | Comunicação | `HttpClient` + interceptor funcional que injeta o JWT |
-| Rotas | `/login` · `/home` (casa) · `/admin` (Torre de Controle), com guard de sessão |
+| Rotas | `/login` · `/home` (casa) · `/admin` (Torre de Controle) · `/parceiros` (catálogo e parceiros), com guard de sessão |
 
 ## ▶️ Como rodar
 
@@ -28,13 +28,15 @@ Entre com `ana@aura.com` / `aura1234` (cuidadora) ou `admin@aura.com` / `aura123
 **`/home` — a casa do paciente**
 - ficha da casa e **checklist de segurança** editável (`[(ngModel)]` em cada checkbox);
 - **risco por dimensão** com barra, nível e a lista de fatores e pesos que explicam o número;
-- **Care-Chain**: recomendação com motivo visível e botão de aprovar;
-- **pedidos** com linha do tempo (aprovado → separando → em rota → entregue → instalado) e SLA;
+- **avisos da casa**, **reposição por consumo** (estoque, ritmo e prazo à vista, com aprovação humana) e **consumo do período**;
+- **Care-Chain** ("O que a casa precisa"): recomendação com motivo visível e botão de aprovar ou recusar;
 - **sinais recentes** em tabela.
 
+A esteira de entrega (pedidos, linha do tempo, mapa) **não** está neste painel: saiu da interface na D-008. O pedido nasce na aprovação e avança pelo app React Native, com a conta da Operação.
+
 **`/admin` — Torre de Controle**
-- KPIs (OTIF, fill rate, lead time, pedidos abertos, casas, risco alto) com destaque quando batem a meta;
-- pedidos por estágio;
+- KPIs de cuidado: casas monitoradas, sinais captados e casas com risco alto (sem OTIF nem carteira de pedidos: a logística saiu na D-008);
+- **indicadores por casa** consolidados dentro do banco (adesão à medicação e passos da pulseira), com o botão "Consolidar agora"; só aparecem quando o backend roda sobre Oracle;
 - **CRUD do catálogo** de acessibilidade com formulário `[(ngModel)]` e confirmação de exclusão.
 
 ## 🔗 Recursos de Angular usados

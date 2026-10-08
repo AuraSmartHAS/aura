@@ -71,6 +71,7 @@ public class MedicationController {
     public MedicationDtos.ConfirmMedicationResponse confirm(
             @PathVariable UUID medId,
             @Valid @RequestBody(required = false) MedicationDtos.ConfirmMedicationRequest req) {
-        return medications.confirm(currentUser.require(), medId, req == null ? null : req.taken());
+        return medications.confirm(currentUser.require(), medId,
+                req == null ? null : req.taken(), req == null ? null : req.source());
     }
 }

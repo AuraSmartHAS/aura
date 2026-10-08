@@ -13,6 +13,19 @@ typedef ConversationClientFactory = sdk.ConversationClient Function(
   sdk.ConversationCallbacks callbacks,
 );
 
+/// Tags de direção de voz do agente, como `[reassuring]` ou `[softly]`.
+///
+/// Só palavras (letras, espaço, hífen, sublinhado): colchetes com números ou
+/// símbolos, como um horário `[08:00]`, não são tag e ficam no texto.
+final RegExp _spokenDirective = RegExp(r'\[[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ _-]{0,30}\]');
+
+/// Texto da transcrição sem as tags de direção de voz.
+String stripSpokenDirectives(String text) => text
+    .replaceAll(_spokenDirective, '')
+    .replaceAll(RegExp(r'[ \t]{2,}'), ' ')
+    .replaceAll(RegExp(r' +([,.!?;:])'), r'$1')
+    .trim();
+
 abstract class ConversationSessionDataSource {
   Stream<ConversationStatus> get statusStream;
   Stream<ConversationMode> get modeStream;
@@ -34,6 +47,7 @@ abstract class ConversationSessionDataSource {
 
 class ConversationSessionDataSourceImpl implements ConversationSessionDataSource {
   late final sdk.ConversationClient _client;
+  final Map<String, dynamic> Function()? _dynamicVariables;
 
   final _statusController = StreamController<ConversationStatus>.broadcast();
   final _modeController = StreamController<ConversationMode>.broadcast();
@@ -43,7 +57,14 @@ class ConversationSessionDataSourceImpl implements ConversationSessionDataSource
 
   List<TranscriptMessageEntity> _transcript = [];
 
-  ConversationSessionDataSourceImpl({ConversationClientFactory? clientFactory}) {
+  /// [clientTools] são as ferramentas que o agente pode pedir ao aparelho (pelo
+  /// nome cadastrado no painel do ElevenLabs). [dynamicVariables] é lido a cada
+  /// `start`, porque o nome da Maria pode mudar entre uma conversa e outra.
+  ConversationSessionDataSourceImpl({
+    ConversationClientFactory? clientFactory,
+    Map<String, sdk.ClientTool>? clientTools,
+    Map<String, dynamic> Function()? dynamicVariables,
+  }) : _dynamicVariables = dynamicVariables {
     final callbacks = sdk.ConversationCallbacks(
       onError: (String message, [dynamic context]) {
         _statusController.add(ConversationStatus.error);
@@ -60,13 +81,17 @@ class ConversationSessionDataSourceImpl implements ConversationSessionDataSource
       },
       onMessage: ({required String message, required sdk.Role source}) {
         if (source == sdk.Role.ai) {
-          _appendMessage(TranscriptMessageEntity(text: message, isUser: false));
+          // As tags de emoção (`[reassuring]`) são instrução para a voz, não
+          // texto para a Maria ler: ficam no áudio e saem da transcrição.
+          final text = stripSpokenDirectives(message);
+          if (text.isEmpty) return;
+          _appendMessage(TranscriptMessageEntity(text: text, isUser: false));
         }
       },
     );
 
     _client = clientFactory?.call(callbacks) ??
-        sdk.ConversationClient(callbacks: callbacks);
+        sdk.ConversationClient(callbacks: callbacks, clientTools: clientTools);
   }
 
   void _appendMessage(TranscriptMessageEntity message) {
@@ -95,7 +120,10 @@ class ConversationSessionDataSourceImpl implements ConversationSessionDataSource
     try {
       _transcript = [];
       _transcriptController.add(_transcript);
-      await _client.startSession(conversationToken: token);
+      await _client.startSession(
+        conversationToken: token,
+        dynamicVariables: _dynamicVariables?.call(),
+      );
       _isMutedController.add(false);
       return const Success(null);
     } catch (e) {

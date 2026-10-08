@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { api, Order, Recommendation } from '../api';
+import { api, isAdmin, Order, Recommendation } from '../api';
 import AuraButton from '../components/AuraButton';
 import { pesoBr } from '../format';
 import type { ScreenProps } from '../navigation';
@@ -31,9 +31,10 @@ export default function CareChainScreen({ route }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const existing = await api.recommendations(homeId);
-      const pending = existing.find((r) => r.status === 'recommended');
-      setRecommendation(pending ?? (await api.recommend(homeId, scoreId)));
+      // O servidor é idempotente por produto: devolve a pendente deste risco, a já pedida (com o
+      // pedido em `orderInProgress`) ou cria uma. Antes a tela pegava a primeira pendente da casa,
+      // de qualquer dimensão, e mostrava a recomendação errada para o risco tocado.
+      setRecommendation(await api.recommend(homeId, scoreId));
       setOrders(await api.orders(homeId));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível carregar as recomendações agora.');
@@ -51,7 +52,8 @@ export default function CareChainScreen({ route }: Props) {
     setBusy(true);
     try {
       await api.approve(recommendation.recommendationId);
-      setRecommendation({ ...recommendation, status: 'approved' });
+      // relê do servidor: é ele quem diz qual pedido cobre o item agora (`orderInProgress`)
+      setRecommendation(await api.recommend(homeId, scoreId));
       setOrders(await api.orders(homeId));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Falha ao aprovar.');
@@ -101,7 +103,15 @@ export default function CareChainScreen({ route }: Props) {
               <AuraButton title="Aprovar" onPress={approve} disabled={busy} />
             </View>
           ) : (
-            <Text style={styles.approved}>Aprovado pela cuidadora ✓</Text>
+            <>
+              <Text style={styles.approved}>Aprovado pela cuidadora ✓</Text>
+              {recommendation.orderInProgress && (
+                <Text style={styles.muted}>
+                  Pedido em andamento: {stageLabels[recommendation.orderInProgress.stage] ?? recommendation.orderInProgress.stage}.
+                  Este item não será recomendado de novo até o pedido ser concluído.
+                </Text>
+              )}
+            </>
           )}
         </View>
       )}
@@ -132,7 +142,7 @@ export default function CareChainScreen({ route }: Props) {
             {order.slaBreached ? 'Entrega atrasada' : 'Entrega no prazo'}
           </Text>
 
-          {order.stage !== 'returned' && (
+          {isAdmin() && order.stage !== 'returned' && (
             <View style={styles.button}>
               <AuraButton title="Avançar estágio" onPress={() => advance(order)} disabled={busy} variant="secondary" />
             </View>

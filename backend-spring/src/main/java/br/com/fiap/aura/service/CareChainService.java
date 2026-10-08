@@ -23,11 +23,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,12 +54,15 @@ public class CareChainService {
     private final GuardrailService guardrails;
     private final ScoringService scoring;
     private final AuraProperties props;
+    private final InFlightOrderService inFlight;
+    private final ApplicationEventPublisher events;
 
     public CareChainService(RecommendationRepository recommendations, DeliveryOrderRepository orders,
                             ProductRepository products, ScoreRepository scores, StockNodeRepository nodes,
                             MedicationRepository medications,
                             HomeService homeService, AuthService auth, GeoService geo,
-                            GuardrailService guardrails, ScoringService scoring, AuraProperties props) {
+                            GuardrailService guardrails, ScoringService scoring, AuraProperties props,
+                            InFlightOrderService inFlight, ApplicationEventPublisher events) {
         this.recommendations = recommendations;
         this.orders = orders;
         this.products = products;
@@ -68,8 +75,20 @@ public class CareChainService {
         this.guardrails = guardrails;
         this.scoring = scoring;
         this.props = props;
+        this.inFlight = inFlight;
+        this.events = events;
     }
 
+    /**
+     * Idempotente por produto: pedir a recomendação do mesmo risco duas vezes não gera duas.
+     * <ul>
+     *   <li>Item já pedido e ainda a caminho: devolve a recomendação aprovada, com o pedido em
+     *       {@code orderInProgress}, e não cria outra.</li>
+     *   <li>Já existe uma pendente para o produto: devolve a mesma, com o motivo renovado pelo
+     *       escore mais recente (ela ainda não foi aprovada, então pode mudar).</li>
+     *   <li>Senão, cria.</li>
+     * </ul>
+     */
     @Transactional
     public CareChainDtos.RecommendationResponse recommend(AuthPrincipal principal,
                                                           CareChainDtos.CreateRecommendationRequest req) {
@@ -97,10 +116,32 @@ public class CareChainService {
 
         String reason = guardrails.assertNonPrescriptive(reason(product, scoring.labelsOf(factors)));
 
+        Optional<DeliveryOrder> open = inFlight.ofDurableItem(req.homeId(), product.getSku());
+        if (open.isPresent()) {
+            DeliveryOrder order = open.get();
+            Recommendation covered = recommendations.findById(order.getRecommendationId()).orElseThrow();
+            inFlight.supersedePending(covered, covered.getId());
+            return toResponse(covered, product, order);
+        }
+
+        Optional<Recommendation> pending = recommendations
+                .findByHomeIdAndSkuAndStatus(req.homeId(), product.getSku(), "recommended").stream()
+                .max(Comparator.comparing(Recommendation::getCreatedAt));
+        if (pending.isPresent()) {
+            Recommendation rec = pending.get();
+            rec.setScoreId(req.scoreId());
+            rec.setReason(reason);
+            rec.setFactors(factors);
+            rec.setWeights(weights);
+            return toResponse(rec, product);
+        }
+
         Recommendation rec = recommendations.save(Recommendation.builder()
                 .homeId(req.homeId()).scoreId(req.scoreId()).sku(product.getSku())
                 .reason(reason).status("recommended").factors(factors).weights(weights)
                 .build());
+        events.publishEvent(new PushEvents.RecommendationCreated(
+                rec.getHomeId(), rec.getId(), rec.getSku(), principal.userId()));
 
         return toResponse(rec, product);
     }
@@ -130,6 +171,11 @@ public class CareChainService {
      * SKU fora do catálogo devolve os campos nulos; item não instalável não tem custo de instalação.
      */
     private CareChainDtos.RecommendationResponse toResponse(Recommendation rec, Product product) {
+        return toResponse(rec, product, null);
+    }
+
+    private CareChainDtos.RecommendationResponse toResponse(Recommendation rec, Product product,
+                                                            DeliveryOrder inProgress) {
         boolean installable = product != null && product.isInstallable();
         boolean included = props.carechain().installationIncluded();
         return new CareChainDtos.RecommendationResponse(rec.getId(), rec.getSku(),
@@ -141,7 +187,8 @@ public class CareChainService {
                 installable ? money(included ? BigDecimal.ZERO : props.carechain().installationPrice()) : null,
                 product == null ? null : product.getNormRef(),
                 product == null ? null : product.getPartner(),
-                product == null ? null : product.getProductUrl());
+                product == null ? null : product.getProductUrl(),
+                inProgress == null ? null : InFlightOrderService.toDto(inProgress));
     }
 
     /** Duas casas como o preço do catálogo: os dois valores são somados na mesma linha da tela. */
@@ -153,8 +200,16 @@ public class CareChainService {
     public List<CareChainDtos.RecommendationResponse> listRecommendations(AuthPrincipal principal, UUID homeId) {
         homeService.requireAccess(principal, homeId);
         Map<String, Product> bySku = productIndex();
-        return recommendations.findByHomeIdOrderByCreatedAtDesc(homeId).stream()
-                .map(r -> toResponse(r, bySku.get(r.getSku())))
+        List<Recommendation> recs = recommendations.findByHomeIdOrderByCreatedAtDesc(homeId);
+        Map<UUID, Recommendation> byId = recs.stream().collect(Collectors.toMap(Recommendation::getId, r -> r));
+        // pedido em andamento por recomendação, para a tela dizer "a caminho" em vez de "aprovada"
+        Map<UUID, DeliveryOrder> openOrders = orders.findByHomeIdOrderByCreatedAtDesc(homeId).stream()
+                .filter(o -> byId.containsKey(o.getRecommendationId())
+                        && inFlight.isOpen(byId.get(o.getRecommendationId()), o))
+                .collect(Collectors.toMap(DeliveryOrder::getRecommendationId, o -> o, (a, b) -> a));
+        return recs.stream()
+                .filter(r -> !"superseded".equals(r.getStatus()))
+                .map(r -> toResponse(r, bySku.get(r.getSku()), openOrders.get(r.getId())))
                 .toList();
     }
 
@@ -171,7 +226,19 @@ public class CareChainService {
         if ("rejected".equals(rec.getStatus())) {
             throw ApiException.unprocessable("APPROVAL_REQUIRED", "Recomendação rejeitada não vira pedido.");
         }
+        if ("superseded".equals(rec.getStatus())) {
+            throw ApiException.conflict("Recomendação obsoleta: o item já foi pedido. Gere uma nova.");
+        }
+        // O pedido só nasce se o item ainda não estiver a caminho: duas recomendações abertas do mesmo
+        // item (tela antiga, dois dispositivos, dois cliques) não podem virar dois pedidos.
+        Optional<DeliveryOrder> open = inFlight.covering(rec);
+        if (open.isPresent()) {
+            DeliveryOrder order = open.get();
+            throw new ApiException("ORDER_IN_PROGRESS", "Este item já tem um pedido em andamento.",
+                    HttpStatus.CONFLICT, Map.of("orderId", order.getId(), "stage", order.getStage()));
+        }
         rec.setStatus("approved");
+        inFlight.supersedePending(rec, rec.getId());
 
         StockNode node = geo.nearestNode(nodes.findAll(), home.getLat(), home.getLng()).orElse(null);
         Integer distance = (node == null || home.getLat() == null) ? null
@@ -199,6 +266,12 @@ public class CareChainService {
             throw ApiException.conflict("Recomendação já aprovada não pode ser rejeitada.");
         }
         rec.setStatus("rejected");
+        // Reposição recusada é "deixar para depois": o adiamento conta da recusa, não da sugestão
+        // (que pode ter ficado dias na tela). Sem coluna nova, createdAt passa a marcar a recusa —
+        // é a última decisão sobre o registro, e é dele que o ReplenishmentService deriva o prazo.
+        if (rec.getMedicationId() != null) {
+            rec.setCreatedAt(Instant.now());
+        }
         return toResponse(rec, productIndex().get(rec.getSku()));
     }
 
@@ -231,6 +304,8 @@ public class CareChainService {
             }
             default -> { }
         }
+        events.publishEvent(new PushEvents.OrderStageChanged(
+                order.getHomeId(), order.getId(), next, principal.userId()));
         return new CareChainDtos.AdvanceResponse(order.getStage(), order.getEtaDelivery(),
                 order.getInstallAt(), order.isSlaBreached());
     }

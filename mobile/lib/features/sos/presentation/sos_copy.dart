@@ -19,6 +19,9 @@ class SosCopy {
   // ── O botão de 64dp ──────────────────────────────────────────────
 
   static const String buttonLabel = 'SOS';
+
+  /// Texto ao lado do selo "SOS" na pílula da barra do topo (tela da Maria).
+  static const String pillLabel = 'Socorro';
   static const String buttonSemantics = 'Pedir ajuda agora';
 
   // ── A folha de acompanhamento ────────────────────────────────────

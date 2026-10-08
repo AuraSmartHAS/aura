@@ -56,6 +56,10 @@ public final class AuthDtos {
 
     public record FcmTokenRequest(@NotBlank String fcmToken) { }
 
+    public record FcmTokenRemovalRequest(
+            @Schema(description = "Opcional — com ele, só desregistra se ainda for o token registrado")
+            String fcmToken) { }
+
     public record ConsentRequest(
             @Schema(example = "2026-06", description = "Opcional — o default é a versão vigente da política")
             String version) { }

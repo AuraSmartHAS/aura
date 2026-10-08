@@ -25,6 +25,49 @@ import 'package:flutter_test/flutter_test.dart';
 /// `canPromiseAlert` e `spokenMessage` — e o que se verifica aqui é que a tela
 /// obedece.
 void main() {
+  group('pedido feito pelo agente de voz — um pedido, um disparo', () {
+    test('a folha acompanha o desfecho da tool e NÃO registra de novo', () async {
+      final repository = _FakeEmergencyRepository(
+        ticket: _ticket(
+          state: EmergencyState.waitingCancel,
+          canPromiseAlert: true,
+        ),
+      );
+      final bloc = _buildBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(SosOutcomeAttached(Success(repository.ticket!)));
+      await _tick();
+
+      expect(repository.triggerCalls, isEmpty);
+      expect(bloc.state.emergencyId, repository.ticket!.id);
+      expect(bloc.state.phase, isNot(SosPhase.failed));
+    });
+
+    test('tool falhou: a folha mostra a falha e a ligação — e também não '
+        'registra por conta própria', () async {
+      final repository = _FakeEmergencyRepository(
+        ticket: _ticket(
+          state: EmergencyState.waitingCancel,
+          canPromiseAlert: true,
+        ),
+      );
+      final bloc = _buildBloc(repository);
+      addTearDown(bloc.close);
+
+      bloc.add(const SosOutcomeAttached(
+        Failure(AppFailure.networkError(message: 'sem rede')),
+      ));
+      await _tick();
+
+      // Antes, a folha disparava de novo e podia dizer "avisei" enquanto a
+      // voz dizia "não consegui".
+      expect(repository.triggerCalls, isEmpty);
+      expect(bloc.state.phase, SosPhase.failed);
+      expect(bloc.state.canPromiseAlert, isFalse);
+    });
+  });
+
   group('regra 1 — a tela nunca promete o que o sistema não sabe', () {
     test(
         'canPromiseAlert falso: nada de "avisei", e a tela cai para a ligação',
@@ -369,6 +412,42 @@ void main() {
       expect(repository.statusCalls, hasLength(chamadas));
     });
 
+    test(
+        'disparado com o push ainda saindo continua "estou avisando", sem '
+        'cair na falha', () async {
+      final repository = _FakeEmergencyRepository(ticket: _ticket());
+      final bloc =
+          _buildBloc(repository, poll: const Duration(milliseconds: 30));
+      addTearDown(bloc.close);
+
+      bloc.add(const SosRequested());
+      await _tick();
+
+      // A fresta entre o disparo e a resposta do FCM: o servidor ainda não
+      // promete, mas também não há falha nenhuma a anunciar.
+      repository.nextStatus = _status(
+        state: EmergencyState.dispatched,
+        canPromiseAlert: false,
+        alertInProgress: true,
+        dispatchedAt: DateTime(2026, 8, 27, 14, 32),
+        spokenMessage: 'Estou avisando a Ana.',
+      );
+      final antes = repository.statusCalls.length;
+      // duas leituras depois: a primeira com certeza já foi aplicada
+      await _waitFor(() => repository.statusCalls.length >= antes + 2);
+      expect(bloc.state.phase, SosPhase.counting);
+      expect(bloc.state.spokenMessage, 'Estou avisando a Ana.');
+      expect(bloc.state.spokenMessage!.toLowerCase(),
+          isNot(contains('não consegui')));
+
+      repository.nextStatus = _status(
+        state: EmergencyState.dispatched,
+        dispatchedAt: DateTime(2026, 8, 27, 14, 32),
+        spokenMessage: 'Pronto. O aviso saiu para a Ana às 14h32.',
+      );
+      await _waitFor(() => bloc.state.phase == SosPhase.delivered);
+    });
+
     test('um acompanhamento que falha não desmente o que já se sabe', () async {
       final repository = _FakeEmergencyRepository(ticket: _ticket());
       final bloc = _buildBloc(repository, poll: const Duration(milliseconds: 30));
@@ -623,11 +702,13 @@ EmergencyStatus _status({
   DateTime? dispatchedAt,
   String? acknowledgedByName,
   String? spokenMessage,
+  bool alertInProgress = false,
 }) {
   return EmergencyStatus(
     id: _kEmergencyId,
     state: state,
     canPromiseAlert: canPromiseAlert,
+    alertInProgress: alertInProgress,
     degradedReason: degradedReason,
     dispatchedAt: dispatchedAt,
     acknowledgedByName: acknowledgedByName,

@@ -11,6 +11,7 @@ class Score {
     required this.weights,
     required this.explanation,
     this.configVersion,
+    this.factorLabels = const [],
   });
 
   final String scoreId;
@@ -23,6 +24,17 @@ class Score {
   final List<double> weights;
   final String explanation;
   final String? configVersion;
+
+  /// Rótulos em português dos fatores, na mesma ordem de [factors]. Vêm da API
+  /// (a política de risco vive em YAML versionado).
+  final List<String> factorLabels;
+
+  /// Fator pronto para a tela: o rótulo do servidor e, só na falta dele, o
+  /// código com espaços — nunca `near_fall_reported` cru.
+  String factorLabel(int index) =>
+      index < factorLabels.length && factorLabels[index].trim().isNotEmpty
+          ? factorLabels[index]
+          : factors[index].replaceAll('_', ' ');
 }
 
 /// Wellbeing dimensions tracked by the scoring engine (`score.dimension`).

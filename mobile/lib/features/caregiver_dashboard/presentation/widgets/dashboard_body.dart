@@ -6,11 +6,13 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/models/severity_level.dart';
+import '../../../../shared/utils/care_time.dart';
 import '../../../../shared/widgets/async_state_views.dart';
 import '../../../../shared/widgets/factor_bar.dart';
 import '../../../../shared/widgets/severity_chip.dart';
 import '../../../wellbeing360/domain/entities/score.dart';
 import '../bloc/dashboard_bloc.dart';
+import 'family_today_cards.dart';
 
 class DashboardBody extends StatelessWidget {
   const DashboardBody({super.key});
@@ -64,15 +66,73 @@ class _DashboardContent extends StatelessWidget {
     final top = state.topScore;
     final patient = detail.patientName ?? detail.home.label;
 
+    final who = state.patientFirstName;
+
     return ListView(
       padding: const EdgeInsets.all(AppDimensions.md),
       children: [
-        _DashboardHeader(patientName: patient, address: detail.home.address),
+        // O SOS vem antes de tudo: é a única coisa que não espera.
+        if (state.activeEmergency != null) ...[
+          SosAlertCard(
+            emergency: state.activeEmergency!,
+            patientFirstName: who,
+            acknowledging: state.acknowledging,
+            acknowledgeFailed: state.acknowledgeFailed,
+            now: state.asOf,
+          ),
+          const SizedBox(height: AppDimensions.lg),
+        ],
+        // Não sei se há SOS: dizer "nada" seria mentir. Dizer que não deu para
+        // verificar é a única resposta honesta.
+        if (!state.emergencyKnown && state.activeEmergency == null) ...[
+          ConnectionNotice(
+            message: 'Não consegui verificar se há um pedido de ajuda agora.',
+            onRetry: () => context
+                .read<DashboardBloc>()
+                .add(const DashboardPolledEvent()),
+          ),
+          const SizedBox(height: AppDimensions.md),
+        ],
+        // O polling vem falhando: o que está na tela pode estar velho.
+        if (state.staleSince != null) ...[
+          ConnectionNotice(
+            message: 'Sem conexão com o servidor. O que você vê pode estar '
+                'desatualizado (última atualização às '
+                '${careClock(state.lastSyncAt ?? state.staleSince!, state.asOf ?? state.staleSince!)}).',
+          ),
+          const SizedBox(height: AppDimensions.md),
+        ],
+        DashboardHeader(
+          userFirstName: state.userFirstName,
+          patientName: patient,
+          address: detail.home.address,
+          lastActivityAt: state.lastActivityAt,
+          needsAttention: state.needsAttention,
+          dataComplete: state.dataComplete,
+          now: state.asOf,
+        ),
         const SizedBox(height: AppDimensions.lg),
 
-        // FOCAL ELEMENT: risk drives the screen. Its treatment escalates with
-        // severity (calm green → amber → red alert banner for high).
-        _TopRiskHero(top: top),
+        // O dia dela: remédios e o que ela disse e fez — o que a família quer
+        // saber antes de qualquer nota de risco.
+        TodayMedicationsCard(
+          items: state.medicationsToday,
+          patientFirstName: who,
+          available: state.todayAvailable,
+          now: state.asOf,
+        ),
+        const SizedBox(height: AppDimensions.md),
+        TimelineCard(
+          items: state.timeline,
+          patientFirstName: who,
+          available: state.signalsLoaded,
+          now: state.asOf,
+        ),
+        const SizedBox(height: AppDimensions.lg),
+
+        // Risk drives attention. Its treatment escalates with severity
+        // (calm green → amber → red alert banner for high).
+        _TopRiskHero(top: top, loaded: state.scoresLoaded),
         const SizedBox(height: AppDimensions.xl),
 
         Text(
@@ -88,11 +148,40 @@ class _DashboardContent extends StatelessWidget {
 
 /// Warm, personalized greeting: "Como a paciente está hoje" + time-of-day and
 /// the home it refers to. Sets a calm, human tone before any risk signal.
-class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader({required this.patientName, required this.address});
+///
+/// A saudação usa o primeiro nome de quem está logado; sem um nome utilizável
+/// fica só "Boa noite" — nunca um nome inventado.
+class DashboardHeader extends StatelessWidget {
+  const DashboardHeader({
+    super.key,
+    required this.userFirstName,
+    required this.patientName,
+    required this.address,
+    this.lastActivityAt,
+    this.needsAttention = false,
+    this.dataComplete = true,
+    this.now,
+  });
 
+  final String? userFirstName;
   final String patientName;
   final String address;
+
+  /// "Tudo em ordem" só quando nada pede atenção E tudo carregou.
+  bool get _ok => !needsAttention && dataComplete;
+
+  /// Quando a paciente fez ou disse algo pela última vez; `null` esconde a
+  /// linha em vez de afirmar "atualizado agora" sem saber.
+  final DateTime? lastActivityAt;
+
+  /// Há algo que pede olhar (SOS, dose atrasada, risco alto).
+  final bool needsAttention;
+
+  /// Tudo carregou e está atualizado. Falso: a tela não pode dizer "Tudo em ordem".
+  final bool dataComplete;
+
+  /// Relógio da última leitura (testável); `null` usa a hora atual.
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +197,7 @@ class _DashboardHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$greeting, Ana',
+          userFirstName == null ? greeting : '$greeting, $userFirstName',
           style: text.labelLarge?.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: AppDimensions.xs),
@@ -137,16 +226,38 @@ class _DashboardHeader extends StatelessWidget {
         const SizedBox(height: AppDimensions.xs),
         Row(
           children: [
-            const Icon(
-              Icons.schedule,
+            Icon(
+              _ok ? Icons.check_circle_outline : Icons.error_outline,
               size: 16,
-              color: AppColors.textTertiary,
+              color: _ok ? AppColors.confirm : AppColors.warning,
             ),
             const SizedBox(width: AppDimensions.xs),
             Text(
-              'Atualizado agora',
-              style: text.labelMedium?.copyWith(color: AppColors.textTertiary),
+              needsAttention
+                  ? 'Há pontos de atenção'
+                  : dataComplete
+                      ? 'Tudo em ordem'
+                      : 'Não consegui atualizar tudo',
+              style: text.labelMedium?.copyWith(
+                color: _ok ? AppColors.confirm : AppColors.warning,
+              ),
             ),
+            if (lastActivityAt != null) ...[
+              const SizedBox(width: AppDimensions.sm),
+              const Icon(
+                Icons.schedule,
+                size: 16,
+                color: AppColors.textTertiary,
+              ),
+              const SizedBox(width: AppDimensions.xs),
+              Flexible(
+                child: Text(
+                  'Última atividade ${careAgo(lastActivityAt!, now ?? DateTime.now())}',
+                  style: text.labelMedium
+                      ?.copyWith(color: AppColors.textTertiary),
+                ),
+              ),
+            ],
           ],
         ),
       ],
@@ -159,13 +270,37 @@ class _DashboardHeader extends StatelessWidget {
 /// risk dimension, its observable trigger (the heaviest factor as a FactorBar),
 /// and a CTA into Care-Chain.
 class _TopRiskHero extends StatelessWidget {
-  const _TopRiskHero({required this.top});
+  const _TopRiskHero({required this.top, this.loaded = true});
 
   final Score? top;
+
+  /// Falso quando o risco não carregou: "sem leituras" e "não consegui
+  /// carregar" não podem ser a mesma frase.
+  final bool loaded;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+
+    if (!loaded) {
+      return _HeroShell(
+        level: SeverityLevel.attention,
+        semanticsLabel: 'Não consegui carregar o risco agora.',
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_outlined, color: AppColors.warning),
+            const SizedBox(width: AppDimensions.sm),
+            Expanded(
+              child: Text(
+                'Não consegui carregar o risco agora. Puxe a tela para baixo '
+                'para tentar de novo.',
+                style: text.bodyMedium,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     // No readings yet — calm, honest empty state (still the focal card).
     if (top == null) {
@@ -291,7 +426,7 @@ class _TopRiskHero extends StatelessWidget {
         bestIndex = i;
       }
     }
-    return (score.factors[bestIndex], bestWeight);
+    return (score.factorLabel(bestIndex), bestWeight);
   }
 }
 

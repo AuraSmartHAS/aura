@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tom dos avisos de push na barra de status (o petróleo da marca). -->
+    <color name="aura_notification">#1A5276</color>
+</resources>

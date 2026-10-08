@@ -24,13 +24,6 @@ class AppConfig {
   /// Full REST prefix consumed by the dio client.
   static String get apiBaseUrl => '$backendBaseUrl/api/v1';
 
-  static String get googleMapsApiKey => _get('GOOGLE_MAPS_API_KEY');
-
-  static String get supabaseUrl =>
-      _get('SUPABASE_URL', fallback: 'https://pcdezajyayljowwgrksr.supabase.co');
-
-  static String get supabaseKey => _get('SUPABASE_KEY');
-
   static String get fcmVapidKey => _get('FCM_VAPID_KEY');
 
   /// Telefone do contato principal da casa, para o caminho de ligação do SOS
@@ -38,6 +31,11 @@ class AppConfig {
   /// nunca o telefone — o corpo é magro de propósito porque a rota é aberta.
   /// Vazio aqui significa que a tela do SOS só oferece o 192.
   static String get sosContactPhone => _get('SOS_CONTACT_PHONE');
+
+  /// Telefone público do atendimento, mostrado na folha "Confirmar a compra"
+  /// como o caminho para desistir de um pedido. Não é segredo. Vazio aqui
+  /// significa que a folha não cita telefone nenhum.
+  static String get supportPhone => _get('SUPPORT_PHONE');
 
   /// Emergência pública. Botão que **a pessoa** toca, nunca discagem
   /// automática (decisão D19).

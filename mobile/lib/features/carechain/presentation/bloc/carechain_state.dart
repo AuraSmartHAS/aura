@@ -58,8 +58,10 @@ class CareChainState extends Equatable {
   String? get address => homeDetail?.home.address;
 
   /// Sem preço não se aprova (correção C5): a jornada de dinheiro não tem
-  /// preço opcional.
-  bool get canApprove => recommendation?.hasPrice ?? false;
+  /// preço opcional. Item já a caminho também não: o servidor responderia 409.
+  bool get canApprove =>
+      (recommendation?.hasPrice ?? false) &&
+      !(recommendation?.hasOrderInProgress ?? false);
 
   CareChainState copyWith({
     bool? isApproving,
@@ -82,6 +84,7 @@ class CareChainState extends Equatable {
         status,
         recommendation?.recommendationId,
         recommendation?.price,
+        recommendation?.orderInProgressId,
         homeDetail?.home.id,
         homeDetail?.patientName,
         isApproving,

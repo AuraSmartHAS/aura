@@ -15,9 +15,16 @@ import '../../domain/entities/order_detail.dart';
 import '../bloc/order_tracking_bloc.dart';
 
 class OrderDetailBody extends StatelessWidget {
-  const OrderDetailBody({super.key, required this.orderId});
+  const OrderDetailBody({
+    super.key,
+    required this.orderId,
+    required this.canAdvance,
+  });
 
   final String orderId;
+
+  /// Mostra o controle de demonstração "Avançar etapa". Só a Operação pode.
+  final bool canAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +50,11 @@ class OrderDetailBody extends StatelessWidget {
                       .add(LoadOrderEvent(orderId)),
                 ),
               OrderTrackingStatus.ready =>
-                _OrderContent(order: state.order!, isAdvancing: state.isAdvancing),
+                _OrderContent(
+                  order: state.order!,
+                  isAdvancing: state.isAdvancing,
+                  canAdvance: canAdvance,
+                ),
             };
           },
         ),
@@ -53,10 +64,15 @@ class OrderDetailBody extends StatelessWidget {
 }
 
 class _OrderContent extends StatelessWidget {
-  const _OrderContent({required this.order, required this.isAdvancing});
+  const _OrderContent({
+    required this.order,
+    required this.isAdvancing,
+    required this.canAdvance,
+  });
 
   final OrderDetail order;
   final bool isAdvancing;
+  final bool canAdvance;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +116,7 @@ class _OrderContent extends StatelessWidget {
           ),
 
         // Secondary demo control — visually separated from real actions.
-        if (!isTerminal) ...[
+        if (!isTerminal && canAdvance) ...[
           const SizedBox(height: AppDimensions.xl),
           const Divider(color: AppColors.borderColor, height: 1),
           const SizedBox(height: AppDimensions.md),

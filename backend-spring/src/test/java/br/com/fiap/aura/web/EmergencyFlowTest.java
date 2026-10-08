@@ -6,6 +6,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,6 +21,10 @@ import br.com.fiap.aura.service.FcmService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
+import br.com.fiap.aura.domain.Emergency;
+import br.com.fiap.aura.domain.enums.EmergencyChannel;
+import br.com.fiap.aura.domain.enums.EmergencyState;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -329,6 +334,64 @@ class EmergencyFlowTest {
     }
 
     @Test
+    @DisplayName("a família descobre o SOS em aberto sem ter o id, e ele some quando deixa de ser aberto")
+    void emergenciaAtivaParaAFamilia() throws Exception {
+        Conta ana = signup("sos-ativa@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        Conta estranho = signup("sos-ativa-estranho@aura.com", "Caio");
+
+        // sem emergência: 204, não 404 — "nada acontecendo" é o estado normal da casa
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId).header("Authorization", ana.auth()))
+                .andExpect(status().isNoContent());
+
+        String emergencyId = disparaSemSessao(homeId).get("emergencyId").asText();
+
+        JsonNode ativa = body(mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", ana.auth()))
+                .andExpect(status().isOk())
+                .andReturn());
+        assertThat(ativa.get("emergencyId").asText()).isEqualTo(emergencyId);
+        assertThat(ativa.get("state").asText()).isEqualTo("waiting_cancel");
+
+        // é autenticada e isolada por casa: sem sessão 401, estranho 403
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", estranho.auth()))
+                .andExpect(status().isForbidden());
+
+        // quem diz "estou indo" fecha o loop, e a emergência deixa de ser ativa
+        mvc.perform(post("/api/v1/emergencies/{id}/ack", emergencyId).header("Authorization", ana.auth()))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId).header("Authorization", ana.auth()))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("SOS antigo ainda aberto não some só porque o mais novo foi cancelado")
+    void emergenciaAtivaIgnoraAMaisNovaJaEncerrada() throws Exception {
+        Conta ana = signup("sos-ativa-antiga@aura.com", "Ana");
+        UUID homeId = UUID.fromString(casaDe(ana.auth()));
+        Instant agora = Instant.now();
+
+        Emergency antiga = emergencyRepository.save(Emergency.builder().homeId(homeId)
+                .channel(EmergencyChannel.TOUCH).state(EmergencyState.DISPATCHED)
+                .createdAt(agora.minusSeconds(600)).dispatchDueAt(agora.minusSeconds(595))
+                .dispatchedAt(agora.minusSeconds(595)).build());
+        emergencyRepository.save(Emergency.builder().homeId(homeId)
+                .channel(EmergencyChannel.TOUCH).state(EmergencyState.CANCELLED)
+                .createdAt(agora).dispatchDueAt(agora.plusSeconds(5)).cancelledAt(agora).build());
+
+        JsonNode ativa = body(mvc.perform(get("/api/v1/homes/{homeId}/emergencies/active", homeId)
+                        .header("Authorization", ana.auth()))
+                .andExpect(status().isOk())
+                .andReturn());
+
+        assertThat(ativa.get("emergencyId").asText()).isEqualTo(antiga.getId().toString());
+        assertThat(ativa.get("state").asText()).isEqualTo("dispatched");
+    }
+
+    @Test
     @DisplayName("transporte simulado é reportado como simulado, e a resposta proíbe a promessa")
     void transporteSimuladoEReportadoComoSimulado() throws Exception {
         Conta ana = signup("sos-simulado@aura.com", "Ana");
@@ -374,6 +437,71 @@ class EmergencyFlowTest {
         emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
         assertThat(estado(sos.get("emergencyId").asText()).get("notifiedCount").asInt()).isZero();
         verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("o aparelho passa para quem entrou depois: o SOS da Ana não apita na mão da Maria")
+    void aparelhoTrocaDeDonoNoLogin() throws Exception {
+        Conta ana = signup("sos-troca-ana@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-do-celular-compartilhado");
+
+        // a Ana sai e a Maria entra no MESMO celular: mesmo token FCM, outra pessoa
+        Conta maria = signup("sos-troca-maria@aura.com", "Maria");
+        registraAparelho(maria.auth(), "token-do-celular-compartilhado");
+
+        JsonNode sos = disparaSemSessao(homeId);
+        assertThat(sos.get("recipientCount").asInt()).isZero();
+        emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
+        verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("depois do logout (DELETE register-token) nenhum aviso chega ao aparelho")
+    void desregistroNoLogoutCortaOAviso() throws Exception {
+        Conta ana = signup("sos-logout@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-da-ana-logout");
+
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"fcmToken":"token-da-ana-logout"}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+        // idempotente, e também sem corpo
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth()))
+                .andExpect(status().isOk());
+
+        JsonNode sos = disparaSemSessao(homeId);
+        assertThat(sos.get("recipientCount").asInt()).isZero();
+        emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
+        verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("logout atrasado de um aparelho antigo não desliga o aparelho atual")
+    void desregistroDeTokenAntigoNaoApagaOAtual() throws Exception {
+        Conta ana = signup("sos-logout-antigo@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-do-celular-novo");
+
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"fcmToken":"token-do-celular-antigo"}"""))
+                .andExpect(status().isOk());
+
+        String emergencyId = disparaSemSessao(homeId).get("emergencyId").asText();
+        emergencies.dispatchIfDue(UUID.fromString(emergencyId));
+        assertThat(avisosEnviados(1).get(0).deviceToken()).isEqualTo("token-do-celular-novo");
+    }
+
+    @Test
+    @DisplayName("desregistrar exige sessão")
+    void desregistroExigeSessao() throws Exception {
+        mvc.perform(delete("/api/v1/notifications/register-token"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

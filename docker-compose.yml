@@ -9,6 +9,18 @@ services:
     build: ./backend-spring
     ports:
       - "8080:8080"
+    environment:
+      # Conversa por voz da Maria (ElevenLabs). Sem as duas, /voice/token responde 503 e o resto
+      # da demo funciona normalmente. Exporte no shell ou ponha num .env na raiz (fora do git).
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
+      # Push real (FCM). A conta de serviço do Firebase fica em ./secrets (fora do git) e entra
+      # no container só para leitura. No .env da raiz:
+      #     AURA_FIREBASE_CREDENTIALS=/run/secrets/firebase-service-account.json
+      # Vazia = push simulado (simulated=true), e o resto da demo funciona igual.
+      AURA_FIREBASE_CREDENTIALS: ${AURA_FIREBASE_CREDENTIALS:-}
+    volumes:
+      - ./secrets:/run/secrets:ro
     healthcheck:
       # o JRE não traz curl; checar a porta aberta pelo bash basta para o dev/demo
       test: ["CMD-SHELL", "bash -c ': > /dev/tcp/localhost/8080'"]

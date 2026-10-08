@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:aura/core/di/service_locator.dart';
 import 'package:aura/core/theme/app_colors.dart';
 import 'package:aura/core/theme/app_dimensions.dart';
 
 import '../../domain/entities/emergency.dart';
-import '../bloc/sos_bloc.dart';
+import '../open_sos_panel.dart';
 import '../sos_copy.dart';
-import 'sos_panel.dart';
 
-/// Como a tela consegue um bloc de SOS. O padrão é o injetor; o teste passa o
-/// seu para poder afirmar quantas emergências o toque criou.
-typedef SosBlocFactory = SosBloc Function();
+export '../open_sos_panel.dart' show SosBlocFactory;
 
 /// Botão de socorro persistente (correção C3).
 ///
@@ -28,7 +23,12 @@ class SosButton extends StatefulWidget {
     super.key,
     this.blocFactory,
     this.channel = EmergencyChannel.touch,
+    this.pill = false,
   });
+
+  /// Pílula para a barra do topo da tela da Maria: selo redondo "SOS" e o
+  /// texto "Socorro" ao lado. O círculo grande continua sendo o da abertura.
+  final bool pill;
 
   final SosBlocFactory? blocFactory;
 
@@ -54,32 +54,22 @@ class _SosButtonState extends State<SosButton> {
     if (_opening) return;
     _opening = true;
 
-    final navigator = Navigator.of(context);
-    final bloc = (widget.blocFactory ?? _fromInjector)()
-      ..add(SosRequested(channel: widget.channel));
-
     try {
-      await navigator.push(
-        MaterialPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => BlocProvider<SosBloc>.value(
-            value: bloc,
-            child: const SosPanel(),
-          ),
-        ),
-      );
-    } finally {
       // Fechar a folha não cancela nada: o disparo é do servidor. O que morre
       // aqui é o acompanhamento deste aparelho.
-      await bloc.close();
+      await openSosPanel(
+        context,
+        blocFactory: widget.blocFactory,
+        channel: widget.channel,
+      );
+    } finally {
       _opening = false;
     }
   }
 
-  static SosBloc _fromInjector() => sl<SosBloc>();
-
   @override
   Widget build(BuildContext context) {
+    if (widget.pill) return _buildPill(context);
     return Semantics(
       button: true,
       label: SosCopy.buttonSemantics,
@@ -103,6 +93,72 @@ class _SosButtonState extends State<SosButton> {
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
                       ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Pílula vermelha com o selo "SOS" (círculo vermelho-escuro com borda e
+  /// letras brancas) e o texto "Socorro". Alta (56dp, acima do alvo mínimo de
+  /// 48) e larga: na barra do topo ela não disputa espaço com o teclado nem com
+  /// a conversa.
+  Widget _buildPill(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: SosCopy.buttonSemantics,
+      child: SizedBox(
+        height: AppDimensions.comfortableTouchTarget,
+        child: Material(
+          color: AppColors.error,
+          shape: const StadiumBorder(
+            side: BorderSide(color: Colors.white, width: 2),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: _open,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.xs + 2,
+                AppDimensions.xs + 2,
+                AppDimensions.md,
+                AppDimensions.xs + 2,
+              ),
+              child: ExcludeSemantics(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.errorDark,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          SosCopy.buttonLabel,
+                          style: text.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Text(
+                      SosCopy.pillLabel,
+                      style: text.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -51,6 +51,7 @@ class SosBloc extends Bloc<SosEvent, SosState> {
           emergencyPhone: emergencyPhone,
         )) {
     on<SosRequested>(_onRequested);
+    on<SosOutcomeAttached>(_onOutcomeAttached);
     on<SosCountdownTicked>(_onCountdownTicked);
     on<SosStatusPolled>(_onStatusPolled);
     on<SosCancelRequested>(_onCancelRequested);
@@ -99,26 +100,35 @@ class SosBloc extends Bloc<SosEvent, SosState> {
     try {
       final result = await _triggerEmergencyUseCase(channel: event.channel);
       if (emit.isDone) return;
-
-      switch (result) {
-        case Success<EmergencyTicket>(:final data):
-          _applyTicket(data, emit);
-        case Failure<EmergencyTicket>(:final failure):
-          // O pedido não chegou ao servidor. Nada foi avisado, e a tela não
-          // pode sugerir o contrário: sobra a ligação.
-          final line = failure is DeviceNotPairedFailure
-              ? SosCopy.noPairedHome
-              : HomeErrorCopy.forSos(failure);
-          emit(state.copyWith(
-            phase: SosPhase.failed,
-            errorMessage: line,
-            spokenMessage: line,
-            canPromiseAlert: false,
-            clearDegradedReason: true,
-          ));
-      }
+      _applyResult(result, emit);
     } finally {
       _registering = false;
+    }
+  }
+
+  /// O pedido já foi feito (pelo agente de voz): mostra o desfecho, sem tocar o servidor.
+  void _onOutcomeAttached(SosOutcomeAttached event, Emitter<SosState> emit) {
+    if (_registering || state.isBusy) return;
+    _applyResult(event.result, emit);
+  }
+
+  void _applyResult(Result<EmergencyTicket> result, Emitter<SosState> emit) {
+    switch (result) {
+      case Success<EmergencyTicket>(:final data):
+        _applyTicket(data, emit);
+      case Failure<EmergencyTicket>(:final failure):
+        // O pedido não chegou ao servidor. Nada foi avisado, e a tela não
+        // pode sugerir o contrário: sobra a ligação.
+        final line = failure is DeviceNotPairedFailure
+            ? SosCopy.noPairedHome
+            : HomeErrorCopy.forSos(failure);
+        emit(state.copyWith(
+          phase: SosPhase.failed,
+          errorMessage: line,
+          spokenMessage: line,
+          canPromiseAlert: false,
+          clearDegradedReason: true,
+        ));
     }
   }
 
@@ -206,7 +216,13 @@ class SosBloc extends Bloc<SosEvent, SosState> {
     if (result is! Success<EmergencyStatus>) return;
 
     final status = result.data;
-    final phase = _phaseFor(status.state, status.canPromiseAlert);
+    // Disparado com o push ainda saindo: continua "estou avisando". Cair em
+    // `failed` aqui diria "não consegui avisar" enquanto o aviso está saindo.
+    // Degradação conhecida (transporte simulado, sem aparelho) não espera.
+    final sending = status.alertInProgress && status.degradedReason == null;
+    final phase = sending
+        ? SosPhase.counting
+        : _phaseFor(status.state, status.canPromiseAlert);
 
     emit(state.copyWith(
       phase: phase,

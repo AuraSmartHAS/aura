@@ -42,7 +42,11 @@ public final class MedicationDtos {
 
     public record ConfirmMedicationRequest(
             @Schema(description = "Se a dose foi tomada; ausente equivale a true", defaultValue = "true")
-            Boolean taken) { }
+            Boolean taken,
+            @Schema(description = "Como a confirmação foi feita: \"voice\" (agente de voz) ou "
+                    + "\"self_report\" (toque no app). Ausente vale self_report; outras origens são recusadas.",
+                    example = "voice", defaultValue = "self_report")
+            String source) { }
 
     /** {@code stockDoses} devolve o estoque já decrementado, para a tela mostrar o efeito da voz. */
     public record ConfirmMedicationResponse(UUID signalId, boolean taken, Integer stockDoses) { }

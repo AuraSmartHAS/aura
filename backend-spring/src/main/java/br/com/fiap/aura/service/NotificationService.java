@@ -4,15 +4,20 @@ import br.com.fiap.aura.domain.DeliveryOrder;
 import br.com.fiap.aura.domain.Emergency;
 import br.com.fiap.aura.domain.Home;
 import br.com.fiap.aura.domain.UserAccount;
+import br.com.fiap.aura.domain.enums.OrderStage;
 import br.com.fiap.aura.domain.enums.PushKind;
 import br.com.fiap.aura.repository.DeliveryOrderRepository;
+import br.com.fiap.aura.repository.HomeRepository;
 import br.com.fiap.aura.repository.UserAccountRepository;
 import br.com.fiap.aura.security.AuthPrincipal;
 import br.com.fiap.aura.web.dto.NotificationDtos;
 import br.com.fiap.aura.web.error.ApiException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,17 +34,21 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationService {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+
     /** Título curto: o que a tela de bloqueio mostra em negrito antes do corpo. */
     private static final String TITLE = "AURA";
 
     private final HomeService homeService;
+    private final HomeRepository homes;
     private final UserAccountRepository users;
     private final DeliveryOrderRepository orders;
     private final FcmService fcm;
 
-    public NotificationService(HomeService homeService, UserAccountRepository users,
+    public NotificationService(HomeService homeService, HomeRepository homes, UserAccountRepository users,
                                DeliveryOrderRepository orders, FcmService fcm) {
         this.homeService = homeService;
+        this.homes = homes;
         this.users = users;
         this.orders = orders;
         this.fcm = fcm;
@@ -47,8 +56,8 @@ public class NotificationService {
 
     /**
      * Aviso de teste: é o que torna a cena gravável — o celular apita e o toque abre o pedido.
-     * Não há disparo automático no {@code advance} do pedido nesta janela (decisão de prioridade
-     * do C2): esta rota prova a mesma cena pelo mesmo preço.
+     * O disparo automático por evento (pedido que avança, recomendação nova) mora em
+     * {@link PushOnBusinessEvents}; esta rota continua servindo para provar o caminho sob demanda.
      *
      * <p>Sem {@code @Transactional} de propósito: as três leituras já vêm de transações próprias,
      * e envolver tudo seguraria uma conexão do pool durante a chamada de rede ao Firebase.
@@ -74,6 +83,69 @@ public class NotificationService {
 
         FcmService.PushResult result = fcm.send(compose(kind, home, orderId, deviceToken));
         return new NotificationDtos.TestPushResponse(result.messageId(), result.latencyMs(), result.simulated());
+    }
+
+    /**
+     * Pedido mudou de estágio: avisa o dono da casa, com o pedido no deep link. Devolve se algum
+     * aviso foi entregue ao transporte (simulado conta: o chamador só registra).
+     */
+    public boolean notifyOrderStage(PushEvents.OrderStageChanged event) {
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("orderId", event.orderId().toString());
+        data.put("stage", event.stage().value());
+        return notifyOwner(PushKind.ORDER, event.homeId(), event.actorUserId(), data,
+                home -> orderBody(event.stage(), home.getPatientName()));
+    }
+
+    /** Recomendação nova: avisa o dono da casa, com a recomendação no deep link. */
+    public boolean notifyRecommendation(PushEvents.RecommendationCreated event) {
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("recommendationId", event.recommendationId().toString());
+        return notifyOwner(PushKind.RECOMMENDATION, event.homeId(), event.actorUserId(), data,
+                home -> body(PushKind.RECOMMENDATION, home.getPatientName()));
+    }
+
+    private boolean notifyOwner(PushKind kind, UUID homeId, UUID actorUserId, Map<String, String> extra,
+                                java.util.function.Function<Home, String> bodyOf) {
+        Optional<Home> home = homes.findById(homeId);
+        if (home.isEmpty()) {
+            return false;
+        }
+        UUID ownerId = home.get().getOwnerUserId();
+        if (ownerId.equals(actorUserId)) {
+            // quem acabou de agir já sabe o que fez: aviso para si mesmo é ruído
+            return false;
+        }
+        Optional<String> token = users.findById(ownerId).map(UserAccount::getFcmToken)
+                .filter(t -> !t.isBlank());
+        if (token.isEmpty()) {
+            log.info("Aviso {} da casa {} sem destino: o dono não tem aparelho registrado",
+                    kind.value(), homeId);
+            return false;
+        }
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("kind", kind.value());
+        data.put("homeId", homeId.toString());
+        data.putAll(extra);
+        fcm.send(new FcmService.PushMessage(token.get(), TITLE, bodyOf.apply(home.get()), data));
+        return true;
+    }
+
+    /**
+     * Visível para teste. O estágio entra no texto; o item, não: "barra de apoio" na tela de
+     * bloqueio já conta o risco que a recomendação veio tratar.
+     */
+    static String orderBody(OrderStage stage, String patientName) {
+        String nome = firstName(patientName);
+        String pedido = nome == null ? "O pedido da casa" : "O pedido da casa da " + nome;
+        return switch (stage) {
+            case APPROVED -> pedido + " foi aprovado. Toque para acompanhar.";
+            case SOURCING -> pedido + " está sendo separado. Toque para acompanhar.";
+            case IN_ROUTE -> pedido + " saiu para entrega. Toque para acompanhar.";
+            case DELIVERED -> pedido + " foi entregue. Toque para ver.";
+            case INSTALLED -> pedido + " foi instalado. Toque para ver.";
+            case RETURNED -> pedido + " foi encerrado. Toque para ver.";
+        };
     }
 
     /**

@@ -8,8 +8,14 @@ import '../../../../features/sos/presentation/widgets/sos_button.dart';
 import '../bloc/auth_bloc.dart';
 import '../form_validators.dart';
 
+/// Aviso mostrado quando o app volta ao login por logout forçado.
+const sessionExpiredMessage = 'Sua sessão expirou. Entre novamente.';
+
 class LoginBody extends StatefulWidget {
-  const LoginBody({super.key});
+  const LoginBody({super.key, this.showSessionExpiredNotice = false});
+
+  /// Mostra [sessionExpiredMessage] até a pessoa digitar ou tentar entrar.
+  final bool showSessionExpiredNotice;
 
   @override
   State<LoginBody> createState() => _LoginBodyState();
@@ -22,12 +28,27 @@ class _LoginBodyState extends State<LoginBody> {
   bool _passwordVisible = false;
   // Só valida enquanto digita depois da primeira tentativa de envio.
   AutovalidateMode _autovalidate = AutovalidateMode.disabled;
+  late bool _sessionExpiredVisible;
 
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController();
-    _passwordController = TextEditingController();
+    _sessionExpiredVisible = widget.showSessionExpiredNotice;
+    _emailController = TextEditingController()..addListener(_onTyping);
+    _passwordController = TextEditingController()..addListener(_onTyping);
+  }
+
+  // O aviso de sessão expirada é de uma vez só: some ao primeiro caractere
+  // (só focar o campo muda a seleção, não o texto, e não o apaga).
+  void _onTyping() {
+    if (_emailController.text.isNotEmpty ||
+        _passwordController.text.isNotEmpty) {
+      _dismissSessionExpired();
+    }
+  }
+
+  void _dismissSessionExpired() {
+    if (_sessionExpiredVisible) setState(() => _sessionExpiredVisible = false);
   }
 
   @override
@@ -143,7 +164,12 @@ class _LoginBodyState extends State<LoginBody> {
                   // ── Inline error ────────────────────────────────────────
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
-                      if (state is AuthFailure) {
+                      final message = state is AuthFailure
+                          ? state.message
+                          : (_sessionExpiredVisible
+                              ? sessionExpiredMessage
+                              : null);
+                      if (message != null) {
                         return Padding(
                           padding:
                               const EdgeInsets.only(bottom: AppDimensions.md),
@@ -158,7 +184,7 @@ class _LoginBodyState extends State<LoginBody> {
                               const SizedBox(width: AppDimensions.sm),
                               Expanded(
                                 child: Text(
-                                  state.message,
+                                  message,
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: AppColors.error,
                                   ),
@@ -182,6 +208,7 @@ class _LoginBodyState extends State<LoginBody> {
                           onPressed: isLoading
                               ? null
                               : () {
+                                  _dismissSessionExpired();
                                   // Valida localmente antes de chamar a API —
                                   // mensagens amigáveis junto de cada campo.
                                   setState(() {

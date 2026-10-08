@@ -23,6 +23,27 @@ import 'package:flutter_test/flutter_test.dart';
 /// "Prefiro digitar" não é atalho, é o caminho principal. O achado CR-2 da
 /// auditoria era que esse botão ligava o microfone.
 void main() {
+  testWidgets('a saudação e o convite somem quando a conversa começa por texto',
+      (tester) async {
+    final repository = _FakeConversationRepository();
+    addTearDown(repository.dispose);
+    final bloc = _RecordingHomeBloc(repository);
+    addTearDown(bloc.close);
+
+    await _pumpHome(tester, bloc);
+    expect(find.textContaining('Vamos conversar?'), findsOneWidget);
+    expect(find.textContaining('Para falar comigo'), findsOneWidget);
+
+    await tester.tap(find.text('Prefiro digitar'));
+    await _settle(tester);
+
+    expect(find.textContaining('Vamos conversar?'), findsNothing);
+    expect(find.textContaining('Para falar comigo'), findsNothing);
+    expect(bloc.state.greetingDismissed, isTrue);
+    // O socorro continua na barra do topo, com a conversa em andamento.
+    expect(find.text('Socorro'), findsOneWidget);
+  });
+
   testWidgets(
       'R-10 — "Prefiro digitar" não dispara o evento do microfone e conecta '
       'com o microfone mudo', (tester) async {
@@ -161,6 +182,30 @@ void main() {
     expect(repository.muteCalls.last, isTrue);
 
     await bloc.close();
+  });
+
+  testWidgets(
+      '"Ouvir de novo" só aparece no modo texto depois que a Aura falou',
+      (tester) async {
+    final repository = _FakeConversationRepository();
+    addTearDown(repository.dispose);
+    final bloc = _RecordingHomeBloc(repository);
+    addTearDown(bloc.close);
+
+    await _pumpHome(tester, bloc);
+    await tester.tap(find.text('Prefiro digitar'));
+    await _settle(tester);
+
+    // Sem fala anterior o botão não faria nada: não deve existir.
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Ouvir de novo'), findsNothing);
+    expect(find.text('Prefiro falar'), findsOneWidget);
+
+    repository.emitAuraMessage('Está na hora do seu remédio.');
+    await _settle(tester);
+
+    expect(find.text('Ouvir de novo'), findsOneWidget);
+    expect(find.text('Prefiro falar'), findsOneWidget);
   });
 
   test('"Ouvir de novo" traz de volta a última fala da Aura', () async {

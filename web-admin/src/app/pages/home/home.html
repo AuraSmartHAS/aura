@@ -124,13 +124,24 @@
         <div class="rec" *ngFor="let p of suggestedReplenishments()">
           <div class="rec__head">
             <strong>{{ p.medicationName }}</strong>
-            <span class="tag tag--danger">acaba em uns {{ roundDays(p.daysOfSupply) }} dias</span>
+            <span class="tag tag--danger" *ngIf="p.suggested">acaba em uns {{ roundDays(p.daysOfSupply) }} dias</span>
+            <span class="tag tag--approved" *ngIf="!p.suggested && p.orderInProgress">reposição pedida</span>
+            <span class="tag" *ngIf="!p.suggested && !p.orderInProgress && p.snoozedUntil">deixada para depois</span>
           </div>
-          <p class="explain">{{ p.reason }}</p>
+          <p class="explain" *ngIf="p.suggested">{{ p.reason }}</p>
+          <p class="explain" *ngIf="!p.suggested && p.orderInProgress">
+            A reposição de {{ p.medicationName }} já foi aprovada e está a caminho. O estoque
+            ({{ p.stockDoses }} doses) só sobe quando o pacote chegar; até lá nenhuma nova
+            reposição é sugerida.
+          </p>
+          <p class="explain" *ngIf="!p.suggested && !p.orderInProgress && p.snoozedUntil">
+            Reposição adiada até {{ p.snoozedUntil | date: 'dd/MM HH:mm' }}. O estoque está em
+            {{ p.stockDoses }} doses; a sugestão volta depois desse prazo, ou antes se chegar uma entrega.
+          </p>
           <p class="small muted">
             Prazo da cadeia: {{ p.leadTimeHours }} h · margem de segurança: {{ p.safetyStockDays }} dias
           </p>
-          <ng-container *ngIf="replenishmentRec(p) as rec">
+          <ng-container *ngIf="p.suggested && replenishmentRec(p) as rec">
             <p class="small" *ngIf="rec.price !== null">
               {{ rec.price | currency: 'BRL' }} · rede parceira · sem instalação
             </p>
@@ -177,6 +188,7 @@
             <ng-container *ngIf="rec.normRef">· {{ rec.normRef }}</ng-container>
           </p>
           <p class="small muted" *ngIf="rec.partner">Vendido por {{ rec.partner }}</p>
+          <p class="small" *ngIf="rec.orderInProgress">Pedido em andamento: este item não será recomendado de novo enquanto ele não for concluído.</p>
           <div class="actions" *ngIf="rec.status === 'approved' && rec.productUrl">
             <a class="btn btn--primary btn--small" [href]="rec.productUrl"
                target="_blank" rel="noopener noreferrer">
@@ -207,21 +219,24 @@
           <span class="small muted">{{ diaMes(c.de) }} a {{ diaMes(c.ate) }}</span>
         </div>
         <p class="empty" *ngIf="c.itens.length === 0">Nenhuma medicação acompanhada nesta casa.</p>
-        <table *ngIf="c.itens.length > 0">
-          <thead>
-            <tr><th>Medicação</th><th>Doses confirmadas</th><th>Não tomadas</th><th>Esperadas</th><th>Adesão</th><th>Estoque</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of c.itens">
-              <td>{{ item.medicamento }}</td>
-              <td>{{ item.dosesConfirmadas }}</td>
-              <td>{{ item.dosesNegadas }}</td>
-              <td>{{ item.dosesEsperadas }}</td>
-              <td>{{ adesao(item.adesaoPct) }}</td>
-              <td>{{ item.estoqueDoses ?? '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- tabela larga rola dentro do card, nunca a página (celular) -->
+        <div class="table-scroll" *ngIf="c.itens.length > 0">
+          <table>
+            <thead>
+              <tr><th>Medicação</th><th>Doses confirmadas</th><th>Não tomadas</th><th>Esperadas</th><th>Adesão</th><th>Estoque</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of c.itens">
+                <td>{{ item.medicamento }}</td>
+                <td>{{ item.dosesConfirmadas }}</td>
+                <td>{{ item.dosesNegadas }}</td>
+                <td>{{ item.dosesEsperadas }}</td>
+                <td>{{ adesao(item.adesaoPct) }}</td>
+                <td>{{ item.estoqueDoses ?? '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <p class="small muted" *ngIf="c.demandaEncaminhadaReais !== null">
           Demanda encaminhada a parceiros no período, a preço de referência:
           <strong>{{ c.demandaEncaminhadaReais | currency: 'BRL' }}</strong>
@@ -232,19 +247,21 @@
       <article class="card card--wide">
         <h2>Sinais recentes</h2>
         <p class="empty" *ngIf="signals().length === 0">Sem sinais registrados.</p>
-        <table *ngIf="signals().length > 0">
-          <thead>
-            <tr><th>Quando</th><th>Tipo</th><th>Origem</th><th>Conteúdo</th></tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let signal of signals()">
-              <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
-              <td>{{ describeSignalType(signal) }}</td>
-              <td>{{ describeSignalSource(signal) }}</td>
-              <td>{{ describeSignalContent(signal) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-scroll" *ngIf="signals().length > 0">
+          <table>
+            <thead>
+              <tr><th>Quando</th><th>Tipo</th><th>Origem</th><th>Conteúdo</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let signal of signals()">
+                <td>{{ signal.capturedAt | date: 'dd/MM HH:mm' }}</td>
+                <td>{{ describeSignalType(signal) }}</td>
+                <td>{{ describeSignalSource(signal) }}</td>
+                <td>{{ describeSignalContent(signal) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </article>
     </div>
   </ng-container>
