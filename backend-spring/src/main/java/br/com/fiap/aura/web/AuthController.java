@@ -93,6 +93,17 @@ public class AuthController {
         return new AuthDtos.OkResponse(true);
     }
 
+    @DeleteMapping("/notifications/register-token")
+    @Operation(summary = "Desregistra o aparelho no logout: avisos deixam de chegar a ele",
+            description = """
+                    Idempotente. Com `fcmToken` no corpo, só desregistra se ele ainda for o token
+                    registrado — o logout atrasado de um aparelho antigo não desliga o atual.
+                    """)
+    public AuthDtos.OkResponse unregisterFcm(@RequestBody(required = false) AuthDtos.FcmTokenRemovalRequest req) {
+        auth.unregisterFcmToken(currentUser.require(), req == null ? null : req.fcmToken());
+        return new AuthDtos.OkResponse(true);
+    }
+
     @PostMapping("/consent")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Aceite da política LGPD — gate obrigatório antes de qualquer dado de saúde")

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/service_locator.dart';
-import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/session/auth_session.dart';
 import '../bloc/auth_bloc.dart';
@@ -28,8 +27,6 @@ class _LoginPageState extends State<LoginPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            // Register the FCM token now that we have an authenticated session.
-            sl<NotificationService>().registerToken();
             // Route by role; the guard (refreshListenable: AuthSession) still
             // applies the LGPD consent gate before the role surface is shown.
             context.go(AppRouter.homeForRole());

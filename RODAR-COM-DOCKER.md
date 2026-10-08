@@ -21,6 +21,24 @@ A conversa por voz da Maria (app Flutter) é opcional e usa o ElevenLabs: export
 `ELEVENLABS_API_KEY` e `ELEVENLABS_AGENT_ID` antes do `docker compose up`. Sem elas o resto da demo
 funciona, e o app responde "Não consegui me conectar agora" ao tocar no microfone.
 
+As **notificações push** (SOS, pedido que avança, recomendação nova) também são opcionais. Sem a
+conta de serviço do Firebase o backend sobe em modo simulado (`Push SIMULADO (transportReal=false)`
+no log) e nada sai para os celulares. Para o push real:
+
+1. No console do Firebase, projeto `aura-84408`: Configurações do projeto → Contas de serviço →
+   Gerar nova chave privada.
+2. Salve o JSON em `secrets/firebase-service-account.json` na raiz do repositório (`secrets/` está no
+   `.gitignore`: nunca commite nem cole esse arquivo).
+3. No `.env` da raiz: `AURA_FIREBASE_CREDENTIALS=/run/secrets/firebase-service-account.json`. O
+   compose monta `./secrets` no container só para leitura.
+4. `docker compose up -d --build backend` e confira no log `Push REAL habilitado (transportReal=true)
+   — projeto Firebase aura-84408`. Outro projeto ali faz cada envio voltar `SENDER_ID_MISMATCH`.
+
+O aparelho entra no push quando a pessoa faz login no app (Flutter ou o dev build Android do RN). Um
+aparelho é de uma pessoa só: o login de outra pessoa no mesmo celular e o logout tiram os avisos de
+quem saiu. Reiniciar o backend zera o banco em memória e, com ele, os aparelhos registrados: depois
+do restart, **faça login de novo nos celulares** para voltarem a receber.
+
 A primeira execução baixa dependências e **demora alguns minutos** — faça isso em casa,
 nunca na sala da apresentação. Das vezes seguintes sobe em segundos.
 
@@ -55,6 +73,7 @@ minutos de qualquer forma, então relogar perto da vez é regra, não exceção.
 | Painel abre mas não loga | O backend ainda está subindo — espere o `Seed pronto` no log |
 | Tela estranha/dados velhos | `docker compose restart backend` + relogin (reset completo do cenário) |
 | Quero recomeçar do zero | `docker compose down && docker compose up --build` |
+| Push não chega no celular | Log do backend: `Push SIMULADO` = falta a credencial; `SENDER_ID_MISMATCH` = conta de outro projeto Firebase; `Aviso … sem destino` = o dono da casa não fez login no celular depois do último restart |
 
 Roteiro de palco, contas e planos B cena a cena: `DEMO.md` e
 `PLANO BRILHO LOGISTICA/05-ROTEIRO-APRESENTACAO-HOJE.md` (na pasta FIAP).

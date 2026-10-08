@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,11 +47,13 @@ public class ReplenishmentService {
     private final GuardrailService guardrails;
     private final AuraProperties props;
     private final InFlightOrderService inFlight;
+    private final ApplicationEventPublisher events;
 
     public ReplenishmentService(MedicationRepository medications, SignalRepository signals,
                                 RecommendationRepository recommendations, ProductRepository products,
                                 HomeService homeService, GuardrailService guardrails,
-                                AuraProperties props, InFlightOrderService inFlight) {
+                                AuraProperties props, InFlightOrderService inFlight,
+                                ApplicationEventPublisher events) {
         this.medications = medications;
         this.signals = signals;
         this.recommendations = recommendations;
@@ -59,6 +62,7 @@ public class ReplenishmentService {
         this.guardrails = guardrails;
         this.props = props;
         this.inFlight = inFlight;
+        this.events = events;
     }
 
     @Transactional
@@ -74,13 +78,13 @@ public class ReplenishmentService {
         for (Medication med : medications.findByHomeIdOrderByCreatedAtDesc(homeId, PageRequest.of(0, 200))) {
             // sem estoque controlado não há o que projetar — a medicação segue fora da régua
             if (med.isActive() && med.getStockDoses() != null) {
-                projections.add(project(med, adherence, cfg, now));
+                projections.add(project(principal, med, adherence, cfg, now));
             }
         }
         return projections;
     }
 
-    private ReplenishmentDtos.Projection project(Medication med, List<Signal> adherence,
+    private ReplenishmentDtos.Projection project(AuthPrincipal principal, Medication med, List<Signal> adherence,
                                                  AuraProperties.Replenish cfg, Instant now) {
         String medId = med.getId().toString();
         // o value do sinal é JSON numa coluna texto: o filtro por medicação é em memória, de propósito
@@ -128,7 +132,7 @@ public class ReplenishmentService {
 
         return new ReplenishmentDtos.Projection(med.getId(), med.getName(), med.getStockDoses(),
                 avg, daysOfSupply, leadTimeHours, cfg.safetyStockDays(), thresholdDays,
-                suggested, suggested ? materialize(med, reason) : null, reason,
+                suggested, suggested ? materialize(principal, med, reason) : null, reason,
                 open.map(InFlightOrderService::toDto).orElse(null), snoozedUntil);
     }
 
@@ -168,16 +172,22 @@ public class ReplenishmentService {
      * deduplicada por medicação. Recomendação não é pedido: o pedido continua nascendo só na
      * aprovação humana. Sem o produto-refil de parceiro no catálogo, projeta e não materializa.
      */
-    private UUID materialize(Medication med, String reason) {
+    private UUID materialize(AuthPrincipal principal, Medication med, String reason) {
         return refillFor(med)
                 .map(partner -> recommendations
                         .findFirstByHomeIdAndMedicationIdAndStatus(med.getHomeId(), med.getId(), "recommended")
-                        .orElseGet(() -> recommendations.save(Recommendation.builder()
-                                .homeId(med.getHomeId())
-                                .medicationId(med.getId())
-                                .sku(partner.getSku())
-                                .reason(reason)
-                                .build()))
+                        .orElseGet(() -> {
+                            Recommendation rec = recommendations.save(Recommendation.builder()
+                                    .homeId(med.getHomeId())
+                                    .medicationId(med.getId())
+                                    .sku(partner.getSku())
+                                    .reason(reason)
+                                    .build());
+                            // só a recomendação que NASCEU aqui avisa; a pendente reaproveitada, não
+                            events.publishEvent(new PushEvents.RecommendationCreated(med.getHomeId(),
+                                    rec.getId(), "medication:" + med.getId(), principal.userId()));
+                            return rec;
+                        })
                         .getId())
                 .orElse(null);
     }

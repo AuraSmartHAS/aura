@@ -21,5 +21,28 @@ class AppRoutes {
   static String orderDetail(String id) => '/orders/$id';
   static String map(String orderId) => '/map/$orderId';
 
+  // SOS do lado de quem cuida: aberta pelo toque no aviso. O endereço e as
+  // coordenadas vêm do `data` do push e viajam na query para a tela abrir já
+  // com eles, sem esperar a rede.
+  static const String emergencies = '/emergencies';
+  static String emergencyAlert(
+    String id, {
+    String? homeId,
+    String? address,
+    String? lat,
+    String? lng,
+  }) {
+    final query = {
+      if (homeId != null) 'homeId': homeId,
+      if (address != null) 'address': address,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+    };
+    return Uri(
+      path: '$emergencies/$id',
+      queryParameters: query.isEmpty ? null : query,
+    ).toString();
+  }
+
   static const String credits = '/credits';
 }

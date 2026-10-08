@@ -67,6 +67,26 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
+        <!-- Push (FCM): ícone e canal padrão dos avisos que o sistema desenha
+             com o app em segundo plano ou encerrado. O canal é criado pelo app
+             no startup (NotificationService); o backend escolhe aura_sos ou
+             aura_geral em cada aviso, e este é o de reserva. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_aura" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/aura_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="aura_geral" />
+
+        <!-- "Estou indo" direto no aviso de SOS (flutter_local_notifications):
+             o toque no botão chega por este receiver, sem abrir o app. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

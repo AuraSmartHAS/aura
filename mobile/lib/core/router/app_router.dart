@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/signup_page.dart';
 import '../../features/carechain/presentation/pages/carechain_page.dart';
+import '../../features/caregiver_dashboard/presentation/pages/emergency_alert_page.dart';
 import '../../features/caregiver_dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/consent/presentation/pages/consent_page.dart';
 import '../../features/delivery_map/presentation/pages/map_page.dart';
@@ -15,6 +16,7 @@ import '../../features/profile/presentation/pages/credits_page.dart';
 import '../../features/wearable/presentation/pages/wearable_page.dart';
 import '../../features/wellbeing360/presentation/pages/wellbeing360_page.dart';
 import '../di/service_locator.dart';
+import '../notifications/notification_service.dart';
 import '../session/auth_session.dart';
 import 'app_routes.dart';
 
@@ -24,6 +26,7 @@ import 'app_routes.dart';
 /// dashboard). Feature routes are added per phase.
 class AppRouter {
   static final AuthSession _session = sl<AuthSession>();
+  static NotificationService get _notifications => sl<NotificationService>();
 
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.login,
@@ -44,9 +47,16 @@ class AppRouter {
         }
 
         // Already authenticated and consented: bounce away from auth/consent.
+        // Um toque em aviso guardado antes da sessão vence a tela inicial.
         if (isAuthRoute ||
             (loc == AppRoutes.consent && _session.consentAccepted)) {
+          _pushPendingDeepLink();
           return homeForRole();
+        }
+        if (loc == AppRoutes.dashboard ||
+            loc == AppRoutes.onboarding ||
+            loc == AppRoutes.voice) {
+          _pushPendingDeepLink();
         }
 
         return null;
@@ -115,6 +125,20 @@ class AppRouter {
             MapPage(orderId: state.pathParameters['orderId']!),
       ),
       GoRoute(
+        path: '${AppRoutes.emergencies}/:id',
+        name: 'emergencyAlert',
+        builder: (context, state) {
+          final q = state.uri.queryParameters;
+          return EmergencyAlertPage(
+            emergencyId: state.pathParameters['id']!,
+            homeId: q['homeId'],
+            address: q['address'],
+            lat: double.tryParse(q['lat'] ?? ''),
+            lng: double.tryParse(q['lng'] ?? ''),
+          );
+        },
+      ),
+      GoRoute(
         path: AppRoutes.wearable,
         name: 'wearable',
         builder: (context, state) => const WearablePage(),
@@ -134,6 +158,23 @@ class AppRouter {
       body: Center(child: Text('Erro: ${state.error}')),
     ),
   );
+
+  /// Abre [location] **por cima** da tela inicial: o "voltar" do pedido ou do
+  /// socorro aberto por um aviso cai no painel, em vez de fechar o app.
+  static void openOverHome(String location) {
+    router.go(homeForRole());
+    WidgetsBinding.instance.addPostFrameCallback((_) => router.push(location));
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  /// O toque guardado até haver sessão sai quando a pessoa chega à tela
+  /// inicial — empilhado sobre ela, depois deste quadro (não dentro do guard).
+  static void _pushPendingDeepLink() {
+    final pending = _notifications.takePendingDeepLink();
+    if (pending == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => router.push(pending));
+    WidgetsBinding.instance.scheduleFrame();
+  }
 
   /// Landing route based on the authenticated role. Used both by the redirect
   /// guard and by post-auth/consent listeners so the patient (voice-first) and

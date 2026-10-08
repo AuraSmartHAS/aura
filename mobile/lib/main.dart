@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/config/app_config.dart';
 import 'core/di/service_locator.dart';
 import 'core/notifications/notification_service.dart';
@@ -20,12 +21,15 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Antes do runApp: é o ponto de entrada do isolate de segundo plano.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   setupServiceLocator();
 
   // Hydrate the in-memory session from secure storage before building routes.
   await sl<AuthSession>().bootstrap();
 
-  // Best-effort FCM setup (permission, token registration, deep links).
+  // Best-effort FCM setup: canais, permissão, token e deep links.
   unawaited(sl<NotificationService>().init());
 
   runApp(const AuraApp());

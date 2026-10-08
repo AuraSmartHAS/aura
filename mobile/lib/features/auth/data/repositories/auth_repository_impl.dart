@@ -10,11 +10,17 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this._remoteDataSource, this._tokenStore, this._session);
+  AuthRepositoryImpl(this._remoteDataSource, this._tokenStore, this._session,
+      {Future<void> Function()? beforeLogout})
+      : _beforeLogout = beforeLogout;
 
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStore _tokenStore;
   final AuthSession _session;
+
+  /// Roda com a sessão ainda viva: é onde o aparelho se desregistra do push
+  /// (o DELETE é autenticado). Falha aqui não impede a saída.
+  final Future<void> Function()? _beforeLogout;
 
   @override
   Future<Result<UserEntity>> login(String email, String password) async {
@@ -99,6 +105,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<void>> logout() async {
+    try {
+      await _beforeLogout?.call();
+    } catch (e) {
+      debugPrint('[AURA-AUTH] etapa anterior ao logout falhou: $e');
+    }
     await _session.onLoggedOut();
     return const Success(null);
   }

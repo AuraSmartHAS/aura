@@ -6,6 +6,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -436,6 +437,71 @@ class EmergencyFlowTest {
         emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
         assertThat(estado(sos.get("emergencyId").asText()).get("notifiedCount").asInt()).isZero();
         verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("o aparelho passa para quem entrou depois: o SOS da Ana não apita na mão da Maria")
+    void aparelhoTrocaDeDonoNoLogin() throws Exception {
+        Conta ana = signup("sos-troca-ana@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-do-celular-compartilhado");
+
+        // a Ana sai e a Maria entra no MESMO celular: mesmo token FCM, outra pessoa
+        Conta maria = signup("sos-troca-maria@aura.com", "Maria");
+        registraAparelho(maria.auth(), "token-do-celular-compartilhado");
+
+        JsonNode sos = disparaSemSessao(homeId);
+        assertThat(sos.get("recipientCount").asInt()).isZero();
+        emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
+        verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("depois do logout (DELETE register-token) nenhum aviso chega ao aparelho")
+    void desregistroNoLogoutCortaOAviso() throws Exception {
+        Conta ana = signup("sos-logout@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-da-ana-logout");
+
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"fcmToken":"token-da-ana-logout"}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ok").value(true));
+        // idempotente, e também sem corpo
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth()))
+                .andExpect(status().isOk());
+
+        JsonNode sos = disparaSemSessao(homeId);
+        assertThat(sos.get("recipientCount").asInt()).isZero();
+        emergencies.dispatchIfDue(UUID.fromString(sos.get("emergencyId").asText()));
+        verify(fcm, never()).send(any());
+    }
+
+    @Test
+    @DisplayName("logout atrasado de um aparelho antigo não desliga o aparelho atual")
+    void desregistroDeTokenAntigoNaoApagaOAtual() throws Exception {
+        Conta ana = signup("sos-logout-antigo@aura.com", "Ana");
+        String homeId = casaDe(ana.auth());
+        registraAparelho(ana.auth(), "token-do-celular-novo");
+
+        mvc.perform(delete("/api/v1/notifications/register-token").header("Authorization", ana.auth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"fcmToken":"token-do-celular-antigo"}"""))
+                .andExpect(status().isOk());
+
+        String emergencyId = disparaSemSessao(homeId).get("emergencyId").asText();
+        emergencies.dispatchIfDue(UUID.fromString(emergencyId));
+        assertThat(avisosEnviados(1).get(0).deviceToken()).isEqualTo("token-do-celular-novo");
+    }
+
+    @Test
+    @DisplayName("desregistrar exige sessão")
+    void desregistroExigeSessao() throws Exception {
+        mvc.perform(delete("/api/v1/notifications/register-token"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

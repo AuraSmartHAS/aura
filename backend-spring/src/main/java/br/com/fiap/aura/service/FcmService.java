@@ -2,12 +2,15 @@ package br.com.fiap.aura.service;
 
 import br.com.fiap.aura.web.error.ApiException;
 import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.Aps;
+import com.google.firebase.messaging.ApsAlert;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -28,6 +31,21 @@ import org.springframework.stereotype.Service;
 public class FcmService {
 
     private static final Logger log = LoggerFactory.getLogger(FcmService.class);
+
+    /**
+     * Canais Android criados pelos apps no startup (Flutter e RN, mesmos ids). O do SOS toca e
+     * vibra com importância máxima; o geral é o de pedidos e recomendações. Canal que o app não
+     * criou faz o Android cair num canal genérico sem som — os ids aqui e lá têm de ser iguais.
+     */
+    static final String CHANNEL_SOS = "aura_sos";
+    static final String CHANNEL_GERAL = "aura_geral";
+
+    /**
+     * Categoria do aviso de SOS que leva o botão "Estou indo". Os apps registram a categoria com a
+     * ação {@code ack}; o RN (expo-notifications) a lê de {@code data.categoryId}, o Flutter a
+     * reconhece pelo mesmo campo.
+     */
+    static final String CATEGORY_SOS_ACK = "aura_sos_ack";
 
     /** Prefixo do identificador do modo simulado: nenhum id do FCM se parece com isso. */
     private static final String SIMULATED_PREFIX = "simulado:";
@@ -75,13 +93,18 @@ public class FcmService {
         try {
             Message.Builder builder = Message.builder()
                     .setToken(message.deviceToken())
-                    .setNotification(Notification.builder()
-                            .setTitle(message.title())
-                            .setBody(message.body())
-                            .build())
-                    .putAllData(message.data());
+                    .putAllData(transportData(message));
             if (message.highPriority()) {
-                aplicarPrioridadeAlta(builder);
+                aplicarPrioridadeAlta(builder, message);
+            } else {
+                builder.setNotification(Notification.builder()
+                                .setTitle(message.title())
+                                .setBody(message.body())
+                                .build())
+                        .setAndroidConfig(AndroidConfig.builder()
+                                .setPriority(AndroidConfig.Priority.NORMAL)
+                                .setNotification(AndroidNotification.builder().setChannelId(CHANNEL_GERAL).build())
+                                .build());
             }
             String messageId = messaging.send(builder.build());
             long latencyMs = elapsedMs(inicio);
@@ -98,26 +121,57 @@ public class FcmService {
     }
 
     /**
+     * O {@code data} que sai pelo FCM. Aviso comum vai como está. O SOS vai <b>só com dados</b> no
+     * Android: o aviso que o próprio sistema desenha a partir do bloco {@code notification} não
+     * aceita botão, e o "Estou indo" direto na notificação é o que poupa segundos de quem corre.
+     * Então título, texto e canal viajam em {@code data} e cada app desenha o próprio aviso
+     * ({@code title}/{@code message}/{@code channelId}/{@code categoryId} são as chaves que o
+     * expo-notifications lê; o Flutter usa as mesmas). Só o SOS ainda em aberto leva o botão.
+     *
+     * <p>Visível para teste. As chaves novas não mudam a regra de privacidade: o texto é o mesmo
+     * que já aparece na tela de bloqueio.
+     */
+    static Map<String, String> transportData(PushMessage message) {
+        if (!message.highPriority()) {
+            return message.data();
+        }
+        Map<String, String> data = new LinkedHashMap<>(message.data());
+        data.put("title", message.title());
+        data.put("message", message.body());
+        data.put("channelId", CHANNEL_SOS);
+        if ("ack".equals(message.data().get("action"))) {
+            data.put("categoryId", CATEGORY_SOS_ACK);
+        }
+        return data;
+    }
+
+    /**
      * Prioridade máxima nas duas plataformas. São dois mecanismos distintos e nenhum dos dois é o
      * padrão do SDK:
      *
      * <ul>
-     *   <li><b>Android</b>: {@code priority: high} acorda o app mesmo em <i>doze mode</i>.</li>
+     *   <li><b>Android</b>: {@code priority: high} acorda o app mesmo em <i>doze mode</i> — e é o
+     *       que garante que a mensagem só de dados chegue ao app encerrado para ele desenhar o
+     *       aviso com o botão.</li>
      *   <li><b>iOS</b>: o cabeçalho {@code apns-priority: 10} entrega imediatamente, e
      *       {@code interruption-level: time-sensitive} é o que faz o aviso atravessar Foco e Não
-     *       Perturbe. Sem o segundo, o primeiro entrega rápido para um celular que não apita.</li>
+     *       Perturbe. Sem o bloco {@code notification}, o alerta visível vai no {@code aps}.</li>
      * </ul>
      *
      * <p>Não usamos {@code critical} no iOS: exige <i>entitlement</i> especial da Apple, que este
      * projeto não tem — e prometer alerta crítico sem o entitlement é falhar em silêncio.
      */
-    private static void aplicarPrioridadeAlta(Message.Builder builder) {
+    private static void aplicarPrioridadeAlta(Message.Builder builder, PushMessage message) {
         builder.setAndroidConfig(AndroidConfig.builder()
                         .setPriority(AndroidConfig.Priority.HIGH)
                         .build())
                 .setApnsConfig(ApnsConfig.builder()
                         .putHeader("apns-priority", "10")
                         .setAps(Aps.builder()
+                                .setAlert(ApsAlert.builder()
+                                        .setTitle(message.title())
+                                        .setBody(message.body())
+                                        .build())
                                 .setSound("default")
                                 .putCustomData("interruption-level", "time-sensitive")
                                 .build())

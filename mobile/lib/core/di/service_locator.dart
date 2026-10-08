@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
 import '../notifications/notification_service.dart';
+import '../notifications/push_ports.dart';
 import '../session/auth_session.dart';
 import '../session/token_store.dart';
 import '../../features/auth/di/auth_module.dart';
@@ -51,6 +52,9 @@ void _setupCore() {
     () => ApiClient(tokenStore: sl(), session: sl()),
   );
   sl.registerLazySingleton<NotificationService>(
-    () => NotificationService(apiClient: sl(), session: sl()),
+    () => NotificationService(
+      tokenApi: DioPushTokenApi(sl<ApiClient>()),
+      session: sl(),
+    ),
   );
 }

@@ -118,9 +118,29 @@ public class AuthService {
         return new AuthDtos.TokenResponse(jwt.issueAccess(user), user.getRole(), jwt.issueRefresh(user));
     }
 
+    /**
+     * Um aparelho é de uma pessoa só. O celular em que a Ana saiu e a Maria entrou continua com o
+     * mesmo token FCM; sem tirar o token da Ana, o SOS endereçado a ela apitaria na mão da Maria.
+     */
     @Transactional
     public void registerFcmToken(AuthPrincipal principal, String token) {
+        users.findByFcmToken(token).stream()
+                .filter(u -> !u.getId().equals(principal.userId()))
+                .forEach(u -> u.setFcmToken(null));
         require(principal.userId()).setFcmToken(token);
+    }
+
+    /**
+     * Desregistro no logout. Com o token informado, só apaga se ainda for o registrado: o logout
+     * atrasado de um aparelho antigo não pode desligar o aviso do aparelho em que a pessoa entrou
+     * depois. Sem token, apaga o que houver. Idempotente nos dois casos.
+     */
+    @Transactional
+    public void unregisterFcmToken(AuthPrincipal principal, String token) {
+        UserAccount user = require(principal.userId());
+        if (token == null || token.isBlank() || token.equals(user.getFcmToken())) {
+            user.setFcmToken(null);
+        }
     }
 
     @Transactional

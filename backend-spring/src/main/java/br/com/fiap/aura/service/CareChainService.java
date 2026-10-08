@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,13 +55,14 @@ public class CareChainService {
     private final ScoringService scoring;
     private final AuraProperties props;
     private final InFlightOrderService inFlight;
+    private final ApplicationEventPublisher events;
 
     public CareChainService(RecommendationRepository recommendations, DeliveryOrderRepository orders,
                             ProductRepository products, ScoreRepository scores, StockNodeRepository nodes,
                             MedicationRepository medications,
                             HomeService homeService, AuthService auth, GeoService geo,
                             GuardrailService guardrails, ScoringService scoring, AuraProperties props,
-                            InFlightOrderService inFlight) {
+                            InFlightOrderService inFlight, ApplicationEventPublisher events) {
         this.recommendations = recommendations;
         this.orders = orders;
         this.products = products;
@@ -74,6 +76,7 @@ public class CareChainService {
         this.scoring = scoring;
         this.props = props;
         this.inFlight = inFlight;
+        this.events = events;
     }
 
     /**
@@ -137,6 +140,8 @@ public class CareChainService {
                 .homeId(req.homeId()).scoreId(req.scoreId()).sku(product.getSku())
                 .reason(reason).status("recommended").factors(factors).weights(weights)
                 .build());
+        events.publishEvent(new PushEvents.RecommendationCreated(
+                rec.getHomeId(), rec.getId(), rec.getSku(), principal.userId()));
 
         return toResponse(rec, product);
     }
@@ -299,6 +304,8 @@ public class CareChainService {
             }
             default -> { }
         }
+        events.publishEvent(new PushEvents.OrderStageChanged(
+                order.getHomeId(), order.getId(), next, principal.userId()));
         return new CareChainDtos.AdvanceResponse(order.getStage(), order.getEtaDelivery(),
                 order.getInstallAt(), order.isSlaBreached());
     }

@@ -29,6 +29,16 @@ export function isAdmin(): boolean {
   return role === 'admin';
 }
 
+/** Há sessão aberta? É o que decide se o toque num aviso navega já ou espera o login. */
+export function hasSession(): boolean {
+  return token !== null;
+}
+
+/** A paciente não recebe a tela de quem cuida: o aviso tocado era endereçado a outra pessoa. */
+export function isPatient(): boolean {
+  return role === 'paciente';
+}
+
 /** Erro da API com o status HTTP: a tela distingue "sessão expirou" de "sem conexão". */
 export class ApiError extends Error {
   constructor(
@@ -235,4 +245,21 @@ export const api = {
   /** "Estou indo": fecha o loop e para o escalonamento. */
   acknowledgeEmergency: (emergencyId: string) =>
     request<ActiveEmergency>(`/emergencies/${emergencyId}/ack`, { method: 'POST' }),
+
+  /** Registra o token FCM deste aparelho: um aparelho é de uma pessoa só (o servidor o tira de outra). */
+  registerPushToken: (fcmToken: string) =>
+    request<{ ok: boolean }>('/notifications/register-token', {
+      method: 'POST',
+      body: JSON.stringify({ fcmToken }),
+    }),
+
+  /**
+   * Logout: o aparelho deixa de receber os avisos de quem saiu. Com o token, o servidor só apaga se
+   * ele ainda for o registrado — o logout atrasado de um aparelho antigo não desliga o atual.
+   */
+  unregisterPushToken: (fcmToken: string | null) =>
+    request<{ ok: boolean }>('/notifications/register-token', {
+      method: 'DELETE',
+      ...(fcmToken ? { body: JSON.stringify({ fcmToken }) } : {}),
+    }),
 };

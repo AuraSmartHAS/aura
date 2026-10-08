@@ -16,6 +16,7 @@ import br.com.fiap.aura.web.error.ApiException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -150,6 +151,34 @@ class FcmServiceTest {
         assertThat(retracao.data()).containsEntry("action", "none");
         // casa sem endereço resolvido não faz o payload estourar: a chave simplesmente não vai
         assertThat(retracao.data()).doesNotContainKey("address");
+    }
+
+    @Test
+    @DisplayName("SOS sai só com dados: o app desenha o aviso com o botão \"Estou indo\"")
+    void sosViajaSoComDadosEComOBotao() {
+        Home casa = Home.builder().id(homeId).patientName("Maria S.").build();
+
+        Map<String, String> sos = FcmService.transportData(NotificationService.composeSos(
+                PushKind.SOS, casa, emergencia(EmergencyState.DISPATCHED), DEVICE_TOKEN));
+
+        // o aviso desenhado pelo sistema não aceita botão: título, texto e canal vão em data
+        assertThat(sos)
+                .containsEntry("title", "AURA · Pedido de ajuda")
+                .containsEntry("message", "A Maria pediu ajuda agora. Toque para abrir.")
+                .containsEntry("channelId", "aura_sos")
+                .containsEntry("categoryId", "aura_sos_ack")
+                .containsEntry("emergencyId", emergencyId.toString());
+        // "body" é lido como JSON pelo expo-notifications: texto ali viraria nulo
+        assertThat(sos).doesNotContainKey("body");
+
+        // a retração não oferece "Estou indo": não há mais para onde ir
+        Map<String, String> retracao = FcmService.transportData(NotificationService.composeSos(
+                PushKind.SOS_CANCELLED, casa, emergencia(EmergencyState.CANCELLED), DEVICE_TOKEN));
+        assertThat(retracao).containsEntry("channelId", "aura_sos").doesNotContainKey("categoryId");
+
+        // aviso comum continua desenhado pelo sistema, com o data de sempre
+        FcmService.PushMessage comum = aviso(PushKind.ORDER, orderId);
+        assertThat(FcmService.transportData(comum)).isEqualTo(comum.data());
     }
 
     @Test

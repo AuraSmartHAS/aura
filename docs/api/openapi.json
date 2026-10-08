@@ -2238,6 +2238,119 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "1. Autenticação & LGPD"
+        ],
+        "summary": "Desregistra o aparelho no logout: avisos deixam de chegar a ele",
+        "description": "Idempotente. Com `fcmToken` no corpo, só desregistra se ele ainda for o token\nregistrado — o logout atrasado de um aparelho antigo não desliga o atual.\n",
+        "operationId": "unregisterFcm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FcmTokenRemovalRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/medications/{medId}/confirm": {
@@ -6956,6 +7069,15 @@
         "properties": {
           "fcmToken": {
             "type": "string"
+          }
+        }
+      },
+      "FcmTokenRemovalRequest": {
+        "type": "object",
+        "properties": {
+          "fcmToken": {
+            "type": "string",
+            "description": "Opcional — com ele, só desregistra se ainda for o token registrado"
           }
         }
       },

@@ -237,6 +237,33 @@ describe('cliente da API', () => {
     expect(resposta.state).toBe('acknowledged');
   });
 
+  it('registro do aparelho é um POST autenticado com o token FCM', async () => {
+    setToken('jwt-1');
+    fetchMock.mockReturnValue(respostaOk({ ok: true }));
+
+    await api.registerPushToken('fcm-1');
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/notifications/register-token`);
+    expect(init.method).toBe('POST');
+    expect(init.headers.Authorization).toBe('Bearer jwt-1');
+    expect(JSON.parse(init.body)).toEqual({ fcmToken: 'fcm-1' });
+  });
+
+  it('desregistro no logout é um DELETE com o token do aparelho (ou sem corpo, se não houver)', async () => {
+    setToken('jwt-1');
+    fetchMock.mockReturnValue(respostaOk({ ok: true }));
+
+    await api.unregisterPushToken('fcm-1');
+    await api.unregisterPushToken(null);
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${BASE_URL}/notifications/register-token`);
+    expect(init.method).toBe('DELETE');
+    expect(JSON.parse(init.body)).toEqual({ fcmToken: 'fcm-1' });
+    expect(fetchMock.mock.calls[1][1].body).toBeUndefined();
+  });
+
   it('só o papel admin pode avançar a cadeia (o backend nega aos demais)', () => {
     expect(isAdmin()).toBe(false);
 

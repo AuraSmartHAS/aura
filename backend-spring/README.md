@@ -143,7 +143,7 @@ python3 ../docs/api/gerar_doc.py ../docs/api/openapi.json ../docs/api/aura-api.h
 | `PUT` `DELETE` | `/api/v1/medications/{id}` | edita e remove |
 | `POST` | `/api/v1/medications/{id}/confirm` | confirma a dose → grava sinal de adesão |
 | `POST` `GET` | `/api/v1/orders/{id}/advance` · `/orders/{id}` | avanço logístico somente ADMIN; leitura da cadeia, rota e SLA para membros autorizados |
-| `POST` | `/api/v1/notifications/register-token` | registra o aparelho que recebe o push |
+| `POST` `DELETE` | `/api/v1/notifications/register-token` | registra o aparelho que recebe o push · desregistra no logout |
 | `POST` | `/api/v1/notifications/test` | dispara o aviso e devolve `messageId`, `latencyMs` e `simulated` |
 | `GET` | `/api/v1/ops/kpis` | Torre de Controle — **admin** |
 | `GET` | `/api/v1/health` · `/` | saúde do serviço · página Thymeleaf |
@@ -209,7 +209,37 @@ curl -sX POST localhost:8080/api/v1/notifications/test \
 > recomendação para a casa da Maria. Toque para ver."*, nunca o motivo — ele apareceria na tela
 > de bloqueio de quem pegasse o celular.
 
-**Limitação declarada:** `UserAccount.fcmToken` é uma coluna, um aparelho, sobrescrita a cada
-login, e o destinatário é sempre o dono da casa. Na demonstração, quem dispara e quem recebe
-podem ser a mesma pessoa. Multi-dispositivo e escalonamento para os demais cuidadores da casa
-são tabela nova e escopo do C3.
+**Quando o push sai sozinho** (sem chamar a rota de teste), sempre depois do commit e sem que uma
+falha do FCM desfaça a ação de negócio:
+
+| Evento | Aviso | Para quem | Deep link (`data`) |
+|---|---|---|---|
+| SOS disparado, escalonado ou cancelado (`EmergencyService`) | `sos`, `sos_escalated`, `sos_cancelled`, prioridade alta, canal `aura_sos` | dono e membros da casa, menos a paciente | `emergencyId`, `state`, `action`, `lat`, `lng`, `address` |
+| Pedido muda de estágio (`POST /orders/{id}/advance`) | `order`, canal `aura_geral` | dono da casa | `orderId`, `stage` |
+| Recomendação **nova** (Care-Chain ou régua de reposição) | `recommendation`, canal `aura_geral` | dono da casa | `recommendationId` |
+
+**"Estou indo" direto na notificação:** no Android o SOS em aberto vai **só com dados**, porque o
+aviso que o sistema desenha a partir do bloco `notification` não aceita botão. Título, texto e canal
+vão em `data` (`title`, `message`, `channelId`), junto com `categoryId: aura_sos_ack`, e cada app
+desenha o próprio aviso com o botão. No Flutter o botão confirma sem abrir o app, renovando o token
+se preciso, e troca o aviso pelo resultado. No RN, cuja sessão vive na memória, o botão abre o app
+e a tela de socorro confirma ao abrir (depois do login, se a sessão tiver caído). No iOS o alerta
+vai no `aps`. Pedidos e recomendações continuam com o bloco `notification`.
+
+Quem causou o evento não recebe o aviso da própria ação. A recomendação reaproveitada não avisa de
+novo, a reposição não nasce com pedido a caminho ou adiamento em vigor, e há no máximo um aviso por
+item da casa a cada 12 h. O canal Android (`aura_sos` / `aura_geral`) vai em
+`AndroidNotification.channelId`; os apps criam os dois no startup.
+
+**Ciclo de vida do token:** um aparelho é de uma pessoa só — registrar um token o tira de qualquer
+outro usuário (o celular em que a Ana saiu e a Maria entrou não recebe mais o SOS da Ana). No logout
+o app chama `DELETE /api/v1/notifications/register-token` com o próprio token; o servidor só apaga se
+ele ainda for o registrado, para que o logout atrasado de um aparelho antigo não desligue o atual.
+
+**Boot:** o log diz `Push REAL habilitado (transportReal=true) — projeto Firebase <id>` ou
+`Push SIMULADO (transportReal=false)`. O projeto tem de ser o mesmo do `google-services.json` dos
+apps (`aura-84408`); outro projeto faz cada envio voltar `SENDER_ID_MISMATCH`.
+
+**Limitação declarada:** `UserAccount.fcmToken` continua sendo uma coluna, um aparelho por pessoa:
+quem usa celular e tablet recebe no último em que fez login. Vários aparelhos exigem tabela nova
+(`device_tokens`, com migrações H2/Postgres/Oracle) e ficaram para outra rodada.

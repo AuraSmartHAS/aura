@@ -63,12 +63,12 @@
 <body>
 <div class="topo">
   <h1>AURA Care-Chain API <span style="color:var(--muted);font-size:13px">v1.0.0</span></h1>
-  <p>52 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
+  <p>53 operações · base <code>http://localhost:8080</code> · autenticação JWT (Bearer) ·
      contas de demonstração: <code>ana@aura.com</code> · <code>admin@aura.com</code> — senha <code>aura1234</code></p>
   <input class="busca" id="busca" type="search" placeholder="Filtrar por rota, método ou descrição…" autocomplete="off">
 </div>
 <div class="layout">
-  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">9</span></a><a href="#10-Voz">10. Voz<span class="cont">1</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#51-Reposição">5.1 Reposição<span class="cont">1</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">2</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a><a href="#9-Inteligência-no-banco-(Oracle)">9. Inteligência no banco (Oracle)<span class="cont">6</span></a></nav>
+  <nav><a href="#0-Meta">0. Meta<span class="cont">1</span></a><a href="#1-Autenticação-&amp;-LGPD">1. Autenticação &amp; LGPD<span class="cont">10</span></a><a href="#10-Voz">10. Voz<span class="cont">1</span></a><a href="#2-Casas">2. Casas<span class="cont">5</span></a><a href="#3-Monitoramento-360">3. Monitoramento 360<span class="cont">5</span></a><a href="#31-Medicação">3.1 Medicação<span class="cont">5</span></a><a href="#4-Catálogo">4. Catálogo<span class="cont">5</span></a><a href="#5-Care-Chain">5. Care-Chain<span class="cont">7</span></a><a href="#51-Reposição">5.1 Reposição<span class="cont">1</span></a><a href="#6-Torre-de-Controle">6. Torre de Controle<span class="cont">2</span></a><a href="#7-Notificações">7. Notificações<span class="cont">1</span></a><a href="#8-SOS-e-crise">8. SOS e crise<span class="cont">4</span></a><a href="#9-Inteligência-no-banco-(Oracle)">9. Inteligência no banco (Oracle)<span class="cont">6</span></a></nav>
   <main>
     <section class="grupo" id="0-Meta">
       <h2>0. Meta</h2>
@@ -236,6 +236,22 @@
         <div class="bloco"><span class="rotulo ok">201 · resposta</span><pre>{
   &quot;acceptedAt&quot;: &quot;string&quot;,
   &quot;version&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
+      </article>
+      <article class="op" data-busca="delete /api/v1/notifications/register-token desregistra o aparelho no logout: avisos deixam de chegar a ele">
+        <header>
+          <span class="metodo" style="background:#f8514922;color:#f85149;border-color:#f8514955">DELETE</span>
+          <code class="rota">/api/v1/notifications/register-token</code>
+          <span class="selo">JWT</span>
+        </header>
+        <p class="resumo">Desregistra o aparelho no logout: avisos deixam de chegar a ele</p>
+        
+        <div class="bloco"><span class="rotulo">corpo da requisição</span><pre>{
+  &quot;fcmToken&quot;: &quot;string&quot;
+}</pre></div>
+        <div class="bloco"><span class="rotulo ok">200 · resposta</span><pre>{
+  &quot;ok&quot;: true
 }</pre></div>
         <div class="bloco"><span class="rotulo">erros possíveis</span><ul class="erros"><li><span class="cod">401</span><code class="erro">UNAUTHORIZED</code><span class="desc">Token ausente, inválido ou expirado — ou credenciais incorretas no login</span></li><li><span class="cod">403</span><code class="erro">FORBIDDEN</code><span class="desc">Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)</span></li><li><span class="cod">404</span><code class="erro">NOT_FOUND</code><span class="desc">Recurso inexistente</span></li><li><span class="cod">500</span><code class="erro">INTERNAL_ERROR</code><span class="desc">Falha inesperada — a mensagem interna fica no log do servidor</span></li></ul></div>
       </article>
