@@ -25,6 +25,13 @@ class HomeBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // Alta o bastante para a pílula do SOS (56dp) caber com folga.
+        toolbarHeight: AppDimensions.comfortableTouchTarget + AppDimensions.md,
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Menu: sobre e sair',
+          onPressed: () => context.push(AppRoutes.credits),
+        ),
         title: Text(
           'AURA',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -32,11 +39,13 @@ class HomeBody extends StatelessWidget {
                 letterSpacing: 4,
               ),
         ),
+        // C3 (SOS): o botão de emergência mora na barra do topo — fora da
+        // disputa por espaço com o teclado e a conversa, nunca coberto nem
+        // empurrado para fora da tela.
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            tooltip: 'Sobre e sair',
-            onPressed: () => context.push(AppRoutes.credits),
+          Padding(
+            padding: const EdgeInsets.only(right: AppDimensions.md),
+            child: Center(child: sosButton ?? const SosButton(pill: true)),
           ),
         ],
       ),
@@ -50,46 +59,46 @@ class HomeBody extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, screen) => Column(
                 children: [
-                  // A saudação e o SOS ficam fora da disputa por espaço: o
-                  // botão de socorro é a última coisa que pode encolher.
-                  _GreetingRow(
-                    userName: state.userName,
-                    sosButton: sosButton,
-                  ),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, rest) => Column(
-                        children: [
-                          Expanded(child: _Transcript(state: state)),
-                          // O rodapé cresce muito (microfone, aviso, chips,
-                          // campo de texto) e cresce de novo com a fonte do
-                          // sistema aumentada. Teto + rolagem própria: nada
-                          // some da tela nem estoura o layout.
-                          ConstrainedBox(
-                            constraints: BoxConstraints(
-                              // 70% da tela é o teto de sempre. O que sobrou
-                              // depois da saudação é o limite duro — sem ele,
-                              // o teclado aberto fazia a coluna estourar, que
-                              // é o bug que C3 e C4 criam juntas.
-                              maxHeight: math.min(
-                                screen.maxHeight * 0.7,
-                                rest.maxHeight,
+                  // Boas-vindas (conversa vazia, modo voz): saudação e
+                  // explicação (ou o erro) no topo, o botão de falar no centro
+                  // do espaço livre e o "Prefiro digitar" no rodapé.
+                  if (state.transcript.isEmpty && !state.isTextMode)
+                    Expanded(child: _WelcomeLayout(state: state))
+                  else
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, rest) => Column(
+                          children: [
+                            Expanded(child: _Transcript(state: state)),
+                            // O rodapé cresce muito (microfone, aviso, chips,
+                            // campo de texto) e cresce de novo com a fonte do
+                            // sistema aumentada. Teto + rolagem própria: nada
+                            // some da tela nem estoura o layout.
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                // 70% da tela é o teto de sempre. O que sobrou
+                                // depois da saudação é o limite duro — sem ele,
+                                // o teclado aberto fazia a coluna estourar, que
+                                // é o bug que C3 e C4 criam juntas.
+                                maxHeight: math.min(
+                                  screen.maxHeight * 0.7,
+                                  rest.maxHeight,
+                                ),
+                              ),
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.fromLTRB(
+                                  AppDimensions.lg,
+                                  AppDimensions.md,
+                                  AppDimensions.lg,
+                                  AppDimensions.lg,
+                                ),
+                                child: _BottomPanel(state: state),
                               ),
                             ),
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(
-                                AppDimensions.lg,
-                                AppDimensions.md,
-                                AppDimensions.lg,
-                                AppDimensions.lg,
-                              ),
-                              child: _BottomPanel(state: state),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -100,49 +109,27 @@ class HomeBody extends StatelessWidget {
   }
 }
 
-/// Saudação da Maria com o botão de socorro à direita.
-class _GreetingRow extends StatelessWidget {
-  const _GreetingRow({required this.userName, this.sosButton});
-
-  final String? userName;
-
-  /// Substitui o botão real no teste, que precisa injetar o próprio bloc.
-  final Widget? sosButton;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppDimensions.lg,
-        AppDimensions.lg,
-        AppDimensions.lg,
-        AppDimensions.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              userName == null ? 'Olá' : 'Olá, $userName',
-              // Patient surface: large warm greeting (>=32sp).
-              style: Theme.of(context).textTheme.displayLarge,
-            ),
-          ),
-          // C3 (SOS): o botão de emergência mora aqui, ancorado no topo. Com o
-          // teclado aberto quem encolhe é o rodapé, então o SOS neste ponto
-          // nunca fica coberto nem empurrado para fora da tela.
-          sosButton ?? const SosButton(),
-        ],
-      ),
-    );
-  }
-}
-
 /// Rodapé da conversa: erro, aviso e — conforme a escolha da Maria — o
 /// microfone ou o caminho escrito.
 class _BottomPanel extends StatelessWidget {
-  const _BottomPanel({required this.state});
+  const _BottomPanel({
+    required this.state,
+    this.showMic = true,
+    this.showRest = true,
+    this.showError = true,
+  });
 
   final HomeState state;
+
+  /// O microfone e a legenda dele. Nas boas-vindas eles moram no centro da
+  /// tela e o resto do painel no rodapé — o mesmo painel, em dois pedaços.
+  final bool showMic;
+
+  /// Erro, aviso, chips e "Prefiro digitar".
+  final bool showRest;
+
+  /// Nas boas-vindas o erro mora no topo, no lugar da explicação.
+  final bool showError;
 
   @override
   Widget build(BuildContext context) {
@@ -150,9 +137,13 @@ class _BottomPanel extends StatelessWidget {
     void send(String message) => bloc.add(HomeTextSubmittedEvent(message));
 
     return Column(
+      // Só a altura do conteúdo: nas boas-vindas o painel do microfone é
+      // centralizado no espaço livre, e uma coluna que ocupasse tudo ficaria
+      // colada no topo dele.
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (state.errorMessage != null)
+        if (showRest && showError && state.errorMessage != null)
           Padding(
             padding: const EdgeInsets.only(bottom: AppDimensions.md),
             child: Semantics(
@@ -167,7 +158,7 @@ class _BottomPanel extends StatelessWidget {
               ),
             ),
           ),
-        if (state.notice != null)
+        if (showRest && state.notice != null)
           Padding(
             padding: const EdgeInsets.only(bottom: AppDimensions.md),
             child: _NoticeBanner(
@@ -184,46 +175,53 @@ class _BottomPanel extends StatelessWidget {
             onVoice: () => bloc.add(const HomeVoiceModeRequestedEvent()),
           )
         else ...[
-          // Hero: the giant accessible mic button stays centered.
-          Center(
-            child: BigMicButton(
-              state: _toMicState(state.voiceState),
-              onTap: () => bloc.add(const HomeMicTappedEvent()),
+          if (showMic) ...[
+            // Hero: the giant accessible mic button stays centered.
+            Center(
+              child: BigMicButton(
+                state: _toMicState(state.voiceState),
+                onTap: () => bloc.add(const HomeMicTappedEvent()),
+              ),
             ),
-          ),
-          const SizedBox(height: AppDimensions.sm),
-          Text(
-            _micStateText(state),
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(color: AppColors.textPrimary),
-          ),
-          if (state.intentsHighlighted) ...[
+            // Parado, o próprio botão convida (os anéis); a legenda só aparece
+            // quando há o que contar — conectando, escutando, falando, erro.
+            if (_micStateText(state) case final legenda?) ...[
+              const SizedBox(height: AppDimensions.sm),
+              Text(
+                legenda,
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(color: AppColors.textPrimary),
+              ),
+            ],
+          ],
+          if (showRest && state.intentsHighlighted) ...[
             const SizedBox(height: AppDimensions.md),
             IntentChipsRow(onIntent: send, highlighted: true),
           ],
-          const SizedBox(height: AppDimensions.md),
+          if (showMic && showRest) const SizedBox(height: AppDimensions.md),
           // RN-008 / UI-02 / C4: o fallback é um caminho de verdade — "Prefiro
           // digitar" abre o campo de texto, nunca liga o microfone (R-10).
-          KeyboardFallbackBar(
-            actions: [
-              FallbackAction(
-                label: 'Prefiro digitar',
-                icon: Icons.keyboard_outlined,
-                onTap: () => bloc.add(const HomeTextModeRequestedEvent()),
-              ),
-              // Só aparece quando existe fala para repetir — no começo da
-              // conversa seria um botão que não faz nada.
-              if (state.lastAuraReply != null)
+          if (showRest)
+            KeyboardFallbackBar(
+              actions: [
                 FallbackAction(
-                  label: 'Ouvir de novo',
-                  icon: Icons.replay,
-                  onTap: () => bloc.add(const HomeRepeatLastReplyEvent()),
+                  label: 'Prefiro digitar',
+                  icon: Icons.keyboard_outlined,
+                  onTap: () => bloc.add(const HomeTextModeRequestedEvent()),
                 ),
-            ],
-          ),
+                // Só aparece quando existe fala para repetir — no começo da
+                // conversa seria um botão que não faz nada.
+                if (state.lastAuraReply != null)
+                  FallbackAction(
+                    label: 'Ouvir de novo',
+                    icon: Icons.replay,
+                    onTap: () => bloc.add(const HomeRepeatLastReplyEvent()),
+                  ),
+              ],
+            ),
         ],
       ],
     );
@@ -244,13 +242,13 @@ class _BottomPanel extends StatelessWidget {
     }
   }
 
-  String _micStateText(HomeState state) {
+  String? _micStateText(HomeState state) {
     if (state.isMuted && state.isSessionLive) {
       return 'Microfone desligado. Toque para falar.';
     }
     switch (state.voiceState) {
       case VoiceUIState.idle:
-        return 'Toque para começar';
+        return null;
       case VoiceUIState.connecting:
         return 'Conectando...';
       case VoiceUIState.listening:
@@ -362,7 +360,9 @@ class _TranscriptState extends State<_Transcript> {
   @override
   Widget build(BuildContext context) {
     if (widget.state.transcript.isEmpty) {
-      return const _EmptyTranscript();
+      // Só chega aqui no modo texto (a voz parada usa as boas-vindas): ela
+      // escolheu escrever, a conversa começou, e o convite sai da tela.
+      return const SizedBox.shrink();
     }
 
     return ListView.builder(
@@ -385,77 +385,113 @@ class _TranscriptState extends State<_Transcript> {
   }
 }
 
-/// Warm, welcoming empty state: AURA has a face and an invitation — not a cold
-/// bordered box. This is the patient's first impression of "her".
-class _EmptyTranscript extends StatelessWidget {
-  const _EmptyTranscript();
+/// O topo das boas-vindas: a saudação com o convite numa frase só ("Olá,
+/// Maria! Vamos conversar?") e, abaixo, a explicação de como falar ou
+/// escrever — ou, quando a tentativa falhou, a frase do erro no lugar dela.
+///
+/// Depois da primeira interação a saudação e a explicação não voltam (até o
+/// app fechar); só o erro aparece, e some quando uma nova tentativa dá certo.
+class _WelcomeText extends StatelessWidget {
+  const _WelcomeText({required this.state});
+
+  final HomeState state;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Centraliza quando cabe e rola quando não cabe — com o teclado aberto (ou
-    // a fonte do sistema aumentada) esta área encolhe bastante.
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.xl,
-                vertical: AppDimensions.md,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // AURA's identity mark — a calm, friendly presence.
-                  const _AuraAvatar(),
-                  const SizedBox(height: AppDimensions.lg),
-                  Text(
-                    'Olá, vamos conversar?',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.displaySmall
-                        ?.copyWith(color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(height: AppDimensions.sm),
-                  Text(
-                    'Sou a Aura. Fale comigo pelo microfone ou toque em '
-                    '"Prefiro digitar" — do jeito que for mais fácil para você.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge
-                        ?.copyWith(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
+    final nome = state.userName;
+    final error = state.errorMessage;
+    final showGreeting = !state.greetingDismissed;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showGreeting)
+          Text(
+            nome == null
+                ? 'Olá! Vamos conversar?'
+                : 'Olá, $nome! Vamos conversar?',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.displaySmall
+                ?.copyWith(color: AppColors.textPrimary),
           ),
-        ),
-      ),
+        if (showGreeting) const SizedBox(height: AppDimensions.sm),
+        if (error != null)
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              error,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: AppColors.error),
+            ),
+          )
+        else if (showGreeting)
+          Text(
+            'Para falar comigo, clique no botão abaixo ou toque em '
+            '"Prefiro digitar" para escrever',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge
+                ?.copyWith(color: AppColors.textSecondary),
+          ),
+      ],
     );
   }
 }
 
-/// AURA's avatar / identity mark: a soft petrol disc holding a gentle
-/// "presence" glyph. Decorative — hidden from screen readers.
-class _AuraAvatar extends StatelessWidget {
-  const _AuraAvatar();
+/// Boas-vindas em três faixas: o convite colado no topo, o botão de falar no
+/// centro do espaço que sobra e o "Prefiro digitar" no rodapé. Quando não cabe
+/// (tela pequena, fonte do sistema aumentada, teclado aberto) a tela inteira
+/// rola, em vez de as faixas fixas estourarem e esconderem o "Prefiro digitar".
+class _WelcomeLayout extends StatelessWidget {
+  const _WelcomeLayout({required this.state});
+
+  final HomeState state;
 
   @override
   Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: Container(
-        width: AppDimensions.xxl * 2,
-        height: AppDimensions.xxl * 2,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.spatial_audio_off,
-          size: AppDimensions.xxl,
-          color: AppColors.primary,
+    return LayoutBuilder(
+      builder: (context, area) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: area.maxHeight),
+          child: IntrinsicHeight(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.xl,
+                    AppDimensions.lg,
+                    AppDimensions.xl,
+                    0,
+                  ),
+                  child: _WelcomeText(state: state),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppDimensions.md,
+                      ),
+                      child: _BottomPanel(state: state, showRest: false),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppDimensions.lg,
+                    0,
+                    AppDimensions.lg,
+                    AppDimensions.lg,
+                  ),
+                  child: _BottomPanel(
+                    state: state,
+                    showMic: false,
+                    showError: false,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -83,4 +83,35 @@ class VoiceServiceTest {
                 .isInstanceOfSatisfying(ApiException.class,
                         e -> assertThat(e.getCode()).isEqualTo("VOICE_UPSTREAM_ERROR"));
     }
+
+    @Test
+    @DisplayName("ElevenLabs lento desiste no limite e vira 502 na hora, não 20 s de espera")
+    void desisteNoLimite() throws Exception {
+        com.sun.net.httpserver.HttpServer lento =
+                com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        lento.createContext("/", troca -> {
+            try {
+                Thread.sleep(3_000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            troca.sendResponseHeaders(500, -1);
+            troca.close();
+        });
+        lento.start();
+        try {
+            String base = "http://127.0.0.1:" + lento.getAddress().getPort();
+            VoiceService voice = new VoiceService("sk-segredo", "agent-42", base,
+                    java.time.Duration.ofMillis(300), RestClient.builder());
+
+            long inicio = System.nanoTime();
+            assertThatThrownBy(voice::conversationToken)
+                    .isInstanceOfSatisfying(ApiException.class,
+                            e -> assertThat(e.getCode()).isEqualTo("VOICE_UPSTREAM_ERROR"));
+            long ms = (System.nanoTime() - inicio) / 1_000_000;
+            assertThat(ms).isLessThan(2_000);
+        } finally {
+            lento.stop(0);
+        }
+    }
 }

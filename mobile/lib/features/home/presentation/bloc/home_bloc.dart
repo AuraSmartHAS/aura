@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/conversation_token_cache.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/transcript_message_entity.dart';
 import '../../domain/repositories/conversation_repository.dart';
@@ -36,6 +37,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// nome em vez de supor que é a Maria.
   final String? userFirstName;
 
+  /// Pede a permissão do microfone ao abrir a tela, para o primeiro toque não
+  /// parar num diálogo do sistema. Nulo nos testes.
+  final Future<void> Function()? requestMicPermission;
+
+  /// Se a saudação já saiu nesta sessão do app (lido na abertura da tela) e
+  /// como avisar que saiu agora. Mora fora do bloc porque a tela pode ser
+  /// recriada (ir ao menu e voltar) e a saudação não pode reaparecer.
+  final bool Function()? greetingDismissedBefore;
+  final void Function()? onGreetingDismissed;
+
+  /// Token buscado na abertura da tela (ver [ConversationTokenCache]).
+  late final ConversationTokenCache _tokenCache;
+
   StreamSubscription<ConversationStatus>? _statusSubscription;
   StreamSubscription<ConversationMode>? _modeSubscription;
   StreamSubscription<List<TranscriptMessageEntity>>? _transcriptSubscription;
@@ -62,6 +76,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required ConversationRepository conversationRepository,
     this.silenceTimeout = const Duration(seconds: 12),
     this.userFirstName,
+    this.requestMicPermission,
+    this.greetingDismissedBefore,
+    this.onGreetingDismissed,
+    ConversationTokenCache? tokenCache,
   })  : _fetchTokenUseCase = fetchTokenUseCase,
         _startConversationUseCase = startConversationUseCase,
         _stopConversationUseCase = stopConversationUseCase,
@@ -69,6 +87,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         _toggleMuteUseCase = toggleMuteUseCase,
         _conversationRepository = conversationRepository,
         super(const HomeState()) {
+    _tokenCache = tokenCache ?? ConversationTokenCache(_fetchTokenUseCase.call);
     on<HomeInitEvent>(_onInit);
     on<HomeMicTappedEvent>(_onMicTapped);
     on<HomeStatusChangedEvent>(_onStatusChanged);
@@ -86,10 +105,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onInit(HomeInitEvent event, Emitter<HomeState> emit) async {
     _setupStreamListeners();
 
-    // Abrir a tela não busca token nenhum (C7a): quem busca é cada início de
-    // conversa. A tela também abre calma — nada de banner vermelho antes de a
-    // Maria pedir alguma coisa.
-    emit(state.copyWith(isLoading: false, userName: userFirstName));
+    // A tela abre calma — nada de banner vermelho antes de a Maria pedir
+    // alguma coisa. Por baixo, já deixa pronto o que o primeiro toque no
+    // microfone esperaria: a permissão do microfone e um token de conversa.
+    // Um token só, sem renovar (ver [ConversationTokenCache]): cada token
+    // emitido ocupa uma vaga de conversa na ElevenLabs. Falha aqui é
+    // silenciosa e o toque busca na hora, como antes.
+    emit(state.copyWith(
+      isLoading: false,
+      userName: userFirstName,
+      greetingDismissed: greetingDismissedBefore?.call() ?? false,
+    ));
+    _tokenCache.warmUp();
+    final askMic = requestMicPermission;
+    if (askMic != null) {
+      unawaited(askMic().catchError((Object _) {}));
+    }
   }
 
   void _setupStreamListeners() {
@@ -115,7 +146,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
   }
 
+  /// Primeira interação: a saudação e a explicação saem de vez.
+  void _dismissGreeting(Emitter<HomeState> emit) {
+    if (state.greetingDismissed) return;
+    emit(state.copyWith(greetingDismissed: true));
+    onGreetingDismissed?.call();
+  }
+
   Future<void> _onMicTapped(HomeMicTappedEvent event, Emitter<HomeState> emit) async {
+    _dismissGreeting(emit);
     // Toque repetido enquanto a conversa sobe não é pedido de parar nem de
     // recomeçar — é o tremor. A tela já está dizendo "Conectando...".
     if (_pendingStart != null) return;
@@ -213,6 +252,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeTextModeRequestedEvent event,
     Emitter<HomeState> emit,
   ) async {
+    _dismissGreeting(emit);
     emit(state.copyWith(isTextMode: true, clearError: true));
     await _ensureSessionForText(emit);
   }
@@ -237,6 +277,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     final text = event.text.trim();
     if (text.isEmpty) return;
+    _dismissGreeting(emit);
 
     _cancelSilenceWatch();
     emit(state.copyWith(intentsHighlighted: false, clearError: true));
@@ -343,8 +384,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ///
   /// O token da conversa é de uso único e de vida curta: o da conversa anterior
   /// não serve para a próxima. Buscá-lo uma vez, na abertura da tela, era o que
-  /// quebrava a segunda conversa da Maria sem sair da tela (C7a) — por isso ele
-  /// não mora em campo nenhum, só nesta chamada.
+  /// quebrava a segunda conversa da Maria sem sair da tela (C7a). O cache
+  /// respeita isso: o token da abertura sai dele uma vez só, e as conversas
+  /// seguintes buscam o seu na hora.
   Future<bool> _connectSession(Emitter<HomeState> emit) async {
     emit(state.copyWith(
       voiceState: VoiceUIState.connecting,
@@ -371,7 +413,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   /// Token desta conversa, ou `null` quando a busca falha — nesse caso a frase
   /// já foi para a tela, vinda do dicionário (C6).
   Future<String?> _fetchFreshToken(Emitter<HomeState> emit) async {
-    final result = await _fetchTokenUseCase();
+    final result = await _tokenCache.take();
     switch (result) {
       case Success<String>():
         return result.data;
@@ -435,6 +477,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   @override
   Future<void> close() {
+    _tokenCache.dispose();
     _cancelSilenceWatch();
     _statusSubscription?.cancel();
     _modeSubscription?.cancel();

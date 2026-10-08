@@ -30,6 +30,11 @@ class HomeState extends Equatable {
   /// ao leitor de tela (tocar "Ouvir de novo" duas vezes tem de falar duas).
   final int noticeId;
 
+  /// A Maria já interagiu (tocou no microfone, escolheu escrever ou mandou uma
+  /// frase): a saudação e a explicação saem e não voltam até o app fechar ou
+  /// ela sair da conta — nem se a tentativa falhar.
+  final bool greetingDismissed;
+
   const HomeState({
     this.isLoading = true,
     this.userName,
@@ -41,6 +46,7 @@ class HomeState extends Equatable {
     this.intentsHighlighted = false,
     this.notice,
     this.noticeId = 0,
+    this.greetingDismissed = false,
   });
 
   HomeState copyWith({
@@ -56,6 +62,7 @@ class HomeState extends Equatable {
     String? notice,
     int? noticeId,
     bool clearNotice = false,
+    bool? greetingDismissed,
   }) {
     return HomeState(
       isLoading: isLoading ?? this.isLoading,
@@ -68,6 +75,7 @@ class HomeState extends Equatable {
       intentsHighlighted: intentsHighlighted ?? this.intentsHighlighted,
       notice: clearNotice ? null : (notice ?? this.notice),
       noticeId: noticeId ?? this.noticeId,
+      greetingDismissed: greetingDismissed ?? this.greetingDismissed,
     );
   }
 
@@ -96,5 +104,6 @@ class HomeState extends Equatable {
         intentsHighlighted,
         notice,
         noticeId,
+        greetingDismissed,
       ];
 }

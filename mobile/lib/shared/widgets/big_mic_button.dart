@@ -10,8 +10,10 @@ enum MicState { idle, connecting, listening, speaking, error }
 /// (spec 06/07: `BigMicButton`).
 ///
 /// AURA's presence is calm, not a neon "AI orb": when active it emits soft,
-/// slow concentric rings that breathe outward. Motion is suppressed when the OS
-/// requests reduced motion. Large touch target, high contrast, Semantics.
+/// slow concentric rings that breathe outward. Parado, o botão convida: anéis
+/// mais visíveis saem dele sem parar, para quem abre a tela entender que é ali
+/// que se toca para falar. Motion is suppressed when the OS requests reduced
+/// motion. Large touch target, high contrast, Semantics.
 class BigMicButton extends StatefulWidget {
   const BigMicButton({super.key, required this.state, required this.onTap});
 
@@ -36,7 +38,9 @@ class _BigMicButtonState extends State<BigMicButton>
       widget.state == MicState.speaking ||
       widget.state == MicState.connecting;
 
-  bool get _shouldAnimate => _active && !_reduceMotion;
+  bool get _idle => widget.state == MicState.idle;
+
+  bool get _shouldAnimate => (_active || _idle) && !_reduceMotion;
 
   @override
   void didChangeDependencies() {
@@ -51,7 +55,17 @@ class _BigMicButtonState extends State<BigMicButton>
     _syncAnimation();
   }
 
+  /// O convite (parado) respira mais devagar que a conversa em andamento.
+  static const _inviteCycle = Duration(milliseconds: 3600);
+  static const _activeCycle = Duration(milliseconds: 2200);
+
   void _syncAnimation() {
+    final cycle = _idle ? _inviteCycle : _activeCycle;
+    if (_controller.duration != cycle) {
+      final wasAnimating = _controller.isAnimating;
+      _controller.duration = cycle;
+      if (wasAnimating) _controller.repeat();
+    }
     if (_shouldAnimate && !_controller.isAnimating) {
       _controller.repeat();
     } else if (!_shouldAnimate && _controller.isAnimating) {
@@ -102,8 +116,12 @@ class _BigMicButtonState extends State<BigMicButton>
                   builder: (context, _) => Stack(
                     alignment: Alignment.center,
                     children: [
-                      for (final delay in const [0.0, 0.5])
-                        _ring(color, (_controller.value + delay) % 1.0),
+                      if (_idle)
+                        for (final delay in const [0.0, 0.5])
+                          _inviteRing(color, (_controller.value + delay) % 1.0)
+                      else
+                        for (final delay in const [0.0, 0.5])
+                          _ring(color, (_controller.value + delay) % 1.0),
                     ],
                   ),
                 )
@@ -155,6 +173,33 @@ class _BigMicButtonState extends State<BigMicButton>
         border: Border.all(
           color: color.withValues(alpha: (1 - t) * 0.35),
           width: 2,
+        ),
+      ),
+    );
+  }
+
+  /// Anel do convite: nasce na borda do botão e se abre até a borda da área
+  /// reservada, apagando no caminho. Mais forte que o anel de "escutando" —
+  /// o papel dele é chamar o olhar para o botão.
+  Widget _inviteRing(Color color, double t) {
+    const core = AppDimensions.bigMicSize;
+    const box = core * 1.5;
+    // Abre devagar e desacelera no fim; o brilho entra suave e sai suave, sem
+    // o anel "nascer" de repente na borda do botão.
+    final eased = Curves.easeOutCubic.transform(t);
+    final size = core + eased * (box - core);
+    final fade = Curves.easeIn.transform(1 - t) * Curves.easeOut.transform(
+          (t * 4).clamp(0.0, 1.0),
+        );
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: fade * 0.10),
+        border: Border.all(
+          color: color.withValues(alpha: fade * 0.55),
+          width: 3,
         ),
       ),
     );

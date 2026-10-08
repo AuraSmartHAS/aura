@@ -2,6 +2,7 @@ import 'package:aura/core/database/app_database.dart';
 import 'package:aura/core/network/api_client.dart';
 import 'package:aura/core/session/auth_session.dart';
 import 'package:get_it/get_it.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../data/datasources/conversation_remote_datasource.dart';
 import '../data/datasources/conversation_session_datasource.dart';
 import '../data/datasources/symptom_remote_datasource.dart';
@@ -106,6 +107,9 @@ void setupHomeModule(GetIt sl) {
       toggleMuteUseCase: sl<ToggleMuteUseCase>(),
       conversationRepository: sl<ConversationRepository>(),
       userFirstName: sl<AuthSession>().userFirstName,
+      requestMicPermission: () => Permission.microphone.request(),
+      greetingDismissedBefore: () => sl<AuthSession>().patientGreetingDismissed,
+      onGreetingDismissed: () => sl<AuthSession>().dismissPatientGreeting(),
     ),
   );
 }

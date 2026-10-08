@@ -84,6 +84,8 @@ aura:
     api-key: ${ELEVENLABS_API_KEY:}
     agent-id: ${ELEVENLABS_AGENT_ID:}
     base-url: https://api.elevenlabs.io
+    # Limite da chamada que gera o token. Sem ele, a ElevenLabs sem vagas levava ~17 s para falhar.
+    timeout: 8s
   push:
     # Credencial do Firebase — só o NOME da variável mora aqui; o segredo nunca entra no repositório.
     # Uma das duas basta: caminho do arquivo da conta de serviço ou o JSON inteiro.

@@ -49,6 +49,7 @@ class AppColors {
 
   // ── Status / severity ──────────────────────────────────────────
   static const Color error = Color(0xFFC0392B); // high risk / SLA breach
+  static const Color errorDark = Color(0xFF8E2219); // selo "SOS" sobre o vermelho do botão
   static const Color success = Color(0xFF148F77); // ok
   static const Color warning = Color(0xFF9A6109); // attention (amber, AA-hardened)
 

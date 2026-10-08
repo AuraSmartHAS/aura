@@ -14,12 +14,17 @@ import 'package:aura/features/home/presentation/bloc/home_bloc.dart';
 import 'package:aura/features/home/presentation/home_error_copy.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Correção C7a — token de voz buscado a cada conversa.
+/// Correção C7a — cada conversa com o seu token.
 ///
 /// O token da conversa é de **uso único**: o app buscava um só na abertura da
 /// tela e reusava, então a segunda conversa na mesma tela não subia. É o bug
 /// que estraga gravação de demonstração, porque quem grava precisa de mais de
 /// uma tomada.
+///
+/// Agora a tela busca **um** token na abertura (a ElevenLabs leva segundos
+/// para gerar um), mas ele continua servindo a uma conversa só: a primeira o
+/// consome, e as seguintes buscam o seu na hora. Nada é buscado de antemão
+/// além desse — cada token emitido ocupa uma vaga de conversa na ElevenLabs.
 void main() {
   test(
       'duas conversas seguidas na mesma tela funcionam — e cada uma busca o '
@@ -31,14 +36,15 @@ void main() {
 
     bloc.add(const HomeInitEvent());
     await _tick();
-    // Abrir a tela não gasta token: o da abertura já teria vencido (ou sido
-    // usado) quando ela finalmente tocasse no microfone.
-    expect(repository.tokenFetches, 0);
+    // Abrir a tela já deixa um token pronto, para o toque não esperar.
+    expect(repository.tokenFetches, 1);
+    expect(repository.startedWith, isEmpty);
 
-    // Primeira conversa.
+    // Primeira conversa: usa o token guardado, sem buscar outro.
     bloc.add(const HomeMicTappedEvent());
     await _tick();
     expect(bloc.state.voiceState, VoiceUIState.listening);
+    expect(repository.startedWith, ['token-1']);
     expect(repository.tokenFetches, 1);
 
     // Ela encerra.
@@ -51,11 +57,10 @@ void main() {
     await _tick();
 
     expect(
-      repository.tokenFetches,
-      2,
-      reason: 'cada conversa precisa buscar o seu token, não reusar o anterior',
+      repository.startedWith,
+      ['token-1', 'token-2'],
+      reason: 'cada conversa precisa do seu token, não do anterior',
     );
-    expect(repository.startedWith, ['token-1', 'token-2']);
     expect(bloc.state.voiceState, VoiceUIState.listening);
     expect(bloc.state.errorMessage, isNull);
   });
@@ -73,6 +78,10 @@ void main() {
 
     bloc.add(const HomeInitEvent());
     await _tick();
+    // A busca antecipada falhou, mas a tela abre calma: o erro só aparece
+    // quando a Maria pede para falar.
+    expect(bloc.state.errorMessage, isNull);
+
     bloc.add(const HomeMicTappedEvent());
     await _tick();
 
@@ -92,9 +101,10 @@ void main() {
     expect(repository.startedWith, isEmpty);
 
     // E o toque seguinte tenta buscar de novo — é o que a frase promete.
+    final antes = repository.tokenFetches;
     bloc.add(const HomeMicTappedEvent());
     await _tick();
-    expect(repository.tokenFetches, 2);
+    expect(repository.tokenFetches, greaterThan(antes));
   });
 
   test('toque duplo rápido no microfone não dispara duas buscas de token',
@@ -111,15 +121,17 @@ void main() {
     bloc.add(const HomeInitEvent());
     await _tick();
 
+    // Os dois toques caem com a busca antecipada ainda em curso: os dois
+    // esperam essa mesma busca, nenhum começa outra.
     bloc.add(const HomeMicTappedEvent());
     bloc.add(const HomeMicTappedEvent());
-    await _tick();
-    expect(repository.tokenFetches, 1);
 
     await _waitFor(() => bloc.state.voiceState == VoiceUIState.listening);
+    await _tick();
 
-    expect(repository.tokenFetches, 1, reason: 'duas buscas concorrentes');
-    expect(repository.startedWith, hasLength(1));
+    // Só a busca da abertura, usada pela conversa que subiu.
+    expect(repository.tokenFetches, 1, reason: 'busca concorrente a mais');
+    expect(repository.startedWith, ['token-1']);
     // O segundo toque também não pode ter derrubado a conversa que subia — era
     // o que acontecia: ele caía no caminho de "encerrar".
     expect(repository.stopCalls, 0);
@@ -146,8 +158,10 @@ void main() {
     bloc.add(const HomeTextSubmittedEvent('Estou com dor'));
 
     await _waitFor(() => repository.sentTexts.isNotEmpty);
+    await _tick();
 
-    expect(repository.tokenFetches, 1, reason: 'duas buscas concorrentes');
+    // Só a busca da abertura, usada pela conversa que subiu.
+    expect(repository.tokenFetches, 1, reason: 'busca concorrente a mais');
     expect(repository.startedWith, hasLength(1));
     // O texto não pode se perder por causa da espera.
     expect(repository.sentTexts, ['Estou com dor']);
@@ -164,7 +178,6 @@ void main() {
     bloc.add(const HomeTextModeRequestedEvent());
     await _tick();
 
-    expect(repository.tokenFetches, 1);
     expect(repository.startedWith, ['token-1']);
     expect(bloc.state.isMuted, isTrue);
 
@@ -174,9 +187,79 @@ void main() {
     bloc.add(const HomeTextSubmittedEvent('Tomei o remédio'));
     await _tick();
 
-    expect(repository.tokenFetches, 2);
     expect(repository.startedWith, ['token-1', 'token-2']);
     expect(repository.sentTexts, ['Tomei o remédio']);
+  });
+
+  test('com o token já buscado, o toque conecta sem esperar a ElevenLabs',
+      () async {
+    // Cada busca de token leva 300 ms (na vida real, de 3 a 16 s).
+    final repository = _FakeConversationRepository(
+      fetchDelay: const Duration(milliseconds: 300),
+    );
+    addTearDown(repository.dispose);
+    final bloc = _buildBloc(repository);
+    addTearDown(bloc.close);
+
+    bloc.add(const HomeInitEvent());
+    await _waitFor(() => repository.tokenFetches == 1);
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    final toque = DateTime.now();
+    bloc.add(const HomeMicTappedEvent());
+    await _waitFor(() => repository.startedWith.isNotEmpty);
+
+    expect(repository.startedWith, ['token-1']);
+    expect(
+      DateTime.now().difference(toque),
+      lessThan(const Duration(milliseconds: 200)),
+      reason: 'o toque esperou uma busca de token que já devia estar pronta',
+    );
+  });
+
+  test('a saudação sai na primeira interação e não volta, nem se a tentativa '
+      'falhar; a tela recriada lembra', () async {
+    final repository = _FakeConversationRepository(
+      tokenFailure: const Failure<String>(
+        AppFailure.networkError(message: 'sem rede'),
+      ),
+    );
+    addTearDown(repository.dispose);
+    var lembrado = false;
+    HomeBloc nova() => HomeBloc(
+          fetchTokenUseCase: FetchConversationTokenUseCase(repository),
+          startConversationUseCase: StartConversationUseCase(repository),
+          stopConversationUseCase: StopConversationUseCase(repository),
+          sendTextMessageUseCase: SendTextMessageUseCase(repository),
+          toggleMuteUseCase: ToggleMuteUseCase(repository),
+          conversationRepository: repository,
+          silenceTimeout: const Duration(days: 1),
+          greetingDismissedBefore: () => lembrado,
+          onGreetingDismissed: () => lembrado = true,
+        );
+
+    final bloc = nova();
+    addTearDown(bloc.close);
+    bloc.add(const HomeInitEvent());
+    await _tick();
+    expect(bloc.state.greetingDismissed, isFalse);
+
+    bloc.add(const HomeMicTappedEvent());
+    await _tick();
+
+    // falhou: a saudação continua fora e o erro existe para ocupar o lugar
+    // da explicação
+    expect(bloc.state.voiceState, VoiceUIState.error);
+    expect(bloc.state.greetingDismissed, isTrue);
+    expect(bloc.state.errorMessage, isNotNull);
+    expect(lembrado, isTrue);
+
+    // a tela é recriada (foi ao menu e voltou): a saudação não reaparece
+    final outra = nova();
+    addTearDown(outra.close);
+    outra.add(const HomeInitEvent());
+    await _tick();
+    expect(outra.state.greetingDismissed, isTrue);
   });
 }
 

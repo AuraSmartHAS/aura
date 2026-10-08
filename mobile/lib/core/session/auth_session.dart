@@ -18,6 +18,12 @@ class AuthSession extends ChangeNotifier {
   String? _homeId;
   String? _userName;
   bool _sessionExpiredNotice = false;
+  bool _patientGreetingDismissed = false;
+
+  /// A Maria já interagiu na tela de voz nesta sessão do app. Só em memória:
+  /// volta a falso quando o app fecha ou alguém sai da conta.
+  bool get patientGreetingDismissed => _patientGreetingDismissed;
+  void dismissPatientGreeting() => _patientGreetingDismissed = true;
 
   bool get isAuthenticated => _isAuthenticated;
   UserRole? get role => _role;
@@ -84,6 +90,7 @@ class AuthSession extends ChangeNotifier {
     _consentAccepted = false;
     _homeId = null;
     _userName = null;
+    _patientGreetingDismissed = false;
     notifyListeners();
   }
 }

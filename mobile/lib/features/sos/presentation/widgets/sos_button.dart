@@ -23,7 +23,12 @@ class SosButton extends StatefulWidget {
     super.key,
     this.blocFactory,
     this.channel = EmergencyChannel.touch,
+    this.pill = false,
   });
+
+  /// Pílula para a barra do topo da tela da Maria: selo redondo "SOS" e o
+  /// texto "Socorro" ao lado. O círculo grande continua sendo o da abertura.
+  final bool pill;
 
   final SosBlocFactory? blocFactory;
 
@@ -64,6 +69,7 @@ class _SosButtonState extends State<SosButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.pill) return _buildPill(context);
     return Semantics(
       button: true,
       label: SosCopy.buttonSemantics,
@@ -87,6 +93,72 @@ class _SosButtonState extends State<SosButton> {
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
                       ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Pílula vermelha com o selo "SOS" (círculo vermelho-escuro com borda e
+  /// letras brancas) e o texto "Socorro". Alta (56dp, acima do alvo mínimo de
+  /// 48) e larga: na barra do topo ela não disputa espaço com o teclado nem com
+  /// a conversa.
+  Widget _buildPill(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label: SosCopy.buttonSemantics,
+      child: SizedBox(
+        height: AppDimensions.comfortableTouchTarget,
+        child: Material(
+          color: AppColors.error,
+          shape: const StadiumBorder(
+            side: BorderSide(color: Colors.white, width: 2),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: _open,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.xs + 2,
+                AppDimensions.xs + 2,
+                AppDimensions.md,
+                AppDimensions.xs + 2,
+              ),
+              child: ExcludeSemantics(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.errorDark,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          SosCopy.buttonLabel,
+                          style: text.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Text(
+                      SosCopy.pillLabel,
+                      style: text.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

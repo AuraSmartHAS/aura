@@ -54,12 +54,14 @@ void main() {
     // Não foi coberto: termina bem acima da borda de cima do teclado.
     expect(comTeclado.bottom, lessThan(alturaDaTela - alturaDoTeclado));
 
-    // Continua inteiro na tela e no tamanho de alvo que a correção exige.
+    // Continua inteiro na tela e com alvo grande. Na barra do topo ele é uma
+    // pílula ("SOS" + "Socorro"): mais larga que o antigo círculo de 64 e com
+    // a altura de toque confortável (56), acima do mínimo de 48.
     expect(comTeclado.top, greaterThanOrEqualTo(0));
     expect(comTeclado.width, greaterThanOrEqualTo(AppDimensions.sosButtonSize));
     expect(
       comTeclado.height,
-      greaterThanOrEqualTo(AppDimensions.sosButtonSize),
+      greaterThanOrEqualTo(AppDimensions.comfortableTouchTarget),
     );
 
     // E o rodapé encolhendo não estourou nada.
