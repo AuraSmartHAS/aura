@@ -16,7 +16,7 @@
 | [`mobile-rn/`](mobile-rn/) | React Native (Expo) | Fluxo crítico recriado na nova stack: login → risco explicado → aprovação → entrega |
 | [`backend-spring/`](backend-spring/) | Java 21 + Spring Boot 3.3 | API REST `/api/v1` com JWT, JPA, Swagger e página Thymeleaf |
 | [`web-admin/`](web-admin/) | Angular 20 | Painel da cuidadora e Operação (administrador) |
-| [`database/oracle/`](database/oracle/) | Oracle PL/SQL | Dados simulados, consultas de demonstração e instalação por script (Fase 6) |
+| [`database/oracle/`](database/oracle/) | Oracle PL/SQL | Dados simulados, consultas de demonstração e instalação por script (Fases 6 e 7) |
 
 Os **três clientes consomem exatamente a mesma API**. O contrato é o ponto de
 encontro do projeto: mudar de stack no mobile não muda o backend, e vice-versa.
@@ -24,7 +24,7 @@ encontro do projeto: mudar de stack no mobile não muda o backend, e vice-versa.
 ```
  Flutter (Android/iOS/Web) ┐                              ┌ H2 (testes)
  React Native (Expo)       ├──► Spring Boot /api/v1 ───────┼ PostgreSQL (ensaio)
- Angular (painel web)      ┘    JWT · JPA · Swagger        └ Oracle + PL/SQL (Fase 6)
+ Angular (painel web)      ┘    JWT · JPA · Swagger        └ Oracle + PL/SQL (Fases 6 e 7)
 ```
 
 O mesmo back-end roda nos três bancos trocando só o perfil; cada um tem suas migrations em
@@ -56,7 +56,7 @@ cd mobile && cp .env.example .env && flutter pub get && flutter run -d chrome
 Contas de demonstração (senha `aura1234`): `ana@aura.com` (cuidadora),
 `admin@aura.com` (Operação), `maria@aura.com` (paciente).
 
-## 🗄️ Sobre Oracle, com PL/SQL (Fase 6)
+## 🗄️ Sobre Oracle, com PL/SQL (Fases 6 e 7)
 
 ```bash
 export AURA_DB_PASSWORD='uma-senha-sua'
@@ -64,10 +64,16 @@ docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
 ./database/oracle/carregar-dados.sh   # CSV da pulseira (SQL*Loader) + carga simulada
 ```
 
-O Flyway cria 16 tabelas, 3 functions e 3 procedures (mais 3 rotinas de apoio); a cada leitura nova o back-end chama
-`PRC_REGISTRAR_ALERTAS` por JDBC, depois do commit, e o aviso aparece no painel da cuidadora.
-Detalhes, DER e consultas de demonstração: [`database/oracle/README.md`](database/oracle/README.md)
-e [`docs/fase6/documentacao.html`](docs/fase6/documentacao.html).
+O Flyway cria 17 tabelas, 5 packages PL/SQL e 2 triggers. A cada leitura nova o back-end chama
+`PKG_ALERTAS.REGISTRAR_ALERTAS` por JDBC, depois do commit; a dose que deixa um remédio com 3 dias ou
+menos vira aviso na hora, pela trigger `TRG_MEDICACAO_ESTOQUE_BAIXO`; e `GET /homes/{id}/consulta` responde
+consultas em tempo real com Dynamic SQL (`PKG_RELATORIO.CONSULTAR`). Os avisos aparecem no painel da cuidadora.
+Detalhes, DER e consultas de demonstração: [`database/oracle/README.md`](database/oracle/README.md),
+[`docs/fase6/documentacao.html`](docs/fase6/documentacao.html) e [`docs/fase7/documentacao.html`](docs/fase7/documentacao.html).
+
+A esteira [`entrega-oracle.yml`](.github/workflows/entrega-oracle.yml) testa (H2, PostgreSQL e Oracle), publica a
+imagem da API no GHCR e a implanta com um Oracle efêmero; o smoke do deploy é
+[`backend-spring/ci/smoke-oracle.sh`](backend-spring/ci/smoke-oracle.sh).
 
 Testes: `./mvnw test` (H2, rápido) · `./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=`
 (Oracle real via Testcontainers) · `./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=`

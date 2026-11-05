@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "9. Inteligência no banco (Oracle)",
-        description = "Avisos, relatório de consumo e indicadores calculados por PL/SQL")
+        description = "Avisos, relatório de consumo, indicadores e consultas em tempo real calculados por PL/SQL")
 public class IntelligenceController {
 
     private final IntelligenceService intelligence;
@@ -43,7 +43,7 @@ public class IntelligenceController {
     }
 
     @PostMapping("/homes/{homeId}/alertas/processar")
-    @Operation(summary = "Roda PRC_REGISTRAR_ALERTAS agora; repetir não duplica aviso")
+    @Operation(summary = "Roda PKG_ALERTAS.REGISTRAR_ALERTAS agora; repetir não duplica aviso")
     public IntelligenceDtos.ProcessarResponse processar(@PathVariable UUID homeId) {
         return intelligence.processar(currentUser.require(), homeId);
     }
@@ -55,7 +55,7 @@ public class IntelligenceController {
     }
 
     @GetMapping("/homes/{homeId}/relatorio-consumo")
-    @Operation(summary = "Relatório de consumo por medicação (PRC_RELATORIO_CONSUMO); padrão: últimos 7 dias")
+    @Operation(summary = "Relatório de consumo por medicação (PKG_RELATORIO.CONSUMO); padrão: últimos 7 dias")
     public IntelligenceDtos.RelatorioConsumoResponse relatorioConsumo(
             @PathVariable UUID homeId,
             @Parameter(example = "2026-09-28") @RequestParam(required = false)
@@ -72,8 +72,31 @@ public class IntelligenceController {
     }
 
     @PostMapping("/ops/indicadores/consolidar")
-    @Operation(summary = "Roda PRC_CONSOLIDAR_INDICADORES agora (somente admin)")
+    @Operation(summary = "Roda PKG_RELATORIO.CONSOLIDAR_INDICADORES agora (somente admin)")
     public IntelligenceDtos.ConsolidarResponse consolidar() {
         return intelligence.consolidar();
+    }
+
+    @GetMapping("/homes/{homeId}/consulta")
+    @Operation(summary = "Consulta em tempo real (PKG_RELATORIO.CONSULTAR, Dynamic SQL): entidade, filtro, "
+            + "ordem e limite escolhidos na hora")
+    public IntelligenceDtos.ConsultaResponse consulta(
+            @PathVariable UUID homeId,
+            @Parameter(example = "signals", description = "signals, medications, emergencies, alerta, "
+                    + "indicador_diario, recommendations, orders ou scores") @RequestParam String entidade,
+            @Parameter(example = "type") @RequestParam(required = false) String coluna,
+            @Parameter(example = "SLEEP") @RequestParam(required = false) String valor,
+            @Parameter(example = "captured_at") @RequestParam(required = false) String ordem,
+            @Parameter(description = "1 a 500") @RequestParam(defaultValue = "50") int limite) {
+        return intelligence.consultar(currentUser.require(), homeId, entidade, coluna, valor, ordem, limite);
+    }
+
+    @GetMapping("/homes/{homeId}/consulta/agrupada")
+    @Operation(summary = "Contagem agrupada em tempo real (PKG_RELATORIO.AGRUPAR, Dynamic SQL)")
+    public IntelligenceDtos.ConsultaResponse consultaAgrupada(
+            @PathVariable UUID homeId,
+            @Parameter(example = "alerta") @RequestParam String entidade,
+            @Parameter(example = "regra") @RequestParam String coluna) {
+        return intelligence.agrupar(currentUser.require(), homeId, entidade, coluna);
     }
 }

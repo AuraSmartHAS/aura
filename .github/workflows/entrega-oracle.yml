@@ -1,0 +1,182 @@
+# Fase 7 · entrega contínua do back-end sobre Oracle.
+#
+#   build-e-testes  compila e empacota a API; roda a suíte inteira: H2, PostgreSQL e Oracle de verdade
+#                   (Testcontainers). Relatório do Surefire como artefato e no resumo da run.
+#   imagem          publica a imagem da API no GitHub Container Registry, marcada com o SHA do commit.
+#   deploy          sobe essa imagem com um Oracle efêmero (o mesmo docker-compose.oracle.yml da Fase 6):
+#                   o Flyway cria tabelas, packages e triggers; o job confere o PL/SQL dentro do banco,
+#                   roda o smoke pela API, guarda os logs e escreve o relatório. No fim derruba tudo.
+#
+# Em pull request roda só build-e-testes: nada é publicado nem implantado a partir de um PR.
+# O ci.yml continua sendo o portão rápido de cada projeto; este workflow é o caminho até o deploy.
+name: Entrega contínua (Oracle)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend-spring/**'
+      - 'database/oracle/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.oracle.yml'
+      - '.github/workflows/entrega-oracle.yml'
+  pull_request:
+    paths:
+      - 'backend-spring/**'
+      - 'database/oracle/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.oracle.yml'
+      - '.github/workflows/entrega-oracle.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: entrega-oracle-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-e-testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build
+        working-directory: backend-spring
+        run: ./mvnw -B -ntp -DskipTests package
+      # excludedGroups vazio: entram também os testes marcados postgres e oracle, cada um com o seu
+      # banco de verdade em contêiner (Docker já vem no runner).
+      - name: Testes (H2, PostgreSQL e Oracle)
+        working-directory: backend-spring
+        run: ./mvnw -B -ntp test -Dtest.excludedGroups=
+      - name: Relatório dos testes
+        if: always()
+        working-directory: backend-spring
+        run: |
+          {
+            echo "### Testes"
+            echo '```'
+            grep -h 'Tests run:' target/surefire-reports/*.txt | sed 's/ - in br.com.fiap.aura./  /' | grep . \
+              || echo "sem relatório"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-testes
+          path: backend-spring/target/surefire-reports/
+
+  imagem:
+    needs: build-e-testes
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      ref: ${{ steps.nome.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+      # O GHCR exige nome em minúsculas; o dono do repositório é AuraSmartHAS.
+      - id: nome
+        run: echo "ref=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/aura-backend:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend-spring
+          push: true
+          tags: ${{ steps.nome.outputs.ref }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+  deploy:
+    needs: imagem
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      COMPOSE: docker compose -f docker-compose.yml -f docker-compose.oracle.yml
+      AURA_BACKEND_IMAGE: ${{ needs.imagem.outputs.ref }}
+      # Banco efêmero que só existe dentro do runner e some no fim do job.
+      AURA_DB_PASSWORD: aura-ci-${{ github.run_id }}
+      SMOKE_REPORT: smoke-report.md
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sobe Oracle + API a partir da imagem publicada
+        run: |
+          $COMPOSE pull backend
+          $COMPOSE up -d --no-build --wait --wait-timeout 420 oracle backend
+      # O Flyway aceita um package com erro de compilação sem falhar: por isso a conferência no banco.
+      - name: PL/SQL dentro do banco
+        run: |
+          $COMPOSE exec -T oracle sqlplus -s "aura/${AURA_DB_PASSWORD}@FREEPDB1" <<'SQL' | tee plsql.txt
+          SET PAGESIZE 100 LINESIZE 120 FEEDBACK OFF HEADING ON
+          COLUMN object_name FORMAT A30
+          COLUMN object_type FORMAT A14
+          SELECT object_type, object_name, status FROM user_objects
+           WHERE object_type IN ('PACKAGE', 'PACKAGE BODY', 'TRIGGER', 'FUNCTION', 'PROCEDURE')
+           ORDER BY object_name, object_type;
+          -- trigger de auditoria: muda um limiar e devolve; as duas mudanças ficam no histórico
+          UPDATE regra_alerta SET limiar = 75 WHERE codigo = 'ADESAO_BAIXA';
+          UPDATE regra_alerta SET limiar = 80 WHERE codigo = 'ADESAO_BAIXA';
+          COMMIT;
+          SET HEADING OFF
+          SELECT 'INVALIDOS=' || COUNT(*) FROM user_objects WHERE status = 'INVALID';
+          SELECT 'AUDITORIA=' || COUNT(*) FROM regra_alerta_hist WHERE codigo = 'ADESAO_BAIXA';
+          EXIT
+          SQL
+          grep -q 'INVALIDOS=0' plsql.txt
+          grep -q 'AUDITORIA=2' plsql.txt
+      - name: Smoke pela API
+        run: backend-spring/ci/smoke-oracle.sh http://localhost:8080
+      - name: Logs
+        if: always()
+        run: |
+          mkdir -p logs
+          $COMPOSE logs --no-color backend > logs/api.log || true
+          $COMPOSE logs --no-color oracle > logs/oracle.log || true
+          cp plsql.txt "$SMOKE_REPORT" logs/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: logs-deploy
+          path: logs/
+      - name: Relatório do deploy
+        if: always()
+        run: |
+          {
+            echo "### Deploy efêmero com Oracle"
+            echo "Imagem: \`$AURA_BACKEND_IMAGE\`"
+            echo
+            echo "Migrations aplicadas pelo Flyway:"
+            echo '```'
+            grep -E 'Migrating schema|Successfully applied' logs/api.log | sed 's/.*: //' | grep . \
+              || echo "(nenhuma linha do Flyway no log)"
+            echo '```'
+            echo "PL/SQL no banco:"
+            echo '```'
+            cat logs/plsql.txt 2>/dev/null || echo "(conferência não rodou)"
+            echo '```'
+            echo "### Smoke"
+            cat "$SMOKE_REPORT" 2>/dev/null || echo "Smoke não chegou a rodar."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Derruba o ambiente
+        if: always()
+        run: $COMPOSE down -v

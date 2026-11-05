@@ -58,6 +58,11 @@ class IntelligenceUnavailableTest {
         mvc.perform(post("/api/v1/homes/{id}/alertas/processar", maria).header("Authorization", ana))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.novos").value(0));
+        mvc.perform(get("/api/v1/homes/{id}/consulta", maria).header("Authorization", ana)
+                        .param("entidade", "signals"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.engine").value("indisponivel"))
+                .andExpect(jsonPath("$.linhas.length()").value(0));
         mvc.perform(get("/api/v1/homes/{id}/relatorio-consumo", maria).header("Authorization", ana))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.engine").value("indisponivel"))
@@ -71,6 +76,10 @@ class IntelligenceUnavailableTest {
     void casaAlheiaDa403() throws Exception {
         String carlos = login("carlos@aura.com");
         UUID maria = casa("Maria S.");
+
+        mvc.perform(get("/api/v1/homes/{id}/consulta", maria).header("Authorization", carlos)
+                        .param("entidade", "signals"))
+                .andExpect(status().isForbidden());
 
         mvc.perform(get("/api/v1/homes/{id}/alertas", maria).header("Authorization", carlos))
                 .andExpect(status().isForbidden());

@@ -5,10 +5,11 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Contrato das rotas da camada de inteligência no banco (Fase 6).
+ * Contrato das rotas da camada de inteligência no banco (Fases 6 e 7).
  *
  * <p>Toda resposta traz {@code engine}: {@code "oracle"} quando o PL/SQL respondeu, ou
  * {@code "indisponivel"} quando o backend roda em H2/PostgreSQL. Indisponível não é erro: as
@@ -19,7 +20,7 @@ public final class IntelligenceDtos {
 
     private IntelligenceDtos() { }
 
-    @Schema(description = "Aviso gravado pelo banco (PRC_REGISTRAR_ALERTAS). `regra` é o código de REGRA_ALERTA.")
+    @Schema(description = "Aviso gravado pelo banco (PKG_ALERTAS). `regra` é o código de REGRA_ALERTA.")
     public record Alerta(UUID id,
                          @Schema(example = "QUASE_QUEDA") String regra,
                          @Schema(example = "alta", allowableValues = {"info", "atencao", "alta"}) String severidade,
@@ -33,12 +34,12 @@ public final class IntelligenceDtos {
 
     public record VistoResponse(UUID id, @Schema(example = "visto") String status) { }
 
-    @Schema(description = "Uma medicação ativa no período. `adesaoPct` vem de FN_TAXA_ADESAO; nulo = sem dado.")
+    @Schema(description = "Uma medicação ativa no período. `adesaoPct` vem de PKG_MEDICACAO.TAXA_ADESAO; nulo = sem dado.")
     public record ItemConsumo(String medicamento, int dosesConfirmadas, int dosesNegadas, int dosesEsperadas,
                               BigDecimal adesaoPct, Integer estoqueDoses) { }
 
     @Schema(description = """
-            Relatório resumido de consumo (PRC_RELATORIO_CONSUMO). `demandaEncaminhadaReais` é a soma do
+            Relatório resumido de consumo (PKG_RELATORIO.CONSUMO). `demandaEncaminhadaReais` é a soma do
             preço de referência dos itens aprovados no período: demanda encaminhada a parceiros, não compra.""")
     public record RelatorioConsumoResponse(@Schema(example = "oracle") String engine, LocalDate de, LocalDate ate,
                                            Integer totalDoses, BigDecimal demandaEncaminhadaReais,
@@ -52,4 +53,11 @@ public final class IntelligenceDtos {
                                       List<IndicadorCasa> casas) { }
 
     public record ConsolidarResponse(@Schema(example = "oracle") String engine, int casasProcessadas) { }
+
+    @Schema(description = """
+            Linhas de uma consulta em tempo real (PKG_RELATORIO.CONSULTAR ou AGRUPAR, Dynamic SQL). As chaves
+            são os nomes das colunas em minúsculas; ids saem como UUID e datas em ISO-8601.""")
+    public record ConsultaResponse(@Schema(example = "oracle") String engine,
+                                   @Schema(example = "signals") String entidade,
+                                   List<Map<String, Object>> linhas) { }
 }

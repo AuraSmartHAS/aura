@@ -3,6 +3,7 @@ package br.com.fiap.aura.infra;
 import java.time.Duration;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -44,5 +45,16 @@ public abstract class OracleTestSupport {
         registry.add("spring.datasource.username", ORACLE::getUsername);
         registry.add("spring.datasource.password", ORACLE::getPassword);
         registry.add("aura.seed.enabled", () -> "true");
+    }
+
+    /**
+     * A casa do seed com esse paciente. Os testes de fluxo que também rodam no Oracle criam casas com
+     * o mesmo nome ("Maria S.") no mesmo schema compartilhado; a do seed é a mais antiga, porque o seed
+     * roda antes de qualquer teste. Procurar só pelo nome deixava o resultado depender da ordem das classes.
+     */
+    public static byte[] casaDoSeed(JdbcTemplate jdbc, String paciente) {
+        return jdbc.queryForObject(
+                "SELECT id FROM homes WHERE patient_name = ? ORDER BY created_at FETCH FIRST 1 ROW ONLY",
+                byte[].class, paciente);
     }
 }

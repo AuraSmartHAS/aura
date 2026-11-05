@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Rotina automatizada: todo dia, logo depois da meia-noite de Brasília, fecha os indicadores do DIA
- * ANTERIOR de todas as casas (PRC_CONSOLIDAR_INDICADORES). Fechar "hoje" às 00h05 gravaria um dia de
+ * ANTERIOR de todas as casas (PKG_RELATORIO.CONSOLIDAR_INDICADORES). Fechar "hoje" às 00h05 gravaria um dia de
  * cinco minutos, que ninguém revisaria depois. Só existe no perfil oracle.
  *
  * <p>Agendada no backend e não no DBMS_SCHEDULER: o usuário RM do servidor da FIAP pode não ter

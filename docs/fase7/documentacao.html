@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AURA — Documentação Fase 7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Sistema visual do próprio produto (web-admin/src/styles.css): documento e tela são a mesma empresa. */
+  :root {
+    --petrol: #1A5276; --petrol-escuro: #123C56; --verde: #0E7561; --ambar: #9A6109;
+    --tinta: #10303C; --texto: #4E5D63; --apoio: #657076; --papel: #F7F5F1; --borda: #E3DED5;
+    --vermelho: #C0392B;
+  }
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif;
+    color: var(--texto); font-size: 10.5pt; line-height: 1.55; background: #fff;
+  }
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Segoe UI', Arial, sans-serif; color: var(--tinta); }
+  h1 { font-size: 22pt; margin: 0 0 2mm; letter-spacing: -0.01em; }
+  h2 { font-size: 14pt; margin: 9mm 0 3mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--petrol); }
+  h3 { font-size: 11.5pt; margin: 6mm 0 2mm; color: var(--petrol); }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  strong { color: var(--tinta); }
+  code { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 8.8pt; background: var(--papel);
+         padding: 0.3mm 1.2mm; border-radius: 1.5mm; color: var(--petrol-escuro); }
+  pre { background: var(--tinta); color: #E8EEF0; padding: 4mm; border-radius: 3mm; font-size: 8.3pt;
+        line-height: 1.45; overflow: hidden; white-space: pre-wrap; font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+        page-break-inside: avoid; }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 4mm; font-size: 9.4pt; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+  h2, h3 { page-break-after: avoid; break-after: avoid; }
+  /* Os DERs ganham página em paisagem: 16 tabelas em retrato viram letra miúda. */
+  @page paisagem { size: A4 landscape; margin: 12mm; }
+  .paisagem { page: paisagem; page-break-before: always; }
+  .paisagem figure { margin: 0; }
+  .paisagem figure img { max-height: 172mm; max-width: 100%; border: none; }
+  th { background: var(--papel); text-align: left; padding: 2mm 2.5mm; border-bottom: 1.5px solid var(--borda);
+       font-size: 8.3pt; text-transform: uppercase; letter-spacing: 0.04em; color: var(--apoio); }
+  td { padding: 2mm 2.5mm; border-bottom: 1px solid var(--borda); vertical-align: top; }
+  .cover { padding: 26mm 0 10mm; }
+  .cover img { width: 24mm; height: 24mm; border-radius: 6mm; margin-bottom: 8mm; }
+  .cover .kicker { color: var(--ambar); font-size: 9pt; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 3mm; font-weight: 700; }
+  .cover h1 { font-size: 34pt; color: var(--petrol-escuro); }
+  .cover .sub { font-size: 13pt; margin-top: 2mm; color: var(--tinta); }
+  .cover .ctx { color: var(--apoio); font-size: 9.5pt; margin-top: 8mm; }
+  .callout { background: var(--papel); border-left: 3px solid var(--petrol); padding: 3mm 4mm; margin: 4mm 0;
+             font-size: 9.6pt; page-break-inside: avoid; }
+  .callout--ambar { border-left-color: var(--ambar); }
+  .note { color: var(--apoio); font-size: 9pt; font-style: italic; }
+  .pendente { background: #FBF3E4; color: var(--ambar); border: 1px dashed var(--ambar); border-radius: 1.5mm;
+              padding: 0.2mm 1.5mm; font-weight: 700; font-size: 9pt; }
+  figure { margin: 4mm 0 6mm; page-break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 120mm; width: auto; display: block; margin: 0 auto;
+               border: 1px solid var(--borda); border-radius: 2mm; }
+  figcaption { font-size: 8.5pt; color: var(--apoio); margin-top: 1.5mm; text-align: center; }
+  .break { page-break-before: always; }
+  .avoid { page-break-inside: avoid; }
+  .ok { color: var(--verde); font-weight: 700; }
+  .tag { display: inline-block; background: #E6F2EF; color: var(--verde); border-radius: 999px;
+         padding: 0.2mm 2mm; font-size: 7.8pt; font-weight: 700; margin-left: 1mm; }
+  .obj { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-weight: 500; color: var(--petrol-escuro); }
+  .card { border: 1px solid var(--borda); border-radius: 3mm; padding: 3.5mm 4.5mm; margin: 4mm 0; page-break-inside: avoid; }
+  .card h3 { margin-top: 0; }
+  .card dl { display: grid; grid-template-columns: 30mm 1fr; gap: 1.2mm 4mm; margin: 0; font-size: 9.6pt; }
+  .card dt { color: var(--apoio); font-weight: 700; }
+  .card dd { margin: 0; }
+  .fluxo { display: flex; align-items: stretch; gap: 1.5mm; margin: 4mm 0; font-size: 8.6pt; page-break-inside: avoid; }
+  .fluxo div { flex: 1; border: 1px solid var(--borda); border-radius: 2mm; padding: 2mm; background: #fff; text-align: center; }
+  .fluxo div b { display: block; color: var(--petrol-escuro); font-size: 9pt; margin-bottom: 0.8mm; }
+  .fluxo span { align-self: center; color: var(--petrol); font-weight: 700; }
+  .footer-note { margin-top: 8mm; padding-top: 3mm; border-top: 1px solid var(--borda); color: var(--apoio); font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <img src="img/aura-logo.png" alt="AURA">
+  <p class="kicker">Documentação do projeto · Fase 7</p>
+  <h1>Do banco ao deploy</h1>
+  <p class="sub">O PL/SQL do AURA consolidado em packages, com triggers e Dynamic SQL, e uma esteira que testa, publica e implanta o back-end sobre Oracle</p>
+  <p class="ctx">
+    AURA · Assistente Ubíquo de Resposta Ativa<br>
+    Smart HAS · Enterprise Challenge 2026 (mentoria Leroy Merlin) · FIAP
+  </p>
+</section>
+
+<h2 style="margin-top:4mm">Equipe</h2>
+<table>
+  <tr><th>Nome completo</th><th>RM</th><th>Papel</th></tr>
+  <tr><td>Vinícius Miranda Baptista</td><td>555081</td><td>Tech Lead</td></tr>
+  <tr><td>João Domingos Góes Filho</td><td>564465</td><td>Dev Senior Mobile</td></tr>
+  <tr><td>Pedro Henrique Arenas Negri</td><td>554971</td><td>Dev Pleno</td></tr>
+  <tr><td>Júlia Alves Dias</td><td>557151</td><td>Infra</td></tr>
+</table>
+
+<table>
+  <tr><th>Entregável</th><th>Onde</th></tr>
+  <tr><td>Código-fonte</td><td><code>github.com/AuraSmartHAS/aura</code>, branch <code>main</code> (também na pasta <code>codigo-fonte/</code> do ZIP)</td></tr>
+  <tr><td>Vídeo de até 5 min (YouTube, não listado)</td><td>«inserir link do YouTube (não listado)»</td></tr>
+  <tr><td>Apresentação (10 slides)</td><td><code>AURA - Apresentacao Fase 7.pdf</code></td></tr>
+  <tr><td>Esteira de entrega (GitHub Actions)</td><td><code>github.com/AuraSmartHAS/aura/actions/workflows/entrega-oracle.yml</code></td></tr>
+  <tr><td>Scripts do banco (DDL, packages, triggers, carga, consultas)</td><td><code>banco-oracle/</code> no ZIP · <code>database/oracle/</code> e <code>backend-spring/src/main/resources/db/migration/oracle/</code> no repositório</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2>1. Onde o projeto está e o que esta fase entrega</h2>
+
+<p>
+O AURA acompanha idosos em casa por <strong>voz e pulseira</strong> e ajuda a família a cuidar da casa antes que
+falte alguma coisa. A Maria, 74 anos, com Parkinson, fala com o app; a Ana, a filha, acompanha pelo painel e
+aprova toda compra. Na Fase 6 o mesmo back-end Spring Boot passou a rodar sobre <strong>Oracle</strong>, e o banco
+ganhou nove rotinas PL/SQL que medem adesão ao remédio, percebem mudança de rotina e gravam avisos para a família.
+</p>
+<p>
+A Fase 7 profissionaliza essa camada em duas frentes. No banco, as nove rotinas soltas viram <strong>cinco
+packages</strong>, entram <strong>duas triggers</strong> (uma de auditoria, uma de automação) e uma consulta em
+tempo real com <strong>Dynamic SQL</strong>. Na entrega, uma <strong>esteira no GitHub Actions</strong> compila,
+testa contra Oracle de verdade, publica a imagem da API e a implanta com um Oracle efêmero, conferindo o PL/SQL
+dentro do banco e o comportamento pela API, com logs e relatório de cada execução.
+</p>
+<p>
+As duas frentes se encontram na conversa da Maria. O app dela tem um agente de voz de <strong>IA generativa</strong>
+(ElevenLabs) com ferramentas que agem na API: quando ela diz "tomei a levodopa", a ferramenta
+<code>confirm_medication</code> confirma a dose, o estoque desce, e se o remédio começar a acabar a trigger desta fase
+grava o aviso que a Ana vê no painel. O agente conversa; quem decide se há aviso são as regras versionadas do banco.
+</p>
+
+<table>
+  <tr><th style="width:38%">Pedido do enunciado</th><th>Como foi atendido</th></tr>
+  <tr><td>Agrupar procedures e functions em packages</td><td>As nove rotinas da Fase 6 em <span class="obj">PKG_APOIO</span>, <span class="obj">PKG_LEITURA</span>, <span class="obj">PKG_MEDICACAO</span>, <span class="obj">PKG_ALERTAS</span> e <span class="obj">PKG_RELATORIO</span> (§2.1). Nenhuma function ou procedure ficou solta.</td></tr>
+  <tr><td>Pelo menos uma trigger de auditoria ou automação</td><td>Duas: <span class="obj">TRG_REGRA_ALERTA_AUDITORIA</span> registra toda mudança num limiar de aviso (§2.3); <span class="obj">TRG_MEDICACAO_ESTOQUE_BAIXO</span> transforma em aviso, na hora, a dose que deixa o remédio acabando (§2.4).</td></tr>
+  <tr><td>Dynamic SQL para consultas em tempo real</td><td><span class="obj">PKG_RELATORIO.CONSULTAR</span> e <span class="obj">AGRUPAR</span>: entidade, filtro, ordem e agrupamento escolhidos na hora, com lista branca, dicionário de dados e bind (§2.5).</td></tr>
+  <tr><td>Documentar todos os objetos</td><td>§2.2: finalidade e valor agregado de cada package, rotina, trigger e tabela nova.</td></tr>
+  <tr><td>Pipeline com build e testes automatizados</td><td>Job <code>build-e-testes</code> do workflow <code>entrega-oracle.yml</code>: suíte inteira, inclusive contra Oracle e PostgreSQL em contêiner (§3.2).</td></tr>
+  <tr><td>Deploy automatizado do back-end + integração com Oracle</td><td>Jobs <code>imagem</code> e <code>deploy</code>: imagem no GitHub Container Registry, implantada com Oracle Free; o Flyway cria tabelas, packages e triggers e o job confere tudo dentro do banco (§3.3).</td></tr>
+  <tr><td>Logs e relatórios de execução</td><td>Artefatos <code>relatorio-testes</code> e <code>logs-deploy</code>; resumo de cada run com testes, migrations, objetos PL/SQL e o smoke (§3.4).</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2>2. Parte 1 · Consolidação em Oracle PL/SQL</h2>
+
+<h3>2.1 De nove rotinas soltas a cinco packages</h3>
+<p>
+Na Fase 6 cada rotina era um objeto independente no schema. Funcionava, mas qualquer pessoa com acesso ao banco
+via nove nomes sem relação entre si, e nada separava o que é contrato (o que o Java chama) do que é detalhe de
+implementação. O package resolve as duas coisas: a <strong>especificação</strong> é o contrato, com a
+documentação de cada rotina, e o <strong>corpo</strong> guarda a implementação e as rotinas privadas. As regras
+de negócio não mudaram uma linha; mudaram de casa.
+</p>
+<table>
+  <tr><th style="width:24%">Package</th><th style="width:38%">Na Fase 6</th><th>Na Fase 7</th></tr>
+  <tr><td><span class="obj">PKG_APOIO</span></td><td><code>PRC_LOG_ERRO</code>, <code>FN_UUID_TEXTO</code></td><td><code>LOG_ERRO</code>, <code>UUID_TEXTO</code></td></tr>
+  <tr><td><span class="obj">PKG_LEITURA</span></td><td><code>FN_DESCREVER_LEITURA</code>, <code>FN_VARIACAO_ROTINA</code></td><td><code>DESCREVER</code>, <code>VARIACAO_ROTINA</code></td></tr>
+  <tr><td><span class="obj">PKG_MEDICACAO</span></td><td><code>FN_DOSES_ESPERADAS</code>, <code>FN_TAXA_ADESAO</code></td><td><code>DOSES_ESPERADAS</code>, <code>TAXA_ADESAO</code> + novas <code>DOSES_POR_DIA</code> e <code>DIAS_COBERTURA</code></td></tr>
+  <tr><td><span class="obj">PKG_ALERTAS</span></td><td><code>PRC_REGISTRAR_ALERTAS</code></td><td><code>REGISTRAR_ALERTAS</code> + nova <code>AVISAR_ESTOQUE</code> e a privada <code>GRAVAR</code></td></tr>
+  <tr><td><span class="obj">PKG_RELATORIO</span></td><td><code>PRC_RELATORIO_CONSUMO</code>, <code>PRC_CONSOLIDAR_INDICADORES</code></td><td><code>CONSUMO</code>, <code>CONSOLIDAR_INDICADORES</code> + novas <code>CONSULTAR</code> e <code>AGRUPAR</code> (Dynamic SQL)</td></tr>
+</table>
+<p>
+A migração é versionada como o resto do schema. A <code>V3__consolidacao_plsql.sql</code> apaga as rotinas soltas
+(só se existirem, então serve para banco novo e para banco que já tinha a Fase 6), cria a tabela de auditoria e
+cadastra a regra nova. Os packages e as triggers moram nas repetíveis <code>R__01</code> a <code>R__04</code>,
+que o Flyway reaplica sempre que o arquivo muda. Do lado do Java, o adaptador <code>OracleCareIntelligence</code>
+passou a chamar, por exemplo, <code>PKG_ALERTAS.REGISTRAR_ALERTAS</code> no lugar de
+<code>PRC_REGISTRAR_ALERTAS</code>; as rotas, o painel e os apps não perceberam a troca.
+</p>
+<div class="callout">
+<strong>Por que cinco e não um package só.</strong> O critério foi o assunto, não o tipo de rotina. Quem mexe na
+régua de adesão abre <span class="obj">PKG_MEDICACAO</span>; quem mexe no texto que a família lê abre
+<span class="obj">PKG_LEITURA</span>. Cada package depende só dos que vêm antes dele
+(apoio → leitura e medicação → alertas e relatório), então a ordem de instalação é sempre a mesma.
+</div>
+
+<h3>2.2 Todos os objetos, o que fazem e o valor que agregam</h3>
+<table>
+  <tr><th style="width:26%">Objeto</th><th style="width:37%">Finalidade</th><th>Valor agregado ao sistema</th></tr>
+  <tr><td><span class="obj">PKG_APOIO</span><br><span class="note">package</span></td><td><code>LOG_ERRO</code> grava falhas em transação autônoma; <code>UUID_TEXTO</code> converte o <code>RAW(16)</code> do Hibernate no UUID que o Java grava dentro do JSON.</td><td>O erro de uma rotina sobrevive ao rollback de quem falhou, e coluna e JSON conversam no mesmo formato.</td></tr>
+  <tr><td><span class="obj">PKG_LEITURA</span><br><span class="note">package</span></td><td><code>DESCREVER</code> transforma a leitura crua em frase ("Quase-queda registrada · banheiro · por voz · 04/11 14:32"); <code>VARIACAO_ROTINA</code> compara a pulseira com a rotina da própria pessoa.</td><td>O aviso que a Ana lê sai pronto do banco, sem jargão nem verbo de dose; a mudança de rotina não depende de faixa clínica.</td></tr>
+  <tr><td><span class="obj">PKG_MEDICACAO</span><br><span class="note">package</span></td><td><code>TAXA_ADESAO</code> e <code>DOSES_ESPERADAS</code> medem adesão pela rotina declarada; <code>DIAS_COBERTURA</code> diz por quantos dias o estoque cobre essa rotina.</td><td>Uma régua só para adesão e estoque, usada pelo painel, pelo relatório e pela trigger.</td></tr>
+  <tr><td><span class="obj">PKG_ALERTAS</span><br><span class="note">package</span></td><td><code>REGISTRAR_ALERTAS</code> percorre as regras ativas e grava avisos; <code>AVISAR_ESTOQUE</code> grava o aviso de estoque quando a trigger pede.</td><td>Toda gravação em <code>ALERTA</code> passa por um lugar só, com a mesma deduplicação e o mesmo guardrail de texto.</td></tr>
+  <tr><td><span class="obj">PKG_RELATORIO</span><br><span class="note">package</span></td><td><code>CONSUMO</code> (relatório por remédio), <code>CONSOLIDAR_INDICADORES</code> (lote diário) e <code>CONSULTAR</code>/<code>AGRUPAR</code> (consulta em tempo real).</td><td>Perguntas novas sobre a casa são respondidas sem rota nova nem deploy, e sem abrir brecha de injeção.</td></tr>
+  <tr><td><span class="obj">TRG_REGRA_ALERTA_AUDITORIA</span><br><span class="note">trigger · auditoria</span></td><td>Toda inclusão, alteração ou exclusão em <code>REGRA_ALERTA</code> grava o antes e o depois em <code>REGRA_ALERTA_HIST</code>.</td><td>Mudar quem recebe aviso deixa rastro: quem, quando, de qual programa, de quanto para quanto.</td></tr>
+  <tr><td><span class="obj">TRG_MEDICACAO_ESTOQUE_BAIXO</span><br><span class="note">trigger · automação</span></td><td>Quando o estoque ou o horário de um remédio muda, calcula a cobertura antes e depois e chama <code>PKG_ALERTAS.AVISAR_ESTOQUE</code>.</td><td>A família é avisada na dose que deixa o remédio com 3 dias ou menos, sem job agendado e qualquer que seja o caminho de escrita.</td></tr>
+  <tr><td><span class="obj">REGRA_ALERTA_HIST</span><br><span class="note">tabela</span></td><td>Trilha de auditoria dos limiares: operação, valores antes e depois, usuário do banco, programa e horário.</td><td>Torna verdadeira a promessa da Fase 6 de que "mudar um limiar é um UPDATE auditável".</td></tr>
+  <tr><td><span class="obj">ESTOQUE_BAIXO</span><br><span class="note">linha de REGRA_ALERTA</span></td><td>Regra nova com limiar de 3 dias de cobertura, severidade "atenção".</td><td>O limiar do estoque é versionado e auditado como os outros, e pode ser desligado com <code>ATIVA = 0</code>.</td></tr>
+</table>
+
+<h3>2.3 Trigger de auditoria: TRG_REGRA_ALERTA_AUDITORIA</h3>
+<p>
+Os limiares dos avisos (adesão abaixo de 80%, passos 30% abaixo da rotina etc.) moram na tabela
+<code>REGRA_ALERTA</code> desde a Fase 6. Baixar a régua de adesão de 80% para 60% muda quem recebe aviso. Por isso
+toda mudança precisa deixar rastro, venha da API, de um script ou de alguém no SQL Developer.
+</p>
+<pre><code>CREATE OR REPLACE TRIGGER trg_regra_alerta_auditoria
+AFTER INSERT OR UPDATE OR DELETE ON regra_alerta
+FOR EACH ROW
+DECLARE
+    v_operacao regra_alerta_hist.operacao%TYPE :=
+        CASE WHEN INSERTING THEN 'INSERT' WHEN UPDATING THEN 'UPDATE' ELSE 'DELETE' END;
+BEGIN
+    INSERT INTO regra_alerta_hist (codigo, operacao, severidade_antes, severidade_depois,
+                                   limiar_antes, limiar_depois, janela_antes, janela_depois,
+                                   ativa_antes, ativa_depois, versao_antes, versao_depois)
+    VALUES (NVL(:NEW.codigo, :OLD.codigo), v_operacao, :OLD.severidade, :NEW.severidade,
+            :OLD.limiar, :NEW.limiar, :OLD.janela_horas, :NEW.janela_horas,
+            :OLD.ativa, :NEW.ativa, :OLD.versao, :NEW.versao);
+END;</code></pre>
+<p>Saída real do bloco 8 de <code>consultas-demo.sql</code>, que baixa a régua para 75% e devolve para 80%:</p>
+<pre><code>CODIGO        OPERACAO  LIMIAR_ANTES  LIMIAR_DEPOIS  VERSAO_ANTES   VERSAO_DEPOIS  USUARIO  PROGRAMA   QUANDO
+ADESAO_BAIXA  UPDATE              75             80  2026-11-demo   2026-10        AURA     SQL*Plus   04/11 20:49:49
+ADESAO_BAIXA  UPDATE              80             75  2026-10        2026-11-demo   AURA     SQL*Plus   04/11 20:49:49</code></pre>
+<p>
+A coluna <code>PROGRAMA</code> separa a mudança feita pela aplicação ("JDBC Thin Client") da feita à mão
+("SQL*Plus", "SQL Developer"). Esta trigger não engole erro de propósito: se a auditoria falhar, a mudança do
+limiar também falha, porque mudar uma régua sem deixar rastro não pode acontecer.
+</p>
+
+<h3>2.4 Trigger de automação: TRG_MEDICACAO_ESTOQUE_BAIXO</h3>
+<p>
+O app conta o estoque de remédio em doses: cada dose confirmada desce uma. O que a família precisa saber não é o
+número de doses, é <em>por quantos dias ainda dá</em>. Esta trigger faz essa conta a cada mudança de estoque ou de
+horário e, quando a cobertura cruza a linha de 3 dias, grava um aviso que aparece no painel da Ana na mesma hora.
+</p>
+<pre><code>CREATE OR REPLACE TRIGGER trg_medicacao_estoque_baixo
+AFTER INSERT OR UPDATE OF stock_doses, schedule ON medications
+FOR EACH ROW
+WHEN (NEW.active = 1)
+BEGIN
+    pkg_alertas.avisar_estoque(
+        p_home_id       =&gt; :NEW.home_id,
+        p_medication_id =&gt; :NEW.id,
+        p_nome          =&gt; :NEW.name,
+        p_estoque_doses =&gt; :NEW.stock_doses,
+        p_dias_antes    =&gt; pkg_medicacao.dias_cobertura(:OLD.stock_doses, :OLD.schedule),
+        p_dias_depois   =&gt; pkg_medicacao.dias_cobertura(:NEW.stock_doses, :NEW.schedule));
+EXCEPTION
+    WHEN OTHERS THEN
+        -- A dose confirmada vale mais que o aviso: a falha fica registrada e a gravação segue.
+        pkg_apoio.log_erro('TRG_MEDICACAO_ESTOQUE_BAIXO', SQLCODE, SQLERRM);
+END;</code></pre>
+<ul>
+  <li><strong>Só na travessia.</strong> O aviso nasce quando a cobertura passa de acima para igual ou abaixo do limiar. As doses seguintes, já abaixo da linha, não repetem o aviso; reabastecer e cair de novo no mesmo dia também não (um aviso por remédio por dia).</li>
+  <li><strong>Sem tabela mutante.</strong> A trigger lê só <code>:OLD</code> e <code>:NEW</code>. <code>DIAS_COBERTURA</code> recebe os valores, não o id, e não consulta <code>MEDICATIONS</code>, o que daria <code>ORA-04091</code>.</li>
+  <li><strong>O horário também conta.</strong> Passar de uma para três doses por dia encurta a cobertura sem mexer no estoque, por isso a trigger observa <code>schedule</code>.</li>
+  <li><strong>O limiar é da tabela.</strong> <code>AVISAR_ESTOQUE</code> lê o limiar de <code>REGRA_ALERTA</code>, como as outras regras: mudar a régua é um UPDATE auditado pela trigger de §2.3, e <code>ATIVA = 0</code> desliga o aviso.</li>
+</ul>
+<div class="callout callout--ambar">
+<strong>Como esta trigger convive com a decisão da Fase 6.</strong> A D-011 descartou "lógica em triggers" porque uma
+falha da regra derrubaria a gravação da leitura. A D-012 mantém o cuidado: a trigger não decide nada sozinha, chama o
+package, e qualquer falha vira linha em <code>LOG_ERRO_PLSQL</code> em vez de desfazer a dose. Um teste deixa a tabela
+<code>ALERTA</code> só leitura, confirma uma dose e prova que o estoque foi gravado e a falha, registrada (§4.1).
+</div>
+<figure>
+  <img src="img/painel-aviso-estoque.png" alt="Card Avisos da casa com o aviso de estoque" style="max-height:78mm">
+  <figcaption>O painel da Ana depois de quatro doses confirmadas de Levodopa + Carbidopa (3 por dia): na quarta, 9 doses = 3,0 dias, e o aviso gravado pela trigger aparece junto dos avisos da Fase 6. Nenhuma linha do painel mudou.</figcaption>
+</figure>
+
+<h3>2.5 Dynamic SQL: PKG_RELATORIO.CONSULTAR e AGRUPAR</h3>
+<p>
+A família e quem opera fazem perguntas que ninguém previu: "o sono desta semana", "os SOS que foram confirmados",
+"quantos avisos de cada regra". Em vez de uma rota por pergunta, <code>CONSULTAR</code> monta o <code>SELECT</code>
+na hora da chamada (entidade, coluna de filtro, ordenação e limite) e o abre com <code>OPEN ... FOR ... USING</code>,
+devolvendo um <code>SYS_REFCURSOR</code>. <code>AGRUPAR</code> faz o mesmo para contagem por qualquer coluna.
+</p>
+<p>Montar SQL com texto vindo de fora é o caminho clássico da injeção. Por isso cada pedaço do texto tem uma defesa:</p>
+<table>
+  <tr><th style="width:26%">Pedaço do SQL</th><th>Defesa</th></tr>
+  <tr><td>Entidade (tabela)</td><td>Lista branca fixa: <code>SIGNALS</code>, <code>MEDICATIONS</code>, <code>EMERGENCIES</code>, <code>ALERTA</code>, <code>INDICADOR_DIARIO</code>, <code>RECOMMENDATIONS</code>, <code>ORDERS</code>, <code>SCORES</code>. <code>USERS</code> e <code>CONSENTS</code> nunca entram. Fora da lista: <code>ORA-20100</code>.</td></tr>
+  <tr><td>Colunas (filtro e ordem)</td><td>Precisam existir em <code>USER_TAB_COLUMNS</code> para aquela tabela e entram citadas por <code>DBMS_ASSERT.ENQUOTE_NAME</code>. Fora do dicionário: <code>ORA-20101</code>.</td></tr>
+  <tr><td>Casa, valor e limite</td><td>Sempre por bind (<code>:casa</code>, <code>:valor</code>, <code>:limite</code>), nunca concatenados. Limite travado entre 1 e 500.</td></tr>
+  <tr><td>Escopo</td><td>Toda consulta leva <code>WHERE home_id = :casa</code>, e a API só passa a casa depois do mesmo <code>requireAccess</code> das outras rotas.</td></tr>
+</table>
+<pre><code>v_sql := 'SELECT ' || v_lista || ' FROM ' || v_tabela || ' WHERE home_id = :casa';
+IF p_coluna IS NOT NULL THEN
+    coluna_segura(v_tabela, p_coluna, v_coluna, v_tipo);          -- dicionário + DBMS_ASSERT
+    v_sql := v_sql || ' AND ' || filtro(v_coluna, v_tipo);
+END IF;
+coluna_segura(v_tabela, NVL(p_ordem, ordem_padrao(v_tabela)), v_ordem, v_tipo);
+v_sql := v_sql || ' ORDER BY ' || v_ordem || ' DESC NULLS LAST FETCH FIRST :limite ROWS ONLY';
+OPEN v_cursor FOR v_sql USING p_home_id, p_valor, v_limite;       -- valores só por bind</code></pre>
+<p>
+A lista de colunas também sai do dicionário: ids viram UUID por <code>PKG_APOIO.UUID_TEXTO</code> e datas saem em
+ISO-8601, no mesmo formato do resto da API. O filtro compara no mesmo formato em que o valor sai, então um id
+copiado de qualquer tela funciona como filtro, e um texto num campo numérico só não encontra nada (nunca vira erro
+500). Saída real do bloco 10 de <code>consultas-demo.sql</code>:
+</p>
+<pre><code>-- pkg_relatorio.agrupar('ALERTA', casa, 'REGRA')
+VALOR            TOTAL
+ESTOQUE_BAIXO        2
+ADESAO_BAIXA         1
+DOSES_NEGADAS        1
+
+-- as três defesas
+Recusado pelo banco: ORA-20100: Entidade fora da consulta: USERS
+Recusado pelo banco: ORA-20101: Coluna inexistente em SIGNALS: PRESSAO
+Recusado pelo banco: ORA-20101: Coluna inexistente em SIGNALS: TYPE = TYPE OR 1=1 --</code></pre>
+
+<h3>2.6 Os packages na API</h3>
+<figure>
+  <img src="img/swagger-oracle.png" alt="Rotas de inteligência no Swagger">
+  <figcaption>As rotas do grupo "Inteligência no banco (Oracle)" no Swagger: as da Fase 6 agora chamam packages, e as duas de consulta são novas.</figcaption>
+</figure>
+<table>
+  <tr><th style="width:36%">Rota</th><th>Rotina chamada</th></tr>
+  <tr><td><code>GET /homes/{id}/alertas</code></td><td>lê <code>ALERTA</code>, onde gravam <code>PKG_ALERTAS</code> e a trigger de estoque</td></tr>
+  <tr><td><code>POST /homes/{id}/alertas/processar</code></td><td><span class="obj">PKG_ALERTAS.REGISTRAR_ALERTAS</span> (também roda sozinha a cada leitura nova)</td></tr>
+  <tr><td><code>GET /homes/{id}/relatorio-consumo</code></td><td><span class="obj">PKG_RELATORIO.CONSUMO</span></td></tr>
+  <tr><td><code>POST /ops/indicadores/consolidar</code></td><td><span class="obj">PKG_RELATORIO.CONSOLIDAR_INDICADORES</span> (também todo dia às 00h05)</td></tr>
+  <tr><td><code>GET /homes/{id}/consulta</code></td><td><span class="obj">PKG_RELATORIO.CONSULTAR</span> · ex.: <code>?entidade=signals&amp;coluna=type&amp;valor=SLEEP&amp;limite=5</code></td></tr>
+  <tr><td><code>GET /homes/{id}/consulta/agrupada</code></td><td><span class="obj">PKG_RELATORIO.AGRUPAR</span> · ex.: <code>?entidade=alerta&amp;coluna=regra</code></td></tr>
+</table>
+<p class="note">
+Entidade ou coluna recusada volta como HTTP 400 <code>CONSULTA_INVALIDA</code>; quem não é da casa recebe 403.
+Linhas de <code>alerta</code> passam pelo mesmo guardrail de não-prescrição de <code>/alertas</code>: o aviso pode embutir o
+nome que a família deu ao remédio, e texto reprovado não sai por nenhuma das duas rotas. Em H2
+e PostgreSQL as rotas respondem 200 com <code>engine: "indisponivel"</code> e lista vazia, como as da Fase 6.
+</p>
+
+<h3>2.7 Requisito do enunciado → onde está</h3>
+<table>
+  <tr><th style="width:34%">Requisito</th><th>Arquivo</th></tr>
+  <tr><td>Packages</td><td><code>db/migration/oracle/R__01_apoio.sql</code>, <code>R__02_functions.sql</code> (PKG_LEITURA, PKG_MEDICACAO), <code>R__03_procedures.sql</code> (PKG_ALERTAS, PKG_RELATORIO)</td></tr>
+  <tr><td>Triggers</td><td><code>db/migration/oracle/R__04_triggers.sql</code></td></tr>
+  <tr><td>Dynamic SQL</td><td><code>R__03_procedures.sql</code>, funções <code>CONSULTAR</code> e <code>AGRUPAR</code> de PKG_RELATORIO</td></tr>
+  <tr><td>Remoção das rotinas soltas, auditoria e regra nova</td><td><code>db/migration/oracle/V3__consolidacao_plsql.sql</code></td></tr>
+  <tr><td>Instalação manual (SQL Developer, servidor da FIAP)</td><td><code>database/oracle/instalar-tudo.sql</code>, gerado das migrations</td></tr>
+  <tr><td>Demonstração no banco</td><td><code>database/oracle/consultas-demo.sql</code>, blocos 8 (auditoria), 9 (automação) e 10 (Dynamic SQL)</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2>3. Parte 2 · Automação e entrega contínua</h2>
+
+<h3>3.1 A esteira</h3>
+<p>
+O workflow <code>.github/workflows/entrega-oracle.yml</code> roda a cada push na <code>main</code> que toque o
+back-end, o banco ou os arquivos de compose, e também sob demanda (<em>Run workflow</em>). Em pull request roda só
+o primeiro job: nada é publicado nem implantado a partir de um PR. São três jobs encadeados; um só começa se o
+anterior passou.
+</p>
+<div class="fluxo">
+  <div><b>1 · build-e-testes</b>Java 21 + Maven. Build, suíte H2 e testes contra PostgreSQL e Oracle reais (Testcontainers).</div>
+  <span>→</span>
+  <div><b>2 · imagem</b>Build da imagem Docker da API e publicação no GitHub Container Registry, marcada com o SHA.</div>
+  <span>→</span>
+  <div><b>3 · deploy</b>Oracle efêmero + a imagem publicada; PL/SQL conferido no banco; smoke pela API; logs; relatório; derruba.</div>
+</div>
+
+<h3>3.2 Build e testes automatizados</h3>
+<p>
+<code>./mvnw -DskipTests package</code> compila e empacota; <code>./mvnw test -Dtest.excludedGroups=</code> roda a
+suíte inteira. O vazio em <code>excludedGroups</code> faz entrar também os testes marcados <code>oracle</code> e
+<code>postgres</code>, que sobem cada banco de verdade em contêiner. Os testes de Oracle aplicam as migrations pelo
+próprio perfil <code>oracle</code>: o banco testado é o que vai para o deploy.
+</p>
+
+<h3>3.3 Deploy automatizado com integração ao Oracle</h3>
+<ol>
+  <li><strong>Sobe o ambiente</strong> com o mesmo <code>docker-compose.oracle.yml</code> da Fase 6, agora com a imagem publicada no job anterior (<code>AURA_BACKEND_IMAGE</code>). O Oracle é Free 23.26 sem volume, e a senha do banco é gerada por execução.</li>
+  <li><strong>O Flyway</strong> aplica V1, V2 e V3 e as quatro repetíveis no primeiro boot da API; o seed cria a casa de demonstração.</li>
+  <li><strong>Confere o PL/SQL dentro do banco</strong> com <code>sqlplus</code>: lista packages e triggers, exercita a trigger de auditoria e reprova a run se houver objeto <code>INVALID</code>. Esse passo existe porque o Oracle aceita um package com erro de compilação sem falhar a migration.</li>
+  <li><strong>Smoke pela API</strong> (<code>backend-spring/ci/smoke-oracle.sh</code>): usa as rotas como o app e o painel usam e confere cada package e a trigger de automação (tabela em §4.2). Um passo vermelho reprova a run.</li>
+  <li><strong>Derruba tudo</strong> no fim, com sucesso ou não.</li>
+</ol>
+
+<h3>3.4 Logs e relatórios de execução</h3>
+<table>
+  <tr><th style="width:30%">Onde</th><th>O que tem</th></tr>
+  <tr><td>Resumo da run (<em>Job summary</em>)</td><td>Testes por classe; imagem implantada; migrations aplicadas pelo Flyway; objetos PL/SQL e status; a tabela do smoke.</td></tr>
+  <tr><td>Artefato <code>relatorio-testes</code></td><td>Relatórios do Surefire, um por classe de teste.</td></tr>
+  <tr><td>Artefato <code>logs-deploy</code></td><td><code>api.log</code> e <code>oracle.log</code> dos contêineres, a conferência do PL/SQL e o relatório do smoke.</td></tr>
+</table>
+
+<!-- ============================================================================================ -->
+<h2>4. Evidências</h2>
+
+<h3>4.1 Testes automatizados</h3>
+<table>
+  <tr><th>Módulo</th><th>Testes</th><th>Comando</th><th>O que cobrem</th></tr>
+  <tr><td>Back-end, suíte rápida (H2)</td><td>128</td><td><code>./mvnw test</code></td><td>Fluxos ponta a ponta, autorização, guardrail; as rotas de consulta respondendo "indisponível" fora do Oracle</td></tr>
+  <tr><td>Back-end sobre Oracle</td><td>64</td><td><code>./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=</code></td><td>Os testes da Fase 6, agora contra os packages, e os 6 da Fase 7 abaixo</td></tr>
+  <tr><td>Back-end sobre PostgreSQL</td><td>2</td><td><code>./mvnw test -Dtest.groups=postgres -Dtest.excludedGroups=</code></td><td>Migrations validadas contra as entidades</td></tr>
+  <tr><td><strong>Total na esteira</strong></td><td><strong>194</strong></td><td><code>./mvnw test -Dtest.excludedGroups=</code></td><td>O comando do job <code>build-e-testes</code></td></tr>
+</table>
+<table>
+  <tr><th style="width:42%">Teste da Fase 7 (<code>OracleConsolidacaoTest</code>)</th><th>O que garante</th></tr>
+  <tr><td><code>rotinasDaFase6MoramEmPackages</code></td><td>Nenhuma function ou procedure solta; os 5 packages (especificação e corpo) VALID; as 2 triggers ENABLED.</td></tr>
+  <tr><td><code>mudarUmLimiarDeixaRastro</code></td><td>UPDATE grava antes e depois, usuário e programa; INSERT e DELETE também ficam no histórico.</td></tr>
+  <tr><td><code>doseQueCruzaALinhaViraAvisoNoPainel</code></td><td>Pela API: remédio com 3,5 dias não avisa; a dose confirmada que leva a 3,0 avisa; a dose seguinte não repete; o texto chega em <code>/alertas</code>.</td></tr>
+  <tr><td><code>falhaNoAvisoNaoDerrubaAGravacao</code></td><td>Regra desligada não avisa; com <code>ALERTA</code> só leitura, o estoque é gravado mesmo assim e a falha vai para <code>LOG_ERRO_PLSQL</code>.</td></tr>
+  <tr><td><code>avisoComTextoReprovadoNaoSaiPelaApi</code></td><td>Um remédio cadastrado com "mg de" no nome gera o aviso no banco, mas o texto não sai nem em <code>/alertas</code> nem em <code>/consulta</code>: o guardrail de não-prescrição vale para as duas rotas.</td></tr>
+  <tr><td><code>consultaDinamicaPelaApi</code></td><td>Filtro, ordem e limite; id no formato da API; valor inválido devolve lista vazia; agrupamento; 400 para tabela fora da lista e para injeção na coluna e na ordem; 403 para quem não é da casa.</td></tr>
+</table>
+
+<div class="callout">
+<strong>A suíte de Oracle voltou a ser confiável.</strong> Desde 26/10 o job de Oracle do <code>ci.yml</code> estava
+vermelho na <code>main</code>: os testes de fluxo que também rodam no Oracle criam casas chamadas "Maria S." no mesmo
+schema, e alguns testes da Fase 6 procuravam a casa do seed só pelo nome (32 resultados onde se esperava 1), dependendo
+da ordem em que o runner executa as classes. Os testes agora encontram a casa do seed pela mais antiga com aquele nome,
+e a suíte passou nas duas ordens, alfabética e inversa. Os testes novos limpam o que criam na casa da Maria.
+</div>
+
+<h3>4.2 O deploy, ponta a ponta</h3>
+<p>Conferência do PL/SQL dentro do banco recém-implantado (saída real do passo do job, executado localmente com o mesmo compose):</p>
+<pre><code>OBJECT_TYPE    OBJECT_NAME                    STATUS
+PACKAGE        PKG_ALERTAS                    VALID
+PACKAGE BODY   PKG_ALERTAS                    VALID
+PACKAGE        PKG_APOIO                      VALID
+PACKAGE BODY   PKG_APOIO                      VALID
+PACKAGE        PKG_LEITURA                    VALID
+PACKAGE BODY   PKG_LEITURA                    VALID
+PACKAGE        PKG_MEDICACAO                  VALID
+PACKAGE BODY   PKG_MEDICACAO                  VALID
+PACKAGE        PKG_RELATORIO                  VALID
+PACKAGE BODY   PKG_RELATORIO                  VALID
+TRIGGER        TRG_MEDICACAO_ESTOQUE_BAIXO    VALID
+TRIGGER        TRG_REGRA_ALERTA_AUDITORIA     VALID
+INVALIDOS=0
+AUDITORIA=2</code></pre>
+<p>Smoke pela API, no mesmo ambiente:</p>
+<table>
+  <tr><th style="width:46%">Passo</th><th style="width:9%">Resultado</th><th>Evidência</th></tr>
+  <tr><td>Login da Ana (seed no Oracle)</td><td class="ok">ok</td><td>token JWT emitido</td></tr>
+  <tr><td>Casa da Maria</td><td class="ok">ok</td><td>id da casa</td></tr>
+  <tr><td>API respondendo pelo Oracle</td><td class="ok">ok</td><td><code>{"engine":"oracle","avisos":3}</code></td></tr>
+  <tr><td>PKG_ALERTAS.REGISTRAR_ALERTAS</td><td class="ok">ok</td><td><code>{"engine":"oracle","novos":0}</code></td></tr>
+  <tr><td>PKG_RELATORIO.CONSUMO (cursor por remédio)</td><td class="ok">ok</td><td><code>{"totalDoses":24,"remedios":3}</code></td></tr>
+  <tr><td>TRG_MEDICACAO_ESTOQUE_BAIXO na dose confirmada</td><td class="ok">ok</td><td>Estoque acabando · …: 6 doses, cobertura de 3,0 dias pela rotina declarada</td></tr>
+  <tr><td>PKG_RELATORIO.CONSULTAR (filtro, ordem, limite)</td><td class="ok">ok</td><td><code>{"tipos":["SLEEP"],"linhas":3}</code></td></tr>
+  <tr><td>PKG_RELATORIO.AGRUPAR</td><td class="ok">ok</td><td><code>ESTOQUE_BAIXO=2 · QUASE_QUEDA=1 · ROTINA_PASSOS=1</code></td></tr>
+  <tr><td>Lista branca recusa a tabela users</td><td class="ok">ok</td><td>HTTP 400</td></tr>
+  <tr><td>Injeção no nome da coluna recusada</td><td class="ok">ok</td><td>HTTP 400</td></tr>
+  <tr><td>PKG_RELATORIO.CONSOLIDAR_INDICADORES (admin)</td><td class="ok">ok</td><td><code>{"casasProcessadas":2}</code></td></tr>
+</table>
+<p class="note">Link da primeira execução no GitHub Actions: <span class="pendente">«inserir link da run»</span></p>
+
+<h3>4.3 Os três caminhos de instalação</h3>
+<table>
+  <tr><th style="width:30%">Caminho</th><th>Resultado verificado</th></tr>
+  <tr><td>Banco novo pelo Flyway (CI e demo)</td><td>V1 → V3 e quatro repetíveis aplicadas; 0 objetos inválidos.</td></tr>
+  <tr><td>Banco que já tinha a Fase 6</td><td>O Flyway aplica só a V3 (que apaga as nove rotinas soltas) e reaplica as repetíveis; sobram 5 packages e 2 triggers VALID e nenhuma function ou procedure solta. Reiniciar sem mudança só valida.</td></tr>
+  <tr><td>Usuário vazio pelo SQL Developer (servidor da FIAP)</td><td><code>instalar-tudo.sql</code> rodado num usuário novo: "objetos inválidos: no rows selected"; 5 packages e 2 triggers VALID.</td></tr>
+</table>
+<p class="note">A carga simulada da Fase 6 (<code>carregar-dados.sh</code>, com SQL*Loader) e o <code>consultas-demo.sql</code> inteiro rodaram sobre os packages sem erro; as únicas mensagens ORA da saída são as recusas esperadas.</p>
+
+<!-- ============================================================================================ -->
+<h2>5. Como executar</h2>
+<pre><code># Oracle + API (perfil oracle), o mesmo ambiente do deploy da esteira
+export AURA_DB_PASSWORD='uma-senha-sua'
+docker compose -f docker-compose.yml -f docker-compose.oracle.yml up --build -d
+./database/oracle/carregar-dados.sh                  # opcional: casas e pulseira simuladas
+
+backend-spring/ci/smoke-oracle.sh                    # o smoke do deploy, contra localhost:8080
+cd web-admin &amp;&amp; npm start                             # painel em localhost:4200 (ana@aura.com / aura1234)
+
+# testes contra Oracle de verdade
+cd backend-spring &amp;&amp; ./mvnw test -Dtest.groups=oracle -Dtest.excludedGroups=</code></pre>
+<p>
+No SQL Developer, conectado a um usuário vazio: abrir <code>database/oracle/instalar-tudo.sql</code> e rodar como
+script (F5); depois <code>carga-simulada.sql</code> e <code>consultas-demo.sql</code>.
+</p>
+
+<h2>6. O que mantivemos das entregas anteriores</h2>
+<ul>
+  <li><strong>Jornada antes de arquitetura.</strong> A trigger de automação tem tela: o aviso que ela grava é o card que a Ana já conhecia (§2.4). O vídeo mostra o caminho da dose confirmada até a linha no banco e de volta ao painel.</li>
+  <li><strong>Números medidos, não metas.</strong> As contagens de teste saem do comando, e as saídas desta documentação são de execuções reais, num banco criado do zero.</li>
+  <li><strong>Checklist do enunciado item a item</strong> (§1 e §2.7), com o arquivo onde cada requisito está.</li>
+  <li><strong>Nada da Fase 6 se perdeu.</strong> As nove rotinas continuam fazendo exatamente o que faziam, provadas pelos mesmos testes, agora contra os packages.</li>
+</ul>
+
+<h2>7. Limites e próximos passos</h2>
+<ul>
+  <li>O aviso de estoque segue a rotina declarada de remédios; não sabe de dose tomada fora do app nem de caixa comprada sem registro.</li>
+  <li>Um aviso de estoque por remédio por dia: se o estoque subir e cair de novo no mesmo dia, o segundo cruzamento não avisa.</li>
+  <li>A imagem publicada no GHCR herda a visibilidade do pacote no GitHub; para quem não é do time puxar a imagem, o pacote precisa ser marcado como público.</li>
+  <li>A versão do servidor Oracle da FIAP segue não confirmada; packages, triggers e Dynamic SQL usam só recursos que existem desde o 12.2 e o 19c.</li>
+  <li>O deploy da esteira é efêmero: sobe a API e o Oracle dentro do runner, prova tudo e derruba. Manter um servidor permanente exigiria um host com Oracle e credenciais que o grupo não tem; a imagem publicada no GHCR já é o artefato pronto para esse passo.</li>
+  <li>Próximo passo: levar o aviso de estoque ao app da família como notificação push, que já existe para o SOS.</li>
+</ul>
+
+<p class="footer-note">
+AURA · Fase 7 · FIAP Smart HAS. O AURA nunca prescreve nem diagnostica; avisos descrevem o que foi observado e
+pedem um olhar humano. Leroy Merlin é mentora e avaliadora do Enterprise Challenge, não parceira comercial.
+</p>
+
+</body>
+</html>
