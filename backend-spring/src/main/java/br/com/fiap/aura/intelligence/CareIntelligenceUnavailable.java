@@ -3,6 +3,7 @@ package br.com.fiap.aura.intelligence;
 import br.com.fiap.aura.web.dto.IntelligenceDtos;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
@@ -54,5 +55,16 @@ public class CareIntelligenceUnavailable implements CareIntelligence {
     @Override
     public IntelligenceDtos.IndicadoresResponse indicadores() {
         return new IntelligenceDtos.IndicadoresResponse(INDISPONIVEL, null, List.of());
+    }
+
+    @Override
+    public List<Map<String, Object>> consultar(UUID homeId, String entidade, String coluna, String valor,
+                                               String ordem, int limite) {
+        return List.of();
+    }
+
+    @Override
+    public List<Map<String, Object>> agrupar(UUID homeId, String entidade, String coluna) {
+        return List.of();
     }
 }

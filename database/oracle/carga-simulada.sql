@@ -115,7 +115,7 @@ DECLARE
   -- Medicações desta carga com o perfil de esquecimento de cada casa.
   CURSOR c_meds IS
     SELECT m.id, m.home_id, m.schedule,
-           fn_uuid_texto(m.id) AS id_texto,  -- o mesmo texto que o Java grava no JSON
+           pkg_apoio.uuid_texto(m.id) AS id_texto,  -- o mesmo texto que o Java grava no JSON
            CASE m.home_id
              WHEN HEXTORAW('1B5ED8CB31E14D2DA4E4C227DAF19BD1') THEN 'esquece'
              ELSE 'regular'

@@ -30,7 +30,7 @@ USING (
 WHEN NOT MATCHED THEN INSERT (id, home_id, type, source, signal_value, captured_at)
 VALUES (l.id, l.home_id, 'VITALS', 'WEARABLE', l.valor, l.capturado);
 
-PROMPT == Avisos: PRC_REGISTRAR_ALERTAS em cada casa ==
+PROMPT == Avisos: PKG_ALERTAS.REGISTRAR_ALERTAS em cada casa ==
 -- No app, quem chama a procedure é o Java, a cada leitura nova que passa pela API. A carga e o
 -- seed gravam direto no banco, sem esse evento; por isso chamamos uma vez por casa, cada regra
 -- com a própria janela (NULL), para os avisos refletirem o histórico já existente.
@@ -39,7 +39,7 @@ DECLARE
   v_total NUMBER := 0;
 BEGIN
   FOR casa IN (SELECT id, label FROM homes ORDER BY label) LOOP
-    prc_registrar_alertas(p_home_id => casa.id, p_janela_horas => NULL, p_novos => v_novos);
+    pkg_alertas.registrar_alertas(p_home_id => casa.id, p_janela_horas => NULL, p_novos => v_novos);
     DBMS_OUTPUT.PUT_LINE(casa.label || ': ' || v_novos || ' aviso(s) novo(s)');
     v_total := v_total + v_novos;
   END LOOP;

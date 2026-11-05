@@ -31,6 +31,9 @@ services:
       start_period: 10s
 
   backend:
+    # Fase 7: o deploy do pipeline sobe a imagem publicada no GHCR (AURA_BACKEND_IMAGE) em vez de
+    # construir; local, sem a variável, o `up --build` constrói e marca com este nome.
+    image: ${AURA_BACKEND_IMAGE:-aura-backend:oracle}
     environment:
       SPRING_PROFILES_ACTIVE: oracle
       AURA_DB_URL: jdbc:oracle:thin:@//oracle:1521/FREEPDB1

@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 
 /**
- * Cada function e procedure do PL/SQL, chamada direto no banco com os dados do seed.
+ * Cada function e procedure dos packages, chamada direto no banco com os dados do seed.
  *
  * <p>Sem {@code @Transactional}: as rotinas rodam em autocommit, como rodariam no SQL Developer.
  * As asserções valem para o seed (Maria com adesão acompanhada, quase-queda recente e pulseira em
@@ -29,34 +29,36 @@ class OraclePlsqlTest extends OracleTestSupport {
     @Autowired JdbcTemplate jdbc;
 
     private byte[] casa(String paciente) {
-        return jdbc.queryForObject("SELECT id FROM homes WHERE patient_name = ?", byte[].class, paciente);
+        return casaDoSeed(jdbc, paciente);
     }
 
     @Test
-    void esquemaTemAs16TabelasDoModelo() {
+    void esquemaTemAs17TabelasDoModelo() {
         Integer tabelas = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM user_tables WHERE UPPER(table_name) <> 'FLYWAY_SCHEMA_HISTORY'",
                 Integer.class);
-        assertThat(tabelas).isEqualTo(16);
+        // 12 do domínio + 4 da inteligência (Fase 6) + REGRA_ALERTA_HIST (Fase 7)
+        assertThat(tabelas).isEqualTo(17);
         List<String> regras = jdbc.queryForList(
                 "SELECT codigo FROM regra_alerta WHERE ativa = 1 ORDER BY codigo", String.class);
-        assertThat(regras).containsExactly("ADESAO_BAIXA", "DOSES_NEGADAS", "QUASE_QUEDA", "ROTINA_PASSOS");
+        assertThat(regras).containsExactly(
+                "ADESAO_BAIXA", "DOSES_NEGADAS", "ESTOQUE_BAIXO", "QUASE_QUEDA", "ROTINA_PASSOS");
     }
 
     @Test
     void taxaDeAdesaoEUmPercentualOuNuloSemDado() {
         BigDecimal maria = jdbc.queryForObject(
-                "SELECT fn_taxa_adesao(id, NULL, 7) FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class);
+                "SELECT pkg_medicacao.taxa_adesao(id, NULL, 7) FROM homes WHERE patient_name = 'Maria S.' ORDER BY created_at FETCH FIRST 1 ROW ONLY", BigDecimal.class);
         assertThat(maria).isBetween(BigDecimal.ZERO, new BigDecimal("100"));
 
         // Seu Antônio tem medicações, mas nenhuma dose marcada no app: é falta de dado, não 0%.
         BigDecimal antonio = jdbc.queryForObject(
-                "SELECT fn_taxa_adesao(id, NULL, 7) FROM homes WHERE patient_name = 'Antônio R.'", BigDecimal.class);
+                "SELECT pkg_medicacao.taxa_adesao(id, NULL, 7) FROM homes WHERE patient_name = 'Antônio R.' ORDER BY created_at FETCH FIRST 1 ROW ONLY", BigDecimal.class);
         assertThat(antonio).isNull();
 
         // Casa que nem existe também não é erro.
         BigDecimal inexistente = jdbc.queryForObject(
-                "SELECT fn_taxa_adesao(HEXTORAW('00000000000000000000000000000000')) FROM dual", BigDecimal.class);
+                "SELECT pkg_medicacao.taxa_adesao(HEXTORAW('00000000000000000000000000000000')) FROM dual", BigDecimal.class);
         assertThat(inexistente).isNull();
     }
 
@@ -76,16 +78,16 @@ class OraclePlsqlTest extends OracleTestSupport {
                 jdbc.update("""
                         INSERT INTO signals (id, home_id, type, source, signal_value, captured_at)
                         VALUES (SYS_GUID(), ?, 'ADHERENCE', 'SELF_REPORT',
-                                '{"medicationId":"' || fn_uuid_texto(?) || '","taken":true}', SYSTIMESTAMP)""",
+                                '{"medicationId":"' || pkg_apoio.uuid_texto(?) || '","taken":true}', SYSTIMESTAMP)""",
                         casa, remedio);
             }
             BigDecimal adesao = jdbc.queryForObject(
-                    "SELECT fn_taxa_adesao(?, ?, 7) FROM dual", BigDecimal.class, casa, remedio);
+                    "SELECT pkg_medicacao.taxa_adesao(?, ?, 7) FROM dual", BigDecimal.class, casa, remedio);
             assertThat(adesao).isEqualByComparingTo("100");
         } finally {
             jdbc.update("""
                     DELETE FROM signals WHERE type = 'ADHERENCE'
-                       AND JSON_VALUE(signal_value, '$.medicationId') = fn_uuid_texto(?)""", (Object) remedio);
+                       AND JSON_VALUE(signal_value, '$.medicationId') = pkg_apoio.uuid_texto(?)""", (Object) remedio);
             jdbc.update("DELETE FROM medications WHERE id = ?", (Object) remedio);
         }
     }
@@ -93,42 +95,42 @@ class OraclePlsqlTest extends OracleTestSupport {
     @Test
     void descreveLeituraEmPortuguesSemVerboDeDose() {
         String texto = jdbc.queryForObject("""
-                SELECT fn_descrever_leitura(s.id) FROM signals s JOIN homes h ON h.id = s.home_id
-                 WHERE h.patient_name = 'Maria S.' AND JSON_VALUE(s.signal_value, '$.event') = 'near_fall'
-                 FETCH FIRST 1 ROWS ONLY""", String.class);
+                SELECT pkg_leitura.descrever(s.id) FROM signals s
+                 WHERE s.home_id = ? AND JSON_VALUE(s.signal_value, '$.event') = 'near_fall'
+                 FETCH FIRST 1 ROWS ONLY""", String.class, (Object) casa("Maria S."));
         assertThat(texto).startsWith("Quase-queda registrada · banheiro · por voz · ");
 
         List<String> pulseira = jdbc.queryForList("""
-                SELECT fn_descrever_leitura(s.id) FROM signals s WHERE s.type = 'VITALS'""", String.class);
+                SELECT pkg_leitura.descrever(s.id) FROM signals s WHERE s.type = 'VITALS'""", String.class);
         assertThat(pulseira).isNotEmpty().allSatisfy(t -> assertThat(t).startsWith("Pulseira: ").contains(" passos"));
 
         List<String> doses = jdbc.queryForList("""
-                SELECT fn_descrever_leitura(s.id) FROM signals s WHERE s.type = 'ADHERENCE'""", String.class);
+                SELECT pkg_leitura.descrever(s.id) FROM signals s WHERE s.type = 'ADHERENCE'""", String.class);
         assertThat(doses).allSatisfy(t -> assertThat(t.toLowerCase()).doesNotContain("tomar", "tome"));
 
         assertThat(jdbc.queryForObject(
-                "SELECT fn_descrever_leitura(HEXTORAW('00000000000000000000000000000000')) FROM dual",
+                "SELECT pkg_leitura.descrever(HEXTORAW('00000000000000000000000000000000')) FROM dual",
                 String.class)).isEqualTo("Leitura não encontrada");
     }
 
     @Test
     void variacaoDeRotinaComparaComAPropriaPessoa() {
         BigDecimal passos = jdbc.queryForObject(
-                "SELECT fn_variacao_rotina(id, 'steps') FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class);
+                "SELECT pkg_leitura.variacao_rotina(id, 'steps') FROM homes WHERE patient_name = 'Maria S.' ORDER BY created_at FETCH FIRST 1 ROW ONLY", BigDecimal.class);
         // Seed: passos caindo de 4.200 para 1.800 em 21 dias.
         assertThat(passos).isNegative();
         assertThatThrownBy(() -> jdbc.queryForObject(
-                "SELECT fn_variacao_rotina(id, 'pressao') FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class))
+                "SELECT pkg_leitura.variacao_rotina(id, 'pressao') FROM homes WHERE patient_name = 'Maria S.' ORDER BY created_at FETCH FIRST 1 ROW ONLY", BigDecimal.class))
                 .hasMessageContaining("ORA-20003");
         // Métrica nula não pode cair calada no ramo da frequência cardíaca.
         assertThatThrownBy(() -> jdbc.queryForObject(
-                "SELECT fn_variacao_rotina(id, NULL) FROM homes WHERE patient_name = 'Maria S.'", BigDecimal.class))
+                "SELECT pkg_leitura.variacao_rotina(id, NULL) FROM homes WHERE patient_name = 'Maria S.' ORDER BY created_at FETCH FIRST 1 ROW ONLY", BigDecimal.class))
                 .hasMessageContaining("ORA-20003");
     }
 
     @Test
     void registrarAlertasEIdempotente() {
-        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withProcedureName("PRC_REGISTRAR_ALERTAS")
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withCatalogName("PKG_ALERTAS").withProcedureName("REGISTRAR_ALERTAS")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_home_id", Types.BINARY),
@@ -152,7 +154,7 @@ class OraclePlsqlTest extends OracleTestSupport {
 
     @Test
     void relatorioDeConsumoDevolveTotaisECursor() {
-        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withProcedureName("PRC_RELATORIO_CONSUMO")
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withCatalogName("PKG_RELATORIO").withProcedureName("CONSUMO")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_home_id", Types.BINARY),
@@ -179,7 +181,7 @@ class OraclePlsqlTest extends OracleTestSupport {
 
     @Test
     void consolidarIndicadoresGravaUmaLinhaPorCasa() {
-        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withProcedureName("PRC_CONSOLIDAR_INDICADORES")
+        SimpleJdbcCall call = new SimpleJdbcCall(jdbc).withCatalogName("PKG_RELATORIO").withProcedureName("CONSOLIDAR_INDICADORES")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_data_ref", Types.DATE),

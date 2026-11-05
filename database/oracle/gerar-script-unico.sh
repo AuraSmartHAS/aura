@@ -13,7 +13,7 @@ SAIDA="$AQUI/instalar-tudo.sql"
 {
   cat <<'CABECALHO'
 -- =============================================================================================
--- AURA · instalação completa do schema Oracle (tabelas + functions + procedures)
+-- AURA · instalação completa do schema Oracle (tabelas + packages PL/SQL + triggers)
 -- ARQUIVO GERADO por database/oracle/gerar-script-unico.sh a partir das migrations do Flyway.
 -- Não edite aqui: edite a migration e gere de novo.
 --
@@ -33,7 +33,8 @@ BEGIN
     FROM user_tables
    WHERE table_name IN ('USERS', 'HOMES', 'HOME_MEMBERS', 'CONSENTS', 'SIGNALS', 'SCORES',
                         'PRODUCTS', 'STOCK_NODES', 'MEDICATIONS', 'RECOMMENDATIONS', 'ORDERS',
-                        'EMERGENCIES', 'REGRA_ALERTA', 'ALERTA', 'INDICADOR_DIARIO', 'LOG_ERRO_PLSQL');
+                        'EMERGENCIES', 'REGRA_ALERTA', 'ALERTA', 'INDICADOR_DIARIO', 'LOG_ERRO_PLSQL',
+                        'REGRA_ALERTA_HIST');
   IF v_conflitos IS NOT NULL THEN
     RAISE_APPLICATION_ERROR(-20900,
       'Instalação interrompida: o usuário já tem as tabelas ' || v_conflitos

@@ -8,6 +8,7 @@ import br.com.fiap.aura.web.error.ApiException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,44 @@ public class IntelligenceService {
     @Transactional
     public IntelligenceDtos.ConsolidarResponse consolidar() {
         return new IntelligenceDtos.ConsolidarResponse(intelligence.engine(), intelligence.consolidarIndicadores(null));
+    }
+
+    @Transactional(readOnly = true)
+    public IntelligenceDtos.ConsultaResponse consultar(AuthPrincipal principal, UUID homeId, String entidade,
+                                                       String coluna, String valor, String ordem, int limite) {
+        homeService.requireAccess(principal, homeId);
+        return new IntelligenceDtos.ConsultaResponse(intelligence.engine(), entidade,
+                semTextoReprovado(entidade, intelligence.consultar(homeId, entidade, coluna, valor, ordem, limite)));
+    }
+
+    @Transactional(readOnly = true)
+    public IntelligenceDtos.ConsultaResponse agrupar(AuthPrincipal principal, UUID homeId, String entidade,
+                                                     String coluna) {
+        homeService.requireAccess(principal, homeId);
+        return new IntelligenceDtos.ConsultaResponse(intelligence.engine(), entidade,
+                semTextoReprovado(entidade, intelligence.agrupar(homeId, entidade, coluna)));
+    }
+
+    /**
+     * O aviso é o único texto da consulta escrito pelo próprio AURA (e pode embutir o nome que a
+     * família deu ao remédio): passa pelo mesmo guardrail de {@link #alertas}, linha reprovada some.
+     */
+    private List<Map<String, Object>> semTextoReprovado(String entidade, List<Map<String, Object>> linhas) {
+        if (entidade == null || !"alerta".equalsIgnoreCase(entidade.trim())) {
+            return linhas;
+        }
+        return linhas.stream()
+                .filter(linha -> linha.values().stream().noneMatch(v -> v instanceof String texto && reprovado(texto)))
+                .toList();
+    }
+
+    private boolean reprovado(String texto) {
+        try {
+            guardrail.assertNonPrescriptive(texto);
+            return false;
+        } catch (ApiException e) {
+            return true;
+        }
     }
 
     private boolean passaNoGuardrail(IntelligenceDtos.Alerta alerta) {

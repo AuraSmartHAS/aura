@@ -49,8 +49,7 @@ class OracleIntelligenceFlowTest extends OracleTestSupport {
     }
 
     private UUID casaDaMaria() {
-        return homes.findAll().stream().filter(h -> "Maria S.".equals(h.getPatientName()))
-                .findFirst().orElseThrow().getId();
+        return RawUuid.fromBytes(casaDoSeed(jdbc, "Maria S."));
     }
 
     private int avisosDeQuaseQueda(UUID homeId) {

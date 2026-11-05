@@ -123,7 +123,7 @@ export class ApiService {
     return this.http.get<AlertasResponse>(`${this.baseUrl}/homes/${homeId}/alertas`);
   }
 
-  /** Roda PRC_REGISTRAR_ALERTAS sob demanda; a mesma procedure já roda sozinha a cada leitura. */
+  /** Roda PKG_ALERTAS.REGISTRAR_ALERTAS sob demanda; a mesma procedure já roda sozinha a cada leitura. */
   processarAlertas(homeId: string): Observable<{ engine: string; novos: number }> {
     return this.http.post<{ engine: string; novos: number }>(
       `${this.baseUrl}/homes/${homeId}/alertas/processar`,

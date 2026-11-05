@@ -2,7 +2,7 @@
 # Carrega os dados simulados no Oracle do docker-compose.oracle.yml, em três passos:
 #   1. carga-simulada.sql   casas, familiares, medicações, 21 dias de doses, histórico de SOS
 #   2. sqlldr               CSV da pulseira -> tabela de preparo (importação real de arquivo)
-#   3. importar-leituras.sql preparo -> SIGNALS e PRC_REGISTRAR_ALERTAS em cada casa
+#   3. importar-leituras.sql preparo -> SIGNALS e PKG_ALERTAS.REGISTRAR_ALERTAS em cada casa
 #
 # Pré-requisito: o backend já subiu uma vez sobre o Oracle (o Flyway cria tabelas e PL/SQL; o
 # seed cria as contas e o catálogo). Rodar de novo não duplica nada.

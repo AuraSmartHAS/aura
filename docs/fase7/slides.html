@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>AURA — Apresentação Fase 7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Mesmo sistema visual do painel e da documentação: documento, slide e tela são a mesma empresa. */
+  :root {
+    --petrol: #1A5276; --petrol-escuro: #123C56; --verde: #0E7561; --ambar: #9A6109;
+    --tinta: #10303C; --texto: #4E5D63; --apoio: #657076; --papel: #F7F5F1; --borda: #E3DED5;
+  }
+  @page { size: 338mm 190mm; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif; color: var(--texto);
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .slide { width: 338mm; height: 190mm; padding: 15mm 20mm 14mm; position: relative; overflow: hidden;
+           page-break-after: always; background: #fff; display: flex; flex-direction: column; }
+  .slide:last-child { page-break-after: auto; }
+  .kicker { color: var(--ambar); font-size: 9pt; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; margin-bottom: 2.5mm; }
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', 'Segoe UI', Arial, sans-serif; color: var(--tinta); }
+  h1 { font-size: 40pt; color: var(--petrol-escuro); letter-spacing: -0.02em; line-height: 1.05; }
+  h2 { font-size: 22pt; letter-spacing: -0.01em; margin-bottom: 6mm; }
+  h3 { font-size: 12.5pt; color: var(--petrol); margin-bottom: 2mm; }
+  p { font-size: 11pt; line-height: 1.5; }
+  .lead { font-size: 14pt; color: var(--tinta); margin-top: 4mm; line-height: 1.45; max-width: 220mm; }
+  .muted { color: var(--apoio); }
+  .foot { position: absolute; left: 20mm; right: 20mm; bottom: 7mm; display: flex; justify-content: space-between;
+          color: var(--apoio); font-size: 8.5pt; border-top: 1px solid var(--borda); padding-top: 2mm; }
+  .cols { display: flex; gap: 8mm; align-items: flex-start; }
+  .col { flex: 1; min-width: 0; }
+  .card { background: var(--papel); border: 1px solid var(--borda); border-radius: 3.5mm; padding: 5mm 6mm; }
+  .col > .card + .card { margin-top: 4mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm; }
+  .grid5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm; }
+  ul { list-style: none; }
+  li { font-size: 10.5pt; line-height: 1.55; padding-left: 4.5mm; position: relative; margin-bottom: 1.2mm; }
+  li::before { content: ''; position: absolute; left: 0; top: 2.3mm; width: 1.6mm; height: 1.6mm; border-radius: 50%; background: var(--petrol); }
+  code, .obj { font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 9.2pt; color: var(--petrol-escuro); }
+  pre { background: var(--tinta); color: #E8EEF0; border-radius: 3mm; padding: 4mm 5mm; white-space: pre-wrap;
+        font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace; font-size: 8.6pt; line-height: 1.5; }
+  pre .c { color: #8FA9B3; }
+  pre .k { color: #9ED9C6; }
+  .metric { font-family: 'Bricolage Grotesque', sans-serif; font-size: 32pt; color: var(--petrol); line-height: 1; }
+  .metric-label { font-size: 9.5pt; color: var(--texto); margin-top: 2mm; line-height: 1.35; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.8pt; }
+  th { text-align: left; color: var(--apoio); font-size: 7.8pt; text-transform: uppercase; letter-spacing: .05em;
+       padding: 1.8mm 2.5mm; border-bottom: 1.5px solid var(--borda); background: var(--papel); }
+  td { padding: 1.9mm 2.5mm; border-bottom: 1px solid var(--borda); vertical-align: top; }
+  .ok { color: var(--verde); font-weight: 700; }
+  .team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8mm; flex: 1; align-content: center; }
+  .member { text-align: center; }
+  .avatar { width: 42mm; height: 42mm; border-radius: 50%; margin: 0 auto 4mm; overflow: hidden; border: 1mm solid var(--borda); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .member .nm { font-size: 11.5pt; color: var(--tinta); font-weight: 700; line-height: 1.35; }
+  .member .rm { font-size: 10pt; color: var(--apoio); margin-top: 1mm; }
+  .member .role { font-size: 9pt; color: var(--petrol); margin-top: 1mm; }
+  .flow { display: flex; align-items: stretch; gap: 3mm; }
+  .step { flex: 1; background: var(--papel); border: 1px solid var(--borda); border-radius: 3.5mm; padding: 5mm; }
+  .step .n { color: var(--ambar); font-size: 8.5pt; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+  .step .t { font-family: 'Bricolage Grotesque', sans-serif; font-size: 14pt; color: var(--tinta); margin: 1mm 0 2mm; }
+  .step p { font-size: 9.8pt; line-height: 1.45; }
+  .arrow { color: var(--petrol); font-size: 14pt; align-self: center; font-weight: 700; }
+  .shot { border: 1px solid var(--borda); border-radius: 3mm; display: block; }
+  .cover-wrap { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .cover-logo { width: 26mm; height: 26mm; border-radius: 7mm; margin-bottom: 8mm; }
+  .chips { display: flex; gap: 3mm; margin-top: 8mm; flex-wrap: wrap; }
+  .chip { background: var(--papel); border: 1px solid var(--borda); border-radius: 999px; padding: 1.6mm 4.5mm; font-size: 9.5pt; color: var(--tinta); }
+  .tag { display: inline-block; background: #E6F2EF; color: var(--verde); border-radius: 999px; padding: 0.3mm 2.5mm; font-size: 8pt; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- 1 · capa -->
+<section class="slide">
+  <div class="cover-wrap">
+    <img class="cover-logo" src="img/aura-logo.png" alt="AURA">
+    <p class="kicker">Fase 7 · Consolidando o Smart HAS</p>
+    <h1>Do banco ao deploy</h1>
+    <p class="lead">O PL/SQL do AURA consolidado em packages, com triggers e Dynamic SQL,
+      e uma esteira que testa, publica e implanta o back-end sobre Oracle.</p>
+    <div class="chips">
+      <span class="chip">Oracle Free 23.26 · PL/SQL</span>
+      <span class="chip">5 packages · 2 triggers · Dynamic SQL</span>
+      <span class="chip">Spring Boot 3.3 · Java 21 · Flyway</span>
+      <span class="chip">GitHub Actions · GHCR · Docker Compose</span>
+    </div>
+  </div>
+  <div class="foot"><span>01 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 2 · equipe -->
+<section class="slide">
+  <p class="kicker">Equipe</p>
+  <h2>Quem construiu</h2>
+  <div class="team">
+    <div class="member"><div class="avatar"><img src="img/foto-vinicius.png" alt="Vinícius Miranda Baptista"></div>
+      <div class="nm">Vinícius Miranda Baptista</div><div class="rm">RM 555081</div><div class="role">Tech Lead</div></div>
+    <div class="member"><div class="avatar"><img src="img/foto-joao.png" alt="João Domingos Góes Filho"></div>
+      <div class="nm">João Domingos Góes Filho</div><div class="rm">RM 564465</div><div class="role">Dev Senior Mobile</div></div>
+    <div class="member"><div class="avatar"><img src="img/foto-pedro.png" alt="Pedro Henrique Arenas Negri"></div>
+      <div class="nm">Pedro Henrique Arenas Negri</div><div class="rm">RM 554971</div><div class="role">Dev Pleno</div></div>
+    <div class="member"><div class="avatar"><img src="img/foto-julia.png" alt="Júlia Alves Dias"></div>
+      <div class="nm">Júlia Alves Dias</div><div class="rm">RM 557151</div><div class="role">Infra</div></div>
+  </div>
+  <div class="foot"><span>02 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 3 · onde estamos -->
+<section class="slide">
+  <p class="kicker">Onde o projeto está</p>
+  <h2>Na Fase 6 o banco passou a avisar. Na Fase 7 ele fica organizado e chega sozinho à produção</h2>
+  <div class="grid4">
+    <div class="card"><div class="metric">9 → 5</div><div class="metric-label">rotinas soltas viram<br>5 packages</div></div>
+    <div class="card"><div class="metric">2</div><div class="metric-label">triggers: auditoria<br>e automação</div></div>
+    <div class="card"><div class="metric">194</div><div class="metric-label">testes na esteira,<br>64 contra Oracle real</div></div>
+    <div class="card"><div class="metric">11/11</div><div class="metric-label">passos do smoke no<br>deploy com Oracle</div></div>
+  </div>
+  <div class="cols" style="margin-top:6mm">
+    <div class="col card"><h3>Parte 1 · Consolidação em PL/SQL</h3>
+      <ul><li>Functions e procedures da Fase 6 agrupadas por assunto</li>
+          <li>Trigger que audita os limiares e trigger que avisa o estoque acabando</li>
+          <li>Consulta em tempo real com Dynamic SQL, sem brecha de injeção</li></ul></div>
+    <div class="col card"><h3>Parte 2 · Automação e entrega contínua</h3>
+      <ul><li>Build e testes contra H2, PostgreSQL e Oracle a cada push</li>
+          <li>Imagem no GitHub Container Registry e deploy efêmero com Oracle</li>
+          <li>Logs dos contêineres e relatório de cada execução</li></ul></div>
+  </div>
+  <div class="foot"><span>03 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 4 · packages -->
+<section class="slide">
+  <p class="kicker">Parte 1 · Packages</p>
+  <h2>As mesmas regras, agora organizadas por assunto</h2>
+  <div class="cols">
+    <div class="col" style="flex:1.35">
+      <table>
+        <tr><th style="width:27%">Package</th><th style="width:36%">Fase 6 (soltas)</th><th>Fase 7</th></tr>
+        <tr><td><span class="obj">PKG_APOIO</span></td><td><code>PRC_LOG_ERRO</code><br><code>FN_UUID_TEXTO</code></td><td><code>LOG_ERRO</code>, <code>UUID_TEXTO</code></td></tr>
+        <tr><td><span class="obj">PKG_LEITURA</span></td><td><code>FN_DESCREVER_LEITURA</code><br><code>FN_VARIACAO_ROTINA</code></td><td><code>DESCREVER</code>, <code>VARIACAO_ROTINA</code></td></tr>
+        <tr><td><span class="obj">PKG_MEDICACAO</span></td><td><code>FN_DOSES_ESPERADAS</code><br><code>FN_TAXA_ADESAO</code></td><td>as duas + <code>DIAS_COBERTURA</code> <span class="tag">nova</span></td></tr>
+        <tr><td><span class="obj">PKG_ALERTAS</span></td><td><code>PRC_REGISTRAR_ALERTAS</code></td><td>+ <code>AVISAR_ESTOQUE</code> <span class="tag">nova</span></td></tr>
+        <tr><td><span class="obj">PKG_RELATORIO</span></td><td><code>PRC_RELATORIO_CONSUMO</code><br><code>PRC_CONSOLIDAR_INDICADORES</code></td><td>+ <code>CONSULTAR</code>, <code>AGRUPAR</code> <span class="tag">Dynamic SQL</span></td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <div class="card"><h3>Especificação é contrato</h3>
+        <p>O que o Java chama e a documentação de cada rotina ficam na especificação; detalhes e rotinas privadas, no corpo.</p></div>
+      <div class="card"><h3>Migração versionada</h3>
+        <p>A <code>V3</code> apaga as soltas, só se existirem: serve para banco novo e para banco que já tinha a Fase 6. A API, o painel e os apps não perceberam a troca.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>04 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 5 · trigger de auditoria -->
+<section class="slide">
+  <p class="kicker">Parte 1 · Trigger de auditoria</p>
+  <h2>Mudar um limiar de aviso deixa rastro</h2>
+  <div class="cols">
+    <div class="col">
+      <p style="margin-bottom:4mm">Baixar a régua de adesão de 80% para 60% muda quem recebe aviso. <span class="obj">TRG_REGRA_ALERTA_AUDITORIA</span>
+        grava o antes e o depois de toda mudança em <code>REGRA_ALERTA</code>, venha da API, de um script ou do SQL Developer.</p>
+<pre><span class="k">AFTER INSERT OR UPDATE OR DELETE ON</span> regra_alerta
+<span class="k">FOR EACH ROW</span>
+<span class="k">INSERT INTO</span> regra_alerta_hist (codigo, operacao,
+       limiar_antes, limiar_depois, ...)
+<span class="k">VALUES</span> (:NEW.codigo, v_operacao,
+        :OLD.limiar, :NEW.limiar, ...);</pre>
+    </div>
+    <div class="col">
+      <p class="muted" style="margin-bottom:2mm">Saída real: a régua baixada para 75% e devolvida para 80%</p>
+      <table>
+        <tr><th>Operação</th><th>Antes</th><th>Depois</th><th>Programa</th><th>Quando</th></tr>
+        <tr><td>UPDATE</td><td>80</td><td>75</td><td>SQL*Plus</td><td>04/11 20:49</td></tr>
+        <tr><td>UPDATE</td><td>75</td><td>80</td><td>SQL*Plus</td><td>04/11 20:49</td></tr>
+      </table>
+      <div class="card" style="margin-top:5mm"><h3>De propósito, ela não engole erro</h3>
+        <p>Se a auditoria falhar, a mudança no limiar falha junto. Mudar uma régua sem rastro não pode acontecer.</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>05 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 6 · trigger de automação -->
+<section class="slide">
+  <p class="kicker">Parte 1 · Trigger de automação</p>
+  <h2>A dose que deixa o remédio acabando vira aviso na mesma hora</h2>
+  <div class="cols">
+    <div class="col" style="flex:1.25">
+      <ul>
+        <li><span class="obj">TRG_MEDICACAO_ESTOQUE_BAIXO</span> calcula por quantos dias o estoque ainda cobre a rotina, antes e depois de cada dose ou mudança de horário.</li>
+        <li><strong>Só na travessia</strong>: quando a cobertura cai para 3 dias ou menos. As doses seguintes não repetem o aviso.</li>
+        <li><strong>Sem tabela mutante</strong>: lê só <code>:OLD</code> e <code>:NEW</code>; a conta fica em <code>PKG_MEDICACAO</code>.</li>
+        <li><strong>A dose vale mais que o aviso</strong>: se gravar o aviso falhar, a falha vai para o log e a dose fica. Um teste prova isso com a tabela de avisos travada.</li>
+        <li>O limiar mora em <code>REGRA_ALERTA</code>: auditado pela outra trigger e desligável sem deploy.</li>
+        <li>A dose pode chegar pela conversa: o agente de voz (IA generativa) ouve "tomei a levodopa", confirma pela API e a trigger avisa.</li>
+      </ul>
+    </div>
+    <div class="col" style="flex:0.75">
+      <img class="shot" src="img/painel-aviso-estoque.png" alt="Aviso de estoque no painel" style="height:118mm; margin:0 auto">
+    </div>
+  </div>
+  <div class="foot"><span>06 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 7 · dynamic sql -->
+<section class="slide">
+  <p class="kicker">Parte 1 · Dynamic SQL</p>
+  <h2>Perguntas novas sobre a casa, sem rota nova e sem injeção</h2>
+  <div class="cols">
+    <div class="col">
+      <table>
+        <tr><th style="width:30%">Pedaço do SQL</th><th>Defesa</th></tr>
+        <tr><td>Entidade</td><td>Lista branca; <code>USERS</code> e <code>CONSENTS</code> nunca entram</td></tr>
+        <tr><td>Colunas</td><td>Precisam existir em <code>USER_TAB_COLUMNS</code>; entram por <code>DBMS_ASSERT</code></td></tr>
+        <tr><td>Valores</td><td>Sempre por bind; limite entre 1 e 500</td></tr>
+        <tr><td>Escopo</td><td><code>WHERE home_id = :casa</code>, depois do controle de acesso</td></tr>
+      </table>
+<pre style="margin-top:5mm">GET /homes/{id}/consulta?entidade=signals&amp;coluna=type&amp;valor=SLEEP&amp;limite=5
+GET /homes/{id}/consulta/agrupada?entidade=alerta&amp;coluna=regra
+<span class="c">ESTOQUE_BAIXO=2 · QUASE_QUEDA=1 · ROTINA_PASSOS=1</span>
+
+coluna=<span class="k">type = type OR 1=1 --</span>
+<span class="c">400 · ORA-20101: Coluna inexistente em SIGNALS</span></pre>
+    </div>
+    <div class="col">
+      <img class="shot" src="img/swagger-oracle.png" alt="Rotas no Swagger" style="width:100%">
+      <p class="muted" style="margin-top:3mm">As rotas da Fase 6 agora chamam packages; as duas de consulta são novas.</p>
+    </div>
+  </div>
+  <div class="foot"><span>07 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 8 · esteira -->
+<section class="slide">
+  <p class="kicker">Parte 2 · Entrega contínua</p>
+  <h2>Do push ao deploy com Oracle, sem passo manual</h2>
+  <div class="flow">
+    <div class="step"><div class="n">Job 1</div><div class="t">build-e-testes</div>
+      <p>Java 21 + Maven. Build e suíte inteira: H2, PostgreSQL e Oracle reais em contêiner (Testcontainers).</p></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">Job 2</div><div class="t">imagem</div>
+      <p>Imagem Docker da API publicada no GitHub Container Registry, marcada com o SHA do commit.</p></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="n">Job 3</div><div class="t">deploy</div>
+      <p>Oracle efêmero + a imagem publicada. O Flyway cria tabelas, packages e triggers; PL/SQL conferido no banco; smoke pela API.</p></div>
+  </div>
+  <div class="cols" style="margin-top:6mm">
+    <div class="col card"><h3>Logs</h3><p>Artefato <code>logs-deploy</code>: API, Oracle, conferência do PL/SQL e smoke.</p></div>
+    <div class="col card"><h3>Relatórios</h3><p>Resumo de cada run: testes por classe, migrations, objetos PL/SQL e a tabela do smoke.</p></div>
+    <div class="col card"><h3>Gatilho</h3><p>Push na <code>main</code> ou manual. Em pull request roda só os testes: nada é publicado a partir de um PR.</p></div>
+  </div>
+  <div class="foot"><span>08 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 9 · evidências -->
+<section class="slide">
+  <p class="kicker">Evidências</p>
+  <h2>O deploy confere o banco por dentro e usa a API como o app usa</h2>
+  <div class="cols">
+    <div class="col">
+<pre>PACKAGE + BODY  PKG_APOIO · PKG_LEITURA       <span class="k">VALID</span>
+                PKG_MEDICACAO · PKG_ALERTAS   <span class="k">VALID</span>
+                PKG_RELATORIO                 <span class="k">VALID</span>
+TRIGGER         TRG_MEDICACAO_ESTOQUE_BAIXO   <span class="k">VALID</span>
+TRIGGER         TRG_REGRA_ALERTA_AUDITORIA    <span class="k">VALID</span>
+INVALIDOS=0   AUDITORIA=2
+
+Tests run: <span class="k">194</span>, Failures: 0, Errors: 0
+<span class="c">128 em H2 · 64 em Oracle · 2 em PostgreSQL</span></pre>
+      <p class="muted" style="margin-top:4mm">Instalação verificada nos três caminhos: banco novo, banco da Fase 6 atualizado e usuário vazio pelo SQL Developer.</p>
+    </div>
+    <div class="col">
+      <table>
+        <tr><th>Passo do smoke</th><th style="width:14%">Resultado</th></tr>
+        <tr><td>Login e casa da Maria no Oracle</td><td class="ok">ok</td></tr>
+        <tr><td>PKG_ALERTAS.REGISTRAR_ALERTAS</td><td class="ok">ok</td></tr>
+        <tr><td>PKG_RELATORIO.CONSUMO</td><td class="ok">ok</td></tr>
+        <tr><td>Trigger de estoque na dose confirmada</td><td class="ok">ok</td></tr>
+        <tr><td>CONSULTAR e AGRUPAR (Dynamic SQL)</td><td class="ok">ok</td></tr>
+        <tr><td>Tabela fora da lista e injeção: 400</td><td class="ok">ok</td></tr>
+        <tr><td>PKG_RELATORIO.CONSOLIDAR_INDICADORES</td><td class="ok">ok</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="foot"><span>09 / 10</span><span>AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+<!-- 10 · valor e links -->
+<section class="slide">
+  <p class="kicker">Valor agregado</p>
+  <h2>Mais cuidado para a família, mais confiança para quem opera</h2>
+  <div class="cols">
+    <div class="col card"><h3>Para a família</h3>
+      <ul><li>Aviso no momento em que o remédio começa a acabar</li>
+          <li>As mesmas telas de antes, agora com mais aviso útil</li>
+          <li>Nenhum aviso prescreve ou diagnostica</li></ul></div>
+    <div class="col card"><h3>Para o time</h3>
+      <ul><li>PL/SQL organizado, documentado e testado contra Oracle real</li>
+          <li>Toda mudança de regra auditada</li>
+          <li>Deploy reproduzível a cada push, com logs e relatório</li></ul></div>
+  </div>
+  <table style="margin-top:7mm">
+    <tr><td style="width:16%" class="muted">Código</td><td>github.com/AuraSmartHAS/aura</td></tr>
+    <tr><td class="muted">Esteira</td><td>github.com/AuraSmartHAS/aura/actions/workflows/entrega-oracle.yml</td></tr>
+    <tr><td class="muted">Vídeo</td><td>«inserir link do YouTube (não listado)»</td></tr>
+  </table>
+  <div class="foot"><span>10 / 10</span><span>Obrigado · AURA · Smart HAS · FIAP 2026</span></div>
+</section>
+
+</body>
+</html>

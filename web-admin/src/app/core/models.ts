@@ -122,7 +122,7 @@ export interface Signal {
  */
 export type Engine = 'oracle' | 'indisponivel';
 
-/** Aviso gravado pela procedure PRC_REGISTRAR_ALERTAS a partir das regras ativas no banco. */
+/** Aviso gravado pela procedure PKG_ALERTAS.REGISTRAR_ALERTAS a partir das regras ativas no banco. */
 export interface Alerta {
   id: string;
   regra: string;
@@ -137,13 +137,13 @@ export interface AlertasResponse {
   alertas: Alerta[];
 }
 
-/** Uma linha do relatório de consumo (PRC_RELATORIO_CONSUMO, cursor por medicação). */
+/** Uma linha do relatório de consumo (PKG_RELATORIO.CONSUMO, cursor por medicação). */
 export interface ItemConsumo {
   medicamento: string;
   dosesConfirmadas: number;
   dosesNegadas: number;
   dosesEsperadas: number;
-  /** FN_TAXA_ADESAO: nulo quando não há dose esperada no período — "sem dados", nunca 0%. */
+  /** PKG_MEDICACAO.TAXA_ADESAO: nulo quando não há dose esperada no período — "sem dados", nunca 0%. */
   adesaoPct: number | null;
   estoqueDoses: number | null;
 }
@@ -158,7 +158,7 @@ export interface RelatorioConsumo {
   itens: ItemConsumo[];
 }
 
-/** Indicadores do dia por casa, consolidados por PRC_CONSOLIDAR_INDICADORES (só admin). */
+/** Indicadores do dia por casa, consolidados por PKG_RELATORIO.CONSOLIDAR_INDICADORES (só admin). */
 export interface IndicadorCasa {
   homeId: string;
   casa: string;

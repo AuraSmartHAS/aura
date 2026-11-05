@@ -1,4 +1,4 @@
-# Banco Oracle do AURA (Fase 6)
+# Banco Oracle do AURA (Fases 6 e 7)
 
 O schema e o PL/SQL **moram no back-end**, versionados pelo Flyway em
 `backend-spring/src/main/resources/db/migration/oracle/`. Esta pasta guarda o que fica fora da
@@ -10,10 +10,10 @@ sem subir o app.
 | `dados/leituras-pulseira.csv` | 21 dias de leituras da pulseira (passos, FC de repouso, sono) de 3 casas simuladas |
 | `dados/leituras-pulseira.ctl` | Arquivo de controle do **SQL*Loader** que importa o CSV para a tabela de preparo |
 | `carga-simulada.sql` | 3 casas, familiares, medicações, 21 dias de doses, relatos e histórico de SOS |
-| `importar-leituras.sql` | Preparo → leituras da pulseira em `SIGNALS`; roda `PRC_REGISTRAR_ALERTAS` em todas as casas |
-| `consultas-demo.sql` | As functions dentro de `SELECT` e as procedures com `DBMS_OUTPUT` — o roteiro da demo |
+| `importar-leituras.sql` | Preparo → leituras da pulseira em `SIGNALS`; roda `PKG_ALERTAS.REGISTRAR_ALERTAS` em todas as casas |
+| `consultas-demo.sql` | As functions dos packages dentro de `SELECT`, as procedures com `DBMS_OUTPUT`, as duas triggers em ação e o Dynamic SQL — o roteiro da demo |
 | `carregar-dados.sh` | Os três passos da carga, dentro do container |
-| `instalar-tudo.sql` | Schema + PL/SQL num arquivo só, gerado das migrations por `gerar-script-unico.sh` |
+| `instalar-tudo.sql` | Schema, packages e triggers num arquivo só, gerado das migrations por `gerar-script-unico.sh` |
 
 ## Os três perfis de casa da carga
 

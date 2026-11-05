@@ -83,7 +83,7 @@
         </div>
       </article>
 
-      <!-- avisos: gravados no Oracle pela procedure PRC_REGISTRAR_ALERTAS a cada leitura nova -->
+      <!-- avisos: gravados no Oracle por PKG_ALERTAS (a cada leitura nova e, para estoque, pela trigger) -->
       <article class="card" *ngIf="oracleAtivo()">
         <div class="card__head">
           <h2>Avisos da casa</h2>
@@ -212,7 +212,7 @@
            que o Aura resolve, e a própria Leroy apontou isso. Depois da aprovação, a família vai
            para o site do parceiro pelo botão no card da recomendação. -->
 
-      <!-- consumo: PRC_RELATORIO_CONSUMO devolve um cursor por medicação + totais -->
+      <!-- consumo: PKG_RELATORIO.CONSUMO devolve um cursor por medicação + totais -->
       <article class="card card--wide" *ngIf="consumo() as c">
         <div class="card__head">
           <h2>Consumo do período</h2>

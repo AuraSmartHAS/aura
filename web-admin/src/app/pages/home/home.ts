@@ -170,7 +170,7 @@ export class HomePageComponent implements OnInit {
     return `badge badge--${nivel[severidade] ?? 'low'}`;
   }
 
-  /** Adesão vem de FN_TAXA_ADESAO; nulo é "sem dose esperada no período", nunca 0%. */
+  /** Adesão vem de PKG_MEDICACAO.TAXA_ADESAO; nulo é "sem dose esperada no período", nunca 0%. */
   readonly adesao = percentualOuSemDados;
 
   /**

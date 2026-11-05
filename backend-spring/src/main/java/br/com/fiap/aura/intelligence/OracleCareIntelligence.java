@@ -3,18 +3,24 @@ package br.com.fiap.aura.intelligence;
 import br.com.fiap.aura.web.dto.IntelligenceDtos;
 import br.com.fiap.aura.web.error.ApiException;
 import java.math.BigDecimal;
+import java.sql.CallableStatement;
 import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,6 +37,10 @@ import org.springframework.stereotype.Component;
  * o que depende de maiúsculas, de schema e de permissão de leitura no catálogo — e o usuário RM do
  * servidor da FIAP não tem garantia de nenhuma das três.
  *
+ * <p>Fase 7: as rotinas moram em packages. Para o {@link SimpleJdbcCall} do Oracle o package é o
+ * "catalog", então {@code PKG_ALERTAS.REGISTRAR_ALERTAS} vira {@code withCatalogName} +
+ * {@code withProcedureName}.
+ *
  * <p>Nenhum método abre transação: quem chama decide. O PL/SQL também não faz COMMIT.
  */
 @Component
@@ -45,14 +55,16 @@ public class OracleCareIntelligence implements CareIntelligence {
     public OracleCareIntelligence(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
         this.registrarAlertas = new SimpleJdbcCall(jdbc)
-                .withProcedureName("PRC_REGISTRAR_ALERTAS")
+                .withCatalogName("PKG_ALERTAS")
+                .withProcedureName("REGISTRAR_ALERTAS")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_home_id", Types.BINARY),
                         new SqlParameter("p_janela_horas", Types.NUMERIC),
                         new SqlOutParameter("p_novos", Types.NUMERIC));
         this.relatorioConsumo = new SimpleJdbcCall(jdbc)
-                .withProcedureName("PRC_RELATORIO_CONSUMO")
+                .withCatalogName("PKG_RELATORIO")
+                .withProcedureName("CONSUMO")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_home_id", Types.BINARY),
@@ -62,7 +74,8 @@ public class OracleCareIntelligence implements CareIntelligence {
                         new SqlOutParameter("p_total_reais", Types.NUMERIC),
                         new SqlOutParameter("p_itens", Types.REF_CURSOR, OracleCareIntelligence::itemConsumo));
         this.consolidarIndicadores = new SimpleJdbcCall(jdbc)
-                .withProcedureName("PRC_CONSOLIDAR_INDICADORES")
+                .withCatalogName("PKG_RELATORIO")
+                .withProcedureName("CONSOLIDAR_INDICADORES")
                 .withoutProcedureColumnMetaDataAccess()
                 .declareParameters(
                         new SqlParameter("p_data_ref", Types.DATE),
@@ -161,6 +174,41 @@ public class OracleCareIntelligence implements CareIntelligence {
         return new IntelligenceDtos.IndicadoresResponse(ORACLE, ultimo.toLocalDate(), casas);
     }
 
+    @Override
+    public List<Map<String, Object>> consultar(UUID homeId, String entidade, String coluna, String valor,
+                                               String ordem, int limite) {
+        return cursor("{? = call pkg_relatorio.consultar(?, ?, ?, ?, ?, ?)}",
+                entidade, RawUuid.toBytes(homeId), coluna, valor, ordem, limite);
+    }
+
+    @Override
+    public List<Map<String, Object>> agrupar(UUID homeId, String entidade, String coluna) {
+        return cursor("{? = call pkg_relatorio.agrupar(?, ?, ?)}", entidade, RawUuid.toBytes(homeId), coluna);
+    }
+
+    /** Chama uma function que devolve SYS_REFCURSOR e lê as linhas com as colunas em minúsculas. */
+    private List<Map<String, Object>> cursor(String chamada, Object... args) {
+        return traduzindoErros(() -> jdbc.execute(chamada, (CallableStatement cs) -> {
+            cs.registerOutParameter(1, Types.REF_CURSOR);
+            for (int i = 0; i < args.length; i++) {
+                cs.setObject(i + 2, args[i]);
+            }
+            cs.execute();
+            try (ResultSet rs = cs.getObject(1, ResultSet.class)) {
+                ResultSetMetaData meta = rs.getMetaData();
+                List<Map<String, Object>> linhas = new ArrayList<>();
+                while (rs.next()) {
+                    Map<String, Object> linha = new LinkedHashMap<>();
+                    for (int c = 1; c <= meta.getColumnCount(); c++) {
+                        linha.put(meta.getColumnLabel(c).toLowerCase(Locale.ROOT), rs.getObject(c));
+                    }
+                    linhas.add(linha);
+                }
+                return linhas;
+            }
+        }));
+    }
+
     private static IntelligenceDtos.ItemConsumo itemConsumo(ResultSet rs, int linha) throws SQLException {
         int estoque = rs.getInt("estoque_doses");
         Integer estoqueDoses = rs.wasNull() ? null : estoque;
@@ -182,7 +230,7 @@ public class OracleCareIntelligence implements CareIntelligence {
      * Os erros de negócio do PL/SQL (faixa -20xxx) viram resposta HTTP com mensagem em português;
      * o resto sobe como está e o handler global responde 500 sem vazar o detalhe.
      */
-    private static Map<String, Object> traduzindoErros(java.util.function.Supplier<Map<String, Object>> chamada) {
+    private static <T> T traduzindoErros(Supplier<T> chamada) {
         try {
             return chamada.get();
         } catch (DataAccessException e) {
@@ -192,6 +240,10 @@ public class OracleCareIntelligence implements CareIntelligence {
             }
             if (sql != null && sql.getErrorCode() == 20404) {
                 throw ApiException.notFound("Casa");
+            }
+            // Lista branca do Dynamic SQL recusando entidade (20100) ou coluna (20101): erro de quem pediu.
+            if (sql != null && (sql.getErrorCode() == 20100 || sql.getErrorCode() == 20101)) {
+                throw ApiException.badRequest("CONSULTA_INVALIDA", mensagemDoBanco(sql));
             }
             throw e;
         }

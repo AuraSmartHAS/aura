@@ -45,7 +45,7 @@
     },
     {
       "name": "9. Inteligência no banco (Oracle)",
-      "description": "Avisos, relatório de consumo e indicadores calculados por PL/SQL"
+      "description": "Avisos, relatório de consumo, indicadores e consultas em tempo real calculados por PL/SQL"
     },
     {
       "name": "3.1 Medicação",
@@ -1888,7 +1888,7 @@
         "tags": [
           "9. Inteligência no banco (Oracle)"
         ],
-        "summary": "Roda PRC_CONSOLIDAR_INDICADORES agora (somente admin)",
+        "summary": "Roda PKG_RELATORIO.CONSOLIDAR_INDICADORES agora (somente admin)",
         "operationId": "consolidar",
         "responses": {
           "200": {
@@ -1897,27 +1897,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConsolidarResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Recurso inexistente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                },
-                "examples": {
-                  "NOT_FOUND": {
-                    "value": {
-                      "error": {
-                        "code": "NOT_FOUND",
-                        "message": "Casa não encontrada(a).",
-                        "details": null
-                      }
-                    }
-                  }
                 }
               }
             }
@@ -1977,6 +1956,27 @@
                       "error": {
                         "code": "UNAUTHORIZED",
                         "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
                         "details": null
                       }
                     }
@@ -3233,7 +3233,7 @@
         "tags": [
           "9. Inteligência no banco (Oracle)"
         ],
-        "summary": "Roda PRC_REGISTRAR_ALERTAS agora; repetir não duplica aviso",
+        "summary": "Roda PKG_ALERTAS.REGISTRAR_ALERTAS agora; repetir não duplica aviso",
         "operationId": "processar",
         "parameters": [
           {
@@ -3253,27 +3253,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProcessarResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Recurso inexistente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                },
-                "examples": {
-                  "NOT_FOUND": {
-                    "value": {
-                      "error": {
-                        "code": "NOT_FOUND",
-                        "message": "Casa não encontrada(a).",
-                        "details": null
-                      }
-                    }
-                  }
                 }
               }
             }
@@ -3333,6 +3312,27 @@
                       "error": {
                         "code": "UNAUTHORIZED",
                         "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
                         "details": null
                       }
                     }
@@ -5491,7 +5491,7 @@
         "tags": [
           "9. Inteligência no banco (Oracle)"
         ],
-        "summary": "Relatório de consumo por medicação (PRC_RELATORIO_CONSUMO); padrão: últimos 7 dias",
+        "summary": "Relatório de consumo por medicação (PKG_RELATORIO.CONSUMO); padrão: últimos 7 dias",
         "operationId": "relatorioConsumo",
         "parameters": [
           {
@@ -5531,27 +5531,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RelatorioConsumoResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Recurso inexistente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorResponse"
-                },
-                "examples": {
-                  "NOT_FOUND": {
-                    "value": {
-                      "error": {
-                        "code": "NOT_FOUND",
-                        "message": "Casa não encontrada(a).",
-                        "details": null
-                      }
-                    }
-                  }
                 }
               }
             }
@@ -5611,6 +5590,27 @@
                       "error": {
                         "code": "UNAUTHORIZED",
                         "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
                         "details": null
                       }
                     }
@@ -6531,6 +6531,421 @@
           }
         }
       }
+    },
+    "/api/v1/homes/{homeId}/emergencies/active": {
+      "get": {
+        "tags": [
+          "2. Casas"
+        ],
+        "summary": "SOS em aberto da casa, para a família — 204 quando não há",
+        "description": "Autenticada e com acesso à casa. Devolve o mesmo corpo magro de GET /emergencies/{id} enquanto a emergência está waiting_cancel, dispatched ou escalated; use o emergencyId para chamar /ack (\"estou indo\").",
+        "operationId": "activeEmergency",
+        "parameters": [
+          {
+            "name": "homeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/consulta": {
+      "get": {
+        "tags": [
+          "9. Inteligência no banco (Oracle)"
+        ],
+        "summary": "Consulta em tempo real (PKG_RELATORIO.CONSULTAR, Dynamic SQL): entidade, filtro, ordem e limite escolhidos na hora",
+        "operationId": "consulta",
+        "parameters": [
+          {
+            "name": "homeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entidade",
+            "in": "query",
+            "description": "signals, medications, emergencies, alerta, indicador_diario, recommendations, orders ou scores",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "signals"
+          },
+          {
+            "name": "coluna",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "type"
+          },
+          {
+            "name": "valor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "SLEEP"
+          },
+          {
+            "name": "ordem",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "captured_at"
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "1 a 500",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultaResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/homes/{homeId}/consulta/agrupada": {
+      "get": {
+        "tags": [
+          "9. Inteligência no banco (Oracle)"
+        ],
+        "summary": "Contagem agrupada em tempo real (PKG_RELATORIO.AGRUPAR, Dynamic SQL)",
+        "operationId": "consultaAgrupada",
+        "parameters": [
+          {
+            "name": "homeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entidade",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "alerta"
+          },
+          {
+            "name": "coluna",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "regra"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultaResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Papel sem permissão (RBAC) ou recurso de outro paciente (isolamento)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Acesso negado a este recurso.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha inesperada — a mensagem interna fica no log do servidor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Erro interno.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido ou expirado — ou credenciais incorretas no login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Autenticação necessária.",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "Casa não encontrada(a).",
+                        "details": null
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7096,6 +7511,12 @@
             "type": "boolean",
             "description": "Se a dose foi tomada; ausente equivale a true",
             "default": true
+          },
+          "source": {
+            "type": "string",
+            "description": "Como a confirmação foi feita: \"voice\" (agente de voz) ou \"self_report\" (toque no app). Ausente vale self_report; outras origens são recusadas.",
+            "example": "voice",
+            "default": "self_report"
           }
         }
       },
@@ -8055,7 +8476,7 @@
             "format": "int32"
           }
         },
-        "description": "Uma medicação ativa no período. `adesaoPct` vem de FN_TAXA_ADESAO; nulo = sem dado."
+        "description": "Uma medicação ativa no período. `adesaoPct` vem de PKG_MEDICACAO.TAXA_ADESAO; nulo = sem dado."
       },
       "RelatorioConsumoResponse": {
         "type": "object",
@@ -8086,7 +8507,7 @@
             }
           }
         },
-        "description": "Relatório resumido de consumo (PRC_RELATORIO_CONSUMO). `demandaEncaminhadaReais` é a soma do\npreço de referência dos itens aprovados no período: demanda encaminhada a parceiros, não compra."
+        "description": "Relatório resumido de consumo (PKG_RELATORIO.CONSUMO). `demandaEncaminhadaReais` é a soma do\npreço de referência dos itens aprovados no período: demanda encaminhada a parceiros, não compra."
       },
       "OrderSummaryResponse": {
         "type": "object",
@@ -8166,7 +8587,7 @@
             "format": "date-time"
           }
         },
-        "description": "Aviso gravado pelo banco (PRC_REGISTRAR_ALERTAS). `regra` é o código de REGRA_ALERTA."
+        "description": "Aviso gravado pelo banco (PKG_ALERTAS). `regra` é o código de REGRA_ALERTA."
       },
       "AlertasResponse": {
         "type": "object",
@@ -8360,6 +8781,29 @@
             "type": "string"
           }
         }
+      },
+      "ConsultaResponse": {
+        "type": "object",
+        "properties": {
+          "engine": {
+            "type": "string",
+            "example": "oracle"
+          },
+          "entidade": {
+            "type": "string",
+            "example": "signals"
+          },
+          "linhas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Linhas de uma consulta em tempo real (PKG_RELATORIO.CONSULTAR ou AGRUPAR, Dynamic SQL). As chaves\nsão os nomes das colunas em minúsculas; ids saem como UUID e datas em ISO-8601."
       }
     },
     "securitySchemes": {
